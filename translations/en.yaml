@@ -1,0 +1,40 @@
+configuration:
+  poll_interval_seconds:
+    name: Poll Interval (seconds)
+    description: How often to check for available courts.
+  scan_dates:
+    name: Dates to Scan
+    description: List of dates (YYYY-MM-DD) to check. Leave empty to scan the next 7 days.
+  preferred_start_time:
+    name: Preferred Start Time
+    description: Earliest acceptable court start time (HH:MM).
+  preferred_end_time:
+    name: Preferred End Time
+    description: Latest acceptable court start time (HH:MM).
+  preferred_duration_minutes:
+    name: Preferred Duration (minutes)
+    description: Minimum court duration in minutes.
+  notify_device:
+    name: Notify Device
+    description: Mobile device name for push notifications (e.g., "iphone"). Leave empty to skip mobile push.
+  teniso_pasaulis_enabled:
+    name: Teniso Pasaulis Enabled
+    description: Enable polling the Teniso Pasaulis (SEB Arena) provider.
+  teniso_pasaulis_session_token:
+    name: Teniso Pasaulis Session Token
+    description: Session token from savitarna.tenisopasaulis.lt (found in browser DevTools).
+  teniso_pasaulis_sale_point:
+    name: Teniso Pasaulis Sale Point
+    description: Sale point identifier for the location.
+  teniso_pasaulis_places:
+    name: Teniso Pasaulis Court IDs
+    description: List of court IDs to check. Leave empty to check all courts (1-28).
+  baltic_tennis_enabled:
+    name: Baltic Tennis Enabled
+    description: Enable polling the Baltic Tennis provider.
+  baltic_tennis_place_ids:
+    name: Baltic Tennis Place IDs
+    description: Place IDs to check (1 = indoor, 2 = outdoor).
+  debug:
+    name: Debug Mode
+    description: Enable verbose logging for troubleshooting.

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tennis Court Radar</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <script>window.INGRESS_PATH = '{{INGRESS_PATH}}';</script>
+  <div id="app">
+    <header>
+      <h1>Tennis Court Radar</h1>
+      <span id="status" class="status">Loading...</span>
+    </header>
+
+    <section id="results">
+      <h2>Available Courts</h2>
+      <div id="slots-container">
+        <p class="empty">Waiting for first poll...</p>
+      </div>
+      <p id="last-poll"></p>
+    </section>
+  </div>
+  <script src="./app.js"></script>
+</body>
+</html>

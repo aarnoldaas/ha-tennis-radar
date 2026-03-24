@@ -1,0 +1,98 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #1c1c1c;
+  color: #e0e0e0;
+  padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #333;
+}
+
+h1 {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+h2 {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.status {
+  font-size: 0.85rem;
+  padding: 4px 12px;
+  border-radius: 12px;
+  background: #333;
+}
+
+.status.ok {
+  background: #1b5e20;
+  color: #a5d6a7;
+}
+
+.status.error {
+  background: #b71c1c;
+  color: #ef9a9a;
+}
+
+.empty {
+  color: #888;
+  font-style: italic;
+  padding: 16px 0;
+}
+
+#last-poll {
+  margin-top: 12px;
+  font-size: 0.8rem;
+  color: #888;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+th, td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid #333;
+}
+
+th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: #999;
+  font-weight: 500;
+}
+
+td {
+  font-size: 0.9rem;
+}
+
+tr:hover {
+  background: #2a2a2a;
+}
+
+.provider-tag {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: #333;
+  white-space: nowrap;
+}

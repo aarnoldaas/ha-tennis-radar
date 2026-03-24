@@ -18,19 +18,20 @@ export const globalState: {
 export function createServer(options: { port: number; onConfigChange: (opts: AddonOptions) => void }) {
   const app = Fastify({ logger: true });
 
-  // Serve static frontend assets
-  app.register(fastifyStatic, {
-    root: join('/app', 'public'),
-    prefix: '/',
-    decorateReply: true,
-  });
-
   // Inject ingress path into the HTML template
   app.get('/', async (request, reply) => {
     const ingressPath = (request.headers['x-ingress-path'] as string) || '';
     const html = readFileSync(join('/app', 'public', 'index.html'), 'utf-8')
       .replace(/\{\{INGRESS_PATH\}\}/g, ingressPath);
     reply.type('text/html').send(html);
+  });
+
+  // Serve static frontend assets (after the / route so index.html doesn't get served raw)
+  app.register(fastifyStatic, {
+    root: join('/app', 'public'),
+    prefix: '/',
+    decorateReply: true,
+    index: false,
   });
 
   // API: return current status

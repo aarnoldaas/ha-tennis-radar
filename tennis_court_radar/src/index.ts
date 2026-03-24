@@ -51,7 +51,7 @@ function onConfigChange(newOptions: AddonOptions) {
 }
 
 // Start web UI and polling
-createServer({ port: 8099, onConfigChange });
+createServer({ port: 8099, getOptions: () => options, onConfigChange });
 poller.start();
 
 // Graceful shutdown

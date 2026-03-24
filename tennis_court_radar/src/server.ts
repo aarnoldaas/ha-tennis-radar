@@ -15,7 +15,7 @@ export const globalState: {
   latestResults: [],
 };
 
-export function createServer(options: { port: number; onConfigChange: (opts: AddonOptions) => void }) {
+export function createServer(options: { port: number; getOptions: () => AddonOptions; onConfigChange: (opts: AddonOptions) => void }) {
   const app = Fastify({ logger: true });
   const appDir = resolve(process.env.APP_DIR || '/app');
   const publicDir = join(appDir, 'public');
@@ -48,7 +48,13 @@ export function createServer(options: { port: number; onConfigChange: (opts: Add
       running: true,
       lastPoll: globalState.lastPollTime,
       totalSlots: globalState.latestResults.length,
-      availableSlots: globalState.latestResults.filter(s => s.status === 'available'),
+      availableSlots: globalState.latestResults.filter(s => {
+        const opts = options.getOptions();
+        return s.status === 'available' &&
+          s.startTime >= opts.preferred_start_time &&
+          s.startTime <= opts.preferred_end_time &&
+          s.durationMinutes >= opts.preferred_duration_minutes;
+      }),
     };
   });
 

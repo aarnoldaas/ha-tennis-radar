@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 
 export interface AddonOptions {
   poll_interval_seconds: number;
@@ -17,7 +17,8 @@ export interface AddonOptions {
   debug: boolean;
 }
 
-const CONFIG_PATH = '/data/config.json';
+const DATA_DIR = process.env.DATA_DIR || '/data';
+const CONFIG_PATH = `${DATA_DIR}/config.json`;
 
 const DEFAULTS: AddonOptions = {
   poll_interval_seconds: 30,
@@ -49,7 +50,7 @@ export function loadOptions(): AddonOptions {
 
   // Fall back to HA add-on options for initial migration
   try {
-    const haOptions = JSON.parse(readFileSync('/data/options.json', 'utf-8'));
+    const haOptions = JSON.parse(readFileSync(`${DATA_DIR}/options.json`, 'utf-8'));
     return { ...DEFAULTS, ...haOptions };
   } catch {
     // No HA options either — use defaults
@@ -59,6 +60,7 @@ export function loadOptions(): AddonOptions {
 }
 
 export function saveOptions(options: AddonOptions): void {
+  mkdirSync(DATA_DIR, { recursive: true });
   writeFileSync(CONFIG_PATH, JSON.stringify(options, null, 2));
 }
 

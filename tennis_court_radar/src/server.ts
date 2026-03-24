@@ -1,7 +1,7 @@
 import Fastify from 'fastify';
 import fastifyStatic from '@fastify/static';
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import type { TimeSlot } from './providers/types.js';
 import type { AddonOptions } from './utils/config.js';
 import { loadOptions, saveOptions } from './utils/config.js';
@@ -17,6 +17,8 @@ export const globalState: {
 
 export function createServer(options: { port: number; onConfigChange: (opts: AddonOptions) => void }) {
   const app = Fastify({ logger: true });
+  const appDir = resolve(process.env.APP_DIR || '/app');
+  const publicDir = join(appDir, 'public');
 
   // Disable caching on all responses
   app.addHook('onSend', async (_request, reply) => {
@@ -25,7 +27,7 @@ export function createServer(options: { port: number; onConfigChange: (opts: Add
 
   // Serve static frontend assets (css, js)
   app.register(fastifyStatic, {
-    root: join('/app', 'public'),
+    root: publicDir,
     prefix: '/static/',
     decorateReply: true,
   });
@@ -33,7 +35,7 @@ export function createServer(options: { port: number; onConfigChange: (opts: Add
   // Inject ingress path into the HTML template
   const serveIndex = async (request: any, reply: any) => {
     const ingressPath = (request.headers['x-ingress-path'] as string) || '';
-    const html = readFileSync(join('/app', 'public', 'index.html'), 'utf-8')
+    const html = readFileSync(join(publicDir, 'index.html'), 'utf-8')
       .replace(/\{\{INGRESS_PATH\}\}/g, ingressPath);
     reply.type('text/html').send(html);
   };

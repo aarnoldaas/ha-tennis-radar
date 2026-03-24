@@ -26,12 +26,14 @@ export function createServer(options: { port: number; onConfigChange: (opts: Add
   });
 
   // Inject ingress path into the HTML template
-  app.get('/', async (request, reply) => {
+  const serveIndex = async (request: any, reply: any) => {
     const ingressPath = (request.headers['x-ingress-path'] as string) || '';
     const html = readFileSync(join('/app', 'public', 'index.html'), 'utf-8')
       .replace(/\{\{INGRESS_PATH\}\}/g, ingressPath);
     reply.type('text/html').send(html);
-  });
+  };
+  app.get('/', serveIndex);
+  app.get('//', serveIndex);
 
   // API: return current status
   app.get('/api/status', async () => {

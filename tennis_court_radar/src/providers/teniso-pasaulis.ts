@@ -34,40 +34,46 @@ export class TenisoPasaulisProvider implements ICourtProvider {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private parseResponse(result: any, date: string): TimeSlot[] {
+  private parseResponse(result: any, _date: string): TimeSlot[] {
     const slots: TimeSlot[] = [];
 
-    // Adapt to actual response structure — verify with DevTools
-    // Trying common patterns: result.data[], result[], or result.places[]
-    const places = result?.data ?? result?.places ?? (Array.isArray(result) ? result : []);
+    // Structure: { data: [ { place: N, data: [[ { courtID, courtName, date, timetable: { "HH:MM:SS": { from, to, status } } } ]] } ] }
+    const places = result?.data ?? [];
 
-    for (const place of places) {
-      if (!place || typeof place !== 'object') continue;
+    for (const placeEntry of places) {
+      if (!placeEntry?.data) continue;
 
-      const placeId = String(place.placeId ?? place.id ?? '');
-      const placeName = place.placeName ?? place.name ?? `Court ${placeId}`;
-      const placeSlots = place.slots ?? place.times ?? place.schedule ?? [];
+      for (const courtGroup of placeEntry.data) {
+        if (!Array.isArray(courtGroup)) continue;
 
-      for (const slot of placeSlots) {
-        if (!slot || typeof slot !== 'object') continue;
+        for (const court of courtGroup) {
+          if (!court?.timetable) continue;
 
-        const startTime = slot.time ?? slot.startTime ?? slot.start;
-        if (!startTime) continue;
+          const courtId = String(court.courtID ?? '');
+          const courtName = court.courtName ?? `Court ${courtId}`;
+          const date = court.date ?? _date;
 
-        const endTime = slot.endTime ?? slot.end ?? this.addMinutes(startTime, 60);
-        const status = this.mapStatus(slot.status ?? slot.state);
+          for (const [, slot] of Object.entries(court.timetable)) {
+            const s = slot as any;
+            if (!s?.from) continue;
 
-        slots.push({
-          courtId: placeId,
-          courtName: placeName,
-          date,
-          startTime,
-          endTime,
-          durationMinutes: this.diffMinutes(startTime, endTime),
-          status,
-          price: slot.price,
-          provider: 'teniso_pasaulis',
-        });
+            const startTime = s.from.slice(0, 5); // "07:00:00" -> "07:00"
+            const endTime = s.to.slice(0, 5);
+            const status = this.mapStatus(s.status);
+
+            slots.push({
+              courtId,
+              courtName,
+              date,
+              startTime,
+              endTime,
+              durationMinutes: this.diffMinutes(startTime, endTime),
+              status,
+              price: s.price,
+              provider: 'teniso_pasaulis',
+            });
+          }
+        }
       }
     }
 

@@ -30,7 +30,7 @@ export function createServer(options: { port: number; onConfigChange: (opts: Add
     const ingressPath = (request.headers['x-ingress-path'] as string) || '';
     const html = readFileSync(join('/app', 'public', 'index.html'), 'utf-8')
       .replace(/\{\{INGRESS_PATH\}\}/g, ingressPath);
-    reply.type('text/html').send(html);
+    reply.header('Cache-Control', 'no-cache').type('text/html').send(html);
   };
   app.get('/', serveIndex);
   app.get('//', serveIndex);

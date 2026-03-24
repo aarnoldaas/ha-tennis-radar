@@ -8,7 +8,7 @@ __pycache__/
 
 # Node
 node_modules/
-dist/
+# dist/ - committed for HA add-on builds
 
 # Build output
 custom_components/tennis_radar/www/

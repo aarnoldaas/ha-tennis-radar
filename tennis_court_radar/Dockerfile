@@ -1,31 +1,14 @@
 ARG BUILD_FROM
+FROM ${BUILD_FROM}
 
-# ==========================================
-# Stage 1: Compile TypeScript
-# ==========================================
-FROM node:20-alpine AS builder
+RUN apk add --no-cache nodejs npm
 
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm install --ignore-scripts
+RUN npm ci --only=production --ignore-scripts && npm cache clean --force && apk del npm
 
-COPY tsconfig.json ./
-COPY src/ ./src/
-RUN npm run build && npm prune --production
-
-# ==========================================
-# Stage 2: HA Add-on Runtime
-# ==========================================
-FROM ${BUILD_FROM}
-
-RUN apk add --no-cache nodejs
-
-WORKDIR /app
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./
-
+COPY dist/ ./dist/
 COPY public/ ./public/
 COPY rootfs /
 

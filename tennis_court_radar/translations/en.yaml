@@ -28,7 +28,7 @@ configuration:
     description: Sale point identifier for the location.
   teniso_pasaulis_places:
     name: Teniso Pasaulis Court IDs
-    description: List of court IDs to check. Leave empty to check all courts (1-28).
+    description: "Comma-separated court IDs to check (e.g. \"2\" or \"2, 5, 8\"). Leave empty to check all courts (1-28)."
   baltic_tennis_enabled:
     name: Baltic Tennis Enabled
     description: Enable polling the Baltic Tennis provider.

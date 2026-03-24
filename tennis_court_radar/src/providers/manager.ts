@@ -11,8 +11,8 @@ export class CourtProviderManager {
       this.providers.push(new TenisoPasaulisProvider(
         options.teniso_pasaulis_session_token,
         options.teniso_pasaulis_sale_point,
-        options.teniso_pasaulis_places.length > 0
-          ? options.teniso_pasaulis_places
+        options.teniso_pasaulis_places
+          ? options.teniso_pasaulis_places.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n))
           : undefined,
       ));
     }

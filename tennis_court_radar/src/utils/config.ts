@@ -10,7 +10,7 @@ export interface AddonOptions {
   teniso_pasaulis_enabled: boolean;
   teniso_pasaulis_session_token: string;
   teniso_pasaulis_sale_point: number;
-  teniso_pasaulis_places: number[];
+  teniso_pasaulis_places: string;
   baltic_tennis_enabled: boolean;
   baltic_tennis_place_ids: number[];
   debug: boolean;

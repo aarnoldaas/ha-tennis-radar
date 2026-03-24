@@ -1,5 +1,5 @@
 name: "Tennis Court Radar"
-version: "1.0.1"
+version: "1.0.4"
 slug: "tennis_court_radar"
 description: "Polls tennis court providers and notifies when courts matching your preferences become available"
 url: "https://github.com/aarnoldaas/ha-tennis-radar"
@@ -30,7 +30,7 @@ options:
   teniso_pasaulis_enabled: true
   teniso_pasaulis_session_token: ""
   teniso_pasaulis_sale_point: 1
-  teniso_pasaulis_places: []
+  teniso_pasaulis_places: ""
   baltic_tennis_enabled: true
   baltic_tennis_place_ids:
     - 1
@@ -46,9 +46,8 @@ schema:
   notify_device: "str?"
   teniso_pasaulis_enabled: "bool"
   teniso_pasaulis_session_token: "password?"
-  teniso_pasaulis_sale_point: "int(1,10)"
-  teniso_pasaulis_places:
-    - "int"
+  teniso_pasaulis_sale_point: "int(1,100)"
+  teniso_pasaulis_places: "str?"
   baltic_tennis_enabled: "bool"
   baltic_tennis_place_ids:
     - "int"

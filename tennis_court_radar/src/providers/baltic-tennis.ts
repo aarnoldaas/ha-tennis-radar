@@ -5,7 +5,7 @@ export class BalticTennisProvider implements ICourtProvider {
   readonly name = 'Baltic Tennis';
   readonly key = 'baltic_tennis' as const;
 
-  constructor(private placeIds: number[] = [1]) {}
+  constructor(private placeIds: number[] = [1], private sessionToken: string = '') {}
 
   async getAvailability(date: string): Promise<TimeSlot[]> {
     const allSlots: TimeSlot[] = [];
@@ -16,7 +16,11 @@ export class BalticTennisProvider implements ICourtProvider {
 
     for (const placeId of this.placeIds) {
       const url = `https://savitarna.baltictennis.lt/reservation/short?sDate=${formattedDate}&iPlaceId=${placeId}`;
-      const response = await fetch(url);
+      const headers: Record<string, string> = {};
+      if (this.sessionToken) {
+        headers['Cookie'] = `PHPSESSID=${this.sessionToken}`;
+      }
+      const response = await fetch(url, { headers });
 
       if (!response.ok) {
         console.warn(`[BalticTennis] HTTP ${response.status} for place ${placeId}, date ${date}`);
@@ -24,7 +28,6 @@ export class BalticTennisProvider implements ICourtProvider {
       }
 
       const html = await response.text();
-      console.log(`[BalticTennis] HTML length for ${date} place ${placeId}: ${html.length}`);
       const slots = this.parseHTML(html, date, placeId);
       allSlots.push(...slots);
     }
@@ -34,59 +37,100 @@ export class BalticTennisProvider implements ICourtProvider {
 
   private parseHTML(html: string, date: string, placeId: number): TimeSlot[] {
     const $ = cheerio.load(html);
-    const slots: TimeSlot[] = [];
 
-    // Extract court names from table header
-    const courtNames: string[] = [];
-    $('table thead tr th, table tr:first-child th').each((i, el) => {
-      if (i > 0) courtNames.push($(el).text().trim());
-    });
+    // Each row in rbt-table tbody = one court
+    const rows = $('table.rbt-table tbody tr');
 
-    // Parse each row — each row = one time slot across all courts
-    $('table tbody tr, table tr').each((_, row) => {
+    // Collect 30-min entries per court, then merge consecutive available ones
+    const allSlots: TimeSlot[] = [];
+
+    rows.each((_, row) => {
       const cells = $(row).find('td');
       if (cells.length < 2) return;
 
-      const timeText = $(cells[0]).text().trim();
-      if (!/^\d{1,2}:\d{2}/.test(timeText)) return;
-      const startTime = timeText.substring(0, 5).padStart(5, '0');
+      // First cell is the court name
+      const courtName = $(cells[0]).find('span').text().trim();
+      if (!courtName) return;
+
+      // Collect all 30-min slots for this court
+      const entries: { time: string; available: boolean; courtId: string }[] = [];
 
       cells.each((colIdx, cell) => {
-        if (colIdx === 0) return; // Skip time column
+        if (colIdx === 0) return; // Skip court name column
 
         const $cell = $(cell);
-        const cls = ($cell.attr('class') || '').toLowerCase();
-        const text = $cell.text().trim().toLowerCase();
+        const $link = $cell.find('a');
+        const time = $link.attr('data-time');
+        const courtId = $link.attr('data-court') || '';
+        if (!time) return;
 
-        let status: TimeSlot['status'] = 'booked';
-        if (cls.includes('free') || text.includes('laisva') || text === '') {
-          status = 'available';
-        } else if (cls.includes('blocked') || cls.includes('closed')) {
-          status = 'blocked';
-        }
-
-        // Extract price if shown (e.g., "25 €" or "25.00€")
-        const priceMatch = text.match(/(\d+(?:\.\d{2})?)\s*€/);
-
-        slots.push({
-          courtId: `bt-${placeId}-${colIdx}`,
-          courtName: courtNames[colIdx - 1] || `Court ${colIdx}`,
-          date,
-          startTime,
-          endTime: this.addHour(startTime),
-          durationMinutes: 60,
-          status,
-          price: priceMatch ? parseFloat(priceMatch[1]) : undefined,
-          provider: 'baltic_tennis',
-        });
+        const available = $cell.hasClass('booking-slot-available') || $cell.hasClass('empty');
+        entries.push({ time, available, courtId });
       });
+
+      // Sort by time
+      entries.sort((a, b) => a.time.localeCompare(b.time));
+
+      // Merge consecutive available 30-min slots
+      let blockStart: string | null = null;
+      let blockEnd: string | null = null;
+      let courtId = '';
+
+      for (const entry of entries) {
+        if (entry.available) {
+          if (blockStart === null) {
+            blockStart = entry.time;
+            blockEnd = this.addMinutes(entry.time, 30);
+            courtId = entry.courtId;
+          } else if (entry.time === blockEnd) {
+            blockEnd = this.addMinutes(entry.time, 30);
+          } else {
+            // Gap — flush
+            allSlots.push(this.makeSlot(courtId, courtName, date, blockStart, blockEnd!, placeId));
+            blockStart = entry.time;
+            blockEnd = this.addMinutes(entry.time, 30);
+            courtId = entry.courtId;
+          }
+        } else {
+          if (blockStart !== null) {
+            allSlots.push(this.makeSlot(courtId, courtName, date, blockStart, blockEnd!, placeId));
+            blockStart = null;
+            blockEnd = null;
+          }
+        }
+      }
+
+      // Flush last block
+      if (blockStart !== null) {
+        allSlots.push(this.makeSlot(courtId, courtName, date, blockStart, blockEnd!, placeId));
+      }
     });
 
-    return slots;
+    return allSlots;
   }
 
-  private addHour(time: string): string {
+  private makeSlot(courtId: string, courtName: string, date: string, startTime: string, endTime: string, placeId: number): TimeSlot {
+    return {
+      courtId: `bt-${placeId}-${courtId}`,
+      courtName,
+      date,
+      startTime: startTime.padStart(5, '0'),
+      endTime: endTime.padStart(5, '0'),
+      durationMinutes: this.diffMinutes(startTime, endTime),
+      status: 'available',
+      provider: 'baltic_tennis',
+    };
+  }
+
+  private addMinutes(time: string, mins: number): string {
     const [h, m] = time.split(':').map(Number);
-    return `${String(h + 1).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    const total = h * 60 + m + mins;
+    return `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+  }
+
+  private diffMinutes(a: string, b: string): number {
+    const [ah, am] = a.split(':').map(Number);
+    const [bh, bm] = b.split(':').map(Number);
+    return (bh * 60 + bm) - (ah * 60 + am);
   }
 }

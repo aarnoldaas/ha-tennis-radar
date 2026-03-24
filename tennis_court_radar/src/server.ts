@@ -52,6 +52,7 @@ export function createServer(options: { port: number; onConfigChange: (opts: Add
     return {
       ...opts,
       teniso_pasaulis_session_token: opts.teniso_pasaulis_session_token ? '••••••••' : '',
+      baltic_tennis_session_token: opts.baltic_tennis_session_token ? '••••••••' : '',
     };
   });
 
@@ -68,6 +69,10 @@ export function createServer(options: { port: number; onConfigChange: (opts: Add
         body.teniso_pasaulis_session_token === '••••••••' || body.teniso_pasaulis_session_token === ''
           ? current.teniso_pasaulis_session_token
           : (body.teniso_pasaulis_session_token ?? current.teniso_pasaulis_session_token),
+      baltic_tennis_session_token:
+        body.baltic_tennis_session_token === '••••••••' || body.baltic_tennis_session_token === ''
+          ? current.baltic_tennis_session_token
+          : (body.baltic_tennis_session_token ?? current.baltic_tennis_session_token),
     };
 
     saveOptions(updated);

@@ -12,6 +12,7 @@ export interface AddonOptions {
   teniso_pasaulis_sale_point: number;
   teniso_pasaulis_places: string;
   baltic_tennis_enabled: boolean;
+  baltic_tennis_session_token: string;
   baltic_tennis_place_ids: string;
   debug: boolean;
 }
@@ -30,6 +31,7 @@ const DEFAULTS: AddonOptions = {
   teniso_pasaulis_sale_point: 1,
   teniso_pasaulis_places: '',
   baltic_tennis_enabled: true,
+  baltic_tennis_session_token: '',
   baltic_tennis_place_ids: '1',
   debug: false,
 };
@@ -66,6 +68,12 @@ export function saveOptions(options: AddonOptions): void {
 export function getEffectiveDates(scanDates: string[]): string[] {
   if (scanDates.length > 0) return scanDates;
 
-  // TODO: restore dynamic date generation after debugging
-  return ['2026-03-30'];
+  const dates: string[] = [];
+  const now = new Date();
+  for (let i = 1; i <= 7; i++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() + i);
+    dates.push(d.toISOString().slice(0, 10));
+  }
+  return dates;
 }

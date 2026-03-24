@@ -20,7 +20,7 @@ export class CourtProviderManager {
       const placeIds = typeof options.baltic_tennis_place_ids === 'string'
         ? options.baltic_tennis_place_ids.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n))
         : options.baltic_tennis_place_ids;
-      this.providers.push(new BalticTennisProvider(placeIds));
+      this.providers.push(new BalticTennisProvider(placeIds, options.baltic_tennis_session_token));
     }
 
     console.log(`[ProviderManager] Initialized ${this.providers.length} provider(s): ${this.providers.map(p => p.name).join(', ') || 'none'}`);

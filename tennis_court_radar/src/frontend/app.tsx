@@ -408,4 +408,15 @@ function App() {
   );
 }
 
-render(<App />, document.getElementById('app')!);
+function mount() {
+  const root = document.getElementById('app');
+  if (root) {
+    render(<App />, root);
+  } else {
+    // HA ingress may delay DOM — retry when ready
+    document.addEventListener('DOMContentLoaded', () => {
+      render(<App />, document.getElementById('app')!);
+    });
+  }
+}
+mount();

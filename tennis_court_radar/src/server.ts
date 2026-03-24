@@ -18,6 +18,11 @@ export const globalState: {
 export function createServer(options: { port: number; onConfigChange: (opts: AddonOptions) => void }) {
   const app = Fastify({ logger: true });
 
+  // Disable caching on all responses
+  app.addHook('onSend', async (_request, reply) => {
+    reply.header('Cache-Control', 'no-store, no-cache, must-revalidate');
+  });
+
   // Serve static frontend assets (css, js)
   app.register(fastifyStatic, {
     root: join('/app', 'public'),
@@ -30,7 +35,7 @@ export function createServer(options: { port: number; onConfigChange: (opts: Add
     const ingressPath = (request.headers['x-ingress-path'] as string) || '';
     const html = readFileSync(join('/app', 'public', 'index.html'), 'utf-8')
       .replace(/\{\{INGRESS_PATH\}\}/g, ingressPath);
-    reply.header('Cache-Control', 'no-cache').type('text/html').send(html);
+    reply.type('text/html').send(html);
   };
   app.get('/', serveIndex);
   app.get('//', serveIndex);

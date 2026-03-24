@@ -63,10 +63,10 @@ export class HomeAssistantNotifier {
     }
 
     const lines = newSlots.slice(0, 10).map(s =>
-      `**${s.courtName}** ${s.startTime}–${s.endTime} on ${s.date} (${s.provider})`,
+      `${s.courtName} ${s.startTime} ${s.date} [${s.provider}]`,
     );
-    const message = `${newSlots.length} court(s) available:\n${lines.join('\n')}`;
-    const title = 'Tennis Court Available!';
+    const title = `🎾 ${newSlots.length} court(s) found`;
+    const message = lines.join('\n');
 
     try {
       await this.sendPersistentNotification(message, title, 'tennis_court_alert');

@@ -232,6 +232,137 @@ input::placeholder { color: #555; }
   .date-picker-grid { grid-template-columns: repeat(4, 1fr); }
 }
 
+/* Empty state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  text-align: center;
+}
+.empty-state-icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.7; }
+.empty-state-title { font-size: 1.05rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.empty-state-sub { font-size: 0.85rem; color: var(--text-muted); max-width: 300px; }
+
+/* Slots section */
+.slots-section { display: flex; flex-direction: column; gap: 20px; }
+
+.slots-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.slots-count {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+.slots-count-label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Date group */
+.date-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.date-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.date-group-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #ccc;
+}
+.date-group-count {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  padding: 2px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+/* Slot cards */
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+.slot-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  cursor: default;
+}
+.slot-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 4px 16px rgba(66, 165, 245, 0.08);
+}
+
+.slot-card-time {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.slot-time-range {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.slot-duration {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  background: var(--bg-input);
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.slot-card-details {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.slot-court-name {
+  font-size: 0.85rem;
+  color: #bbb;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.slot-provider {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  background: var(--bg-input);
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 500;
+}
+
 /* Utility */
 .text-muted { color: var(--text-muted); font-style: italic; }
 .text-success { color: var(--text-success); font-size: 0.85rem; }

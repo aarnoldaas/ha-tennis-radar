@@ -69,7 +69,13 @@ function Card({ title, children }: { title?: string; children: any }) {
 
 function SlotTable({ slots }: { slots: TimeSlot[] }) {
   if (!slots || slots.length === 0) {
-    return <p class="text-muted">No available courts found matching your preferences.</p>;
+    return (
+      <div class="empty-state">
+        <div class="empty-state-icon">🎾</div>
+        <p class="empty-state-title">No courts available</p>
+        <p class="empty-state-sub">No courts matching your preferences were found. We'll keep checking!</p>
+      </div>
+    );
   }
 
   const byDate: Record<string, TimeSlot[]> = {};
@@ -78,33 +84,37 @@ function SlotTable({ slots }: { slots: TimeSlot[] }) {
     byDate[slot.date].push(slot);
   }
 
+  const totalCount = slots.length;
+
   return (
-    <div>
+    <div class="slots-section">
+      <div class="slots-summary">
+        <span class="slots-count">{totalCount}</span>
+        <span class="slots-count-label">court{totalCount !== 1 ? 's' : ''} available</span>
+      </div>
       {Object.entries(byDate).sort().map(([date, dateSlots]) => (
-        <Card title={formatDate(date)} key={date}>
-          <table>
-            <thead>
-              <tr>
-                <th>Court</th>
-                <th>Time</th>
-                <th>Duration</th>
-                <th>Provider</th>
-              </tr>
-            </thead>
-            <tbody>
-              {dateSlots
-                .sort((a, b) => a.startTime.localeCompare(b.startTime))
-                .map((s, i) => (
-                  <tr key={i}>
-                    <td>{s.courtName}</td>
-                    <td class="text-mono">{s.startTime} – {s.endTime}</td>
-                    <td>{s.durationMinutes} min</td>
-                    <td><Badge variant="default">{s.provider}</Badge></td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </Card>
+        <div class="date-group" key={date}>
+          <div class="date-group-header">
+            <span class="date-group-title">{formatDate(date)}</span>
+            <span class="date-group-count">{dateSlots.length} slot{dateSlots.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div class="slot-grid">
+            {dateSlots
+              .sort((a, b) => a.startTime.localeCompare(b.startTime))
+              .map((s, i) => (
+                <div class="slot-card" key={i}>
+                  <div class="slot-card-time">
+                    <span class="slot-time-range">{s.startTime} – {s.endTime}</span>
+                    <span class="slot-duration">{s.durationMinutes} min</span>
+                  </div>
+                  <div class="slot-card-details">
+                    <span class="slot-court-name">{s.courtName}</span>
+                    <span class="slot-provider">{s.provider}</span>
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
       ))}
     </div>
   );

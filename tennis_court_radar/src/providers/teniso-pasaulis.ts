@@ -85,7 +85,7 @@ export class TenisoPasaulisProvider implements ICourtProvider {
                   endTime: blockEnd!,
                   durationMinutes: this.diffMinutes(blockStart, blockEnd!),
                   status: 'available',
-                  provider: 'teniso_pasaulis',
+                  provider: 'SEB',
                 });
                 blockStart = entry.from;
                 blockEnd = entry.to;
@@ -99,7 +99,7 @@ export class TenisoPasaulisProvider implements ICourtProvider {
                   endTime: blockEnd!,
                   durationMinutes: this.diffMinutes(blockStart, blockEnd!),
                   status: 'available',
-                  provider: 'teniso_pasaulis',
+                  provider: 'SEB',
                 });
                 blockStart = null;
                 blockEnd = null;
@@ -115,7 +115,7 @@ export class TenisoPasaulisProvider implements ICourtProvider {
               endTime: blockEnd!,
               durationMinutes: this.diffMinutes(blockStart, blockEnd!),
               status: 'available',
-              provider: 'teniso_pasaulis',
+              provider: 'SEB',
             });
           }
         }

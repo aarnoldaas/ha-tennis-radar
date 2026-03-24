@@ -118,7 +118,7 @@ export class BalticTennisProvider implements ICourtProvider {
       endTime: endTime.padStart(5, '0'),
       durationMinutes: this.diffMinutes(startTime, endTime),
       status: 'available',
-      provider: 'baltic_tennis',
+      provider: 'BT',
     };
   }
 

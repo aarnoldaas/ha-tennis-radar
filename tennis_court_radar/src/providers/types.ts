@@ -7,11 +7,11 @@ export interface TimeSlot {
   durationMinutes: number;
   status: 'available' | 'booked' | 'blocked';
   price?: number;
-  provider: 'teniso_pasaulis' | 'baltic_tennis';
+  provider: 'SEB' | 'BT';
 }
 
 export interface ICourtProvider {
   readonly name: string;
-  readonly key: 'teniso_pasaulis' | 'baltic_tennis';
+  readonly key: 'SEB' | 'BT';
   getAvailability(date: string): Promise<TimeSlot[]>;
 }

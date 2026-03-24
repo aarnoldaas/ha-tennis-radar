@@ -11,15 +11,86 @@
   <div id="app">
     <header>
       <h1>Tennis Court Radar</h1>
-      <span id="status" class="status">Loading...</span>
+      <div class="header-right">
+        <span id="status" class="status">Loading...</span>
+        <nav class="tabs">
+          <button class="tab active" data-tab="results">Courts</button>
+          <button class="tab" data-tab="settings">Settings</button>
+        </nav>
+      </div>
     </header>
 
-    <section id="results">
+    <section id="tab-results">
       <h2>Available Courts</h2>
       <div id="slots-container">
         <p class="empty">Waiting for first poll...</p>
       </div>
       <p id="last-poll"></p>
+    </section>
+
+    <section id="tab-settings" style="display:none">
+      <h2>Settings</h2>
+      <form id="config-form">
+        <fieldset>
+          <legend>General</legend>
+          <label>Poll Interval (seconds)
+            <input type="number" name="poll_interval_seconds" min="10" max="3600">
+          </label>
+          <label>Preferred Start Time
+            <input type="time" name="preferred_start_time">
+          </label>
+          <label>Preferred End Time
+            <input type="time" name="preferred_end_time">
+          </label>
+          <label>Min Duration (minutes)
+            <input type="number" name="preferred_duration_minutes" min="30" max="180" step="30">
+          </label>
+          <label>Notify Device
+            <input type="text" name="notify_device" placeholder="e.g. iphone">
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Teniso Pasaulis</legend>
+          <label class="checkbox">
+            <input type="checkbox" name="teniso_pasaulis_enabled">
+            Enabled
+          </label>
+          <label>Session Token
+            <input type="password" name="teniso_pasaulis_session_token" autocomplete="off">
+          </label>
+          <label>Sale Point
+            <input type="number" name="teniso_pasaulis_sale_point" min="1">
+          </label>
+          <label>Court IDs
+            <input type="text" name="teniso_pasaulis_places" placeholder="e.g. 2, 5, 8 (empty = all)">
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Baltic Tennis</legend>
+          <label class="checkbox">
+            <input type="checkbox" name="baltic_tennis_enabled">
+            Enabled
+          </label>
+          <label>Place IDs
+            <input type="text" name="baltic_tennis_place_ids" placeholder="e.g. 1, 2">
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Advanced</legend>
+          <label class="checkbox">
+            <input type="checkbox" name="debug">
+            Debug Mode
+          </label>
+        </fieldset>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-save">Save</button>
+          <span id="save-status"></span>
+        </div>
+      </form>
     </section>
   </div>
   <script src="./app.js"></script>

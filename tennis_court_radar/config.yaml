@@ -1,5 +1,5 @@
 name: "Tennis Court Radar"
-version: "1.0.5"
+version: "1.0.6"
 slug: "tennis_court_radar"
 description: "Polls tennis court providers and notifies when courts matching your preferences become available"
 url: "https://github.com/aarnoldaas/ha-tennis-radar"
@@ -20,38 +20,8 @@ panel_admin: false
 
 homeassistant_api: true
 
-options:
-  poll_interval_seconds: 30
-  scan_dates: []
-  preferred_start_time: "17:00"
-  preferred_end_time: "21:00"
-  preferred_duration_minutes: 60
-  notify_device: ""
-  teniso_pasaulis_enabled: true
-  teniso_pasaulis_session_token: ""
-  teniso_pasaulis_sale_point: 1
-  teniso_pasaulis_places: ""
-  baltic_tennis_enabled: true
-  baltic_tennis_place_ids:
-    - 1
-  debug: false
-
-schema:
-  poll_interval_seconds: "int(10,3600)"
-  scan_dates:
-    - "str"
-  preferred_start_time: "match(^\\d{2}:\\d{2}$)"
-  preferred_end_time: "match(^\\d{2}:\\d{2}$)"
-  preferred_duration_minutes: "int(30,180)"
-  notify_device: "str?"
-  teniso_pasaulis_enabled: "bool"
-  teniso_pasaulis_session_token: "password?"
-  teniso_pasaulis_sale_point: "int(1,100)"
-  teniso_pasaulis_places: "str?"
-  baltic_tennis_enabled: "bool"
-  baltic_tennis_place_ids:
-    - "int"
-  debug: "bool"
+options: {}
+schema: {}
 
 map:
   - type: data

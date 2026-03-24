@@ -1,13 +1,12 @@
-import { loadOptions, getEffectiveDates } from './utils/config.js';
+import { loadOptions, getEffectiveDates, type AddonOptions } from './utils/config.js';
 import { createServer, globalState } from './server.js';
 import { PollingManager } from './polling.js';
 import { CourtProviderManager } from './providers/manager.js';
 import { HomeAssistantNotifier } from './notifications.js';
 
-const options = loadOptions();
+let options = loadOptions();
 console.log('[TennisRadar] Configuration loaded:', {
   poll_interval_seconds: options.poll_interval_seconds,
-  scan_dates: options.scan_dates,
   preferred_start_time: options.preferred_start_time,
   preferred_end_time: options.preferred_end_time,
   teniso_pasaulis_enabled: options.teniso_pasaulis_enabled,
@@ -16,7 +15,7 @@ console.log('[TennisRadar] Configuration loaded:', {
 });
 
 const notifier = new HomeAssistantNotifier();
-const providerManager = new CourtProviderManager(options);
+let providerManager = new CourtProviderManager(options);
 
 const poller = new PollingManager(
   async () => {
@@ -43,8 +42,16 @@ const poller = new PollingManager(
   { intervalMs: options.poll_interval_seconds * 1000 },
 );
 
+function onConfigChange(newOptions: AddonOptions) {
+  console.log('[TennisRadar] Config updated, reloading providers...');
+  options = newOptions;
+  providerManager.disposeAll();
+  providerManager = new CourtProviderManager(options);
+  poller.updateInterval(options.poll_interval_seconds * 1000);
+}
+
 // Start web UI and polling
-createServer({ port: 8099 });
+createServer({ port: 8099, onConfigChange });
 poller.start();
 
 // Graceful shutdown

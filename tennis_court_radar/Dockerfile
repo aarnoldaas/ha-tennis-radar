@@ -5,6 +5,10 @@ RUN apk add --no-cache nodejs
 
 WORKDIR /app
 
+# Cache-bust: forces fresh COPY on every version
+ARG BUILD_VERSION=dev
+RUN echo "version=${BUILD_VERSION}"
+
 COPY dist/bundle.cjs ./dist/
 COPY public/ ./public/
 COPY rootfs /

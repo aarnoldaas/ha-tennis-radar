@@ -4,9 +4,9 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "build": "esbuild src/index.ts --bundle --platform=node --format=esm --outfile=dist/bundle.js --minify",
+    "build": "esbuild src/index.ts --bundle --platform=node --format=cjs --outfile=dist/bundle.cjs --minify",
     "dev": "tsc --watch",
-    "start": "node dist/bundle.js"
+    "start": "node dist/bundle.cjs"
   },
   "dependencies": {
     "@fastify/static": "^8.0.0",

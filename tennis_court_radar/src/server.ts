@@ -1,11 +1,8 @@
 import Fastify from 'fastify';
 import fastifyStatic from '@fastify/static';
 import { readFileSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 import type { TimeSlot } from './providers/types.js';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Shared state — updated by the polling loop
 export const globalState: {
@@ -21,7 +18,7 @@ export function createServer(options: { port: number }) {
 
   // Serve static frontend assets
   app.register(fastifyStatic, {
-    root: join(__dirname, '../public'),
+    root: join('/app', 'public'),
     prefix: '/',
     decorateReply: true,
   });

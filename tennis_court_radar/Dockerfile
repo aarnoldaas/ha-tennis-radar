@@ -5,7 +5,7 @@ RUN apk add --no-cache nodejs
 
 WORKDIR /app
 
-COPY dist/bundle.js ./dist/
+COPY dist/bundle.cjs ./dist/
 COPY public/ ./public/
 COPY rootfs /
 

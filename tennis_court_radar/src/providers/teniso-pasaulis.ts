@@ -28,7 +28,6 @@ export class TenisoPasaulisProvider implements ICourtProvider {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = await response.json() as any;
-    console.log('[TenisoPasaulis] Raw response sample:', JSON.stringify(result).slice(0, 2000));
 
     return this.parseResponse(result, date);
   }
@@ -53,23 +52,69 @@ export class TenisoPasaulisProvider implements ICourtProvider {
           const courtName = court.courtName ?? `Court ${courtId}`;
           const date = court.date ?? _date;
 
+          // Collect all 30-min entries sorted by time
+          const entries: { from: string; to: string; status: TimeSlot['status'] }[] = [];
           for (const [, slot] of Object.entries(court.timetable)) {
             const s = slot as any;
             if (!s?.from) continue;
+            entries.push({
+              from: s.from.slice(0, 5),
+              to: s.to.slice(0, 5),
+              status: this.mapStatus(s.status),
+            });
+          }
+          entries.sort((a, b) => a.from.localeCompare(b.from));
 
-            const startTime = s.from.slice(0, 5); // "07:00:00" -> "07:00"
-            const endTime = s.to.slice(0, 5);
-            const status = this.mapStatus(s.status);
+          // Merge consecutive free slots into continuous blocks
+          let blockStart: string | null = null;
+          let blockEnd: string | null = null;
 
+          for (const entry of entries) {
+            if (entry.status === 'available') {
+              if (blockStart === null) {
+                blockStart = entry.from;
+                blockEnd = entry.to;
+              } else if (entry.from === blockEnd) {
+                // Consecutive — extend the block
+                blockEnd = entry.to;
+              } else {
+                // Gap — flush previous block
+                slots.push({
+                  courtId, courtName, date,
+                  startTime: blockStart,
+                  endTime: blockEnd!,
+                  durationMinutes: this.diffMinutes(blockStart, blockEnd!),
+                  status: 'available',
+                  provider: 'teniso_pasaulis',
+                });
+                blockStart = entry.from;
+                blockEnd = entry.to;
+              }
+            } else {
+              // Non-free slot — flush any open block
+              if (blockStart !== null) {
+                slots.push({
+                  courtId, courtName, date,
+                  startTime: blockStart,
+                  endTime: blockEnd!,
+                  durationMinutes: this.diffMinutes(blockStart, blockEnd!),
+                  status: 'available',
+                  provider: 'teniso_pasaulis',
+                });
+                blockStart = null;
+                blockEnd = null;
+              }
+            }
+          }
+
+          // Flush last block
+          if (blockStart !== null) {
             slots.push({
-              courtId,
-              courtName,
-              date,
-              startTime,
-              endTime,
-              durationMinutes: this.diffMinutes(startTime, endTime),
-              status,
-              price: s.price,
+              courtId, courtName, date,
+              startTime: blockStart,
+              endTime: blockEnd!,
+              durationMinutes: this.diffMinutes(blockStart, blockEnd!),
+              status: 'available',
               provider: 'teniso_pasaulis',
             });
           }
@@ -85,12 +130,6 @@ export class TenisoPasaulisProvider implements ICourtProvider {
     if (['free', 'available', 'laisva'].includes(str)) return 'available';
     if (['blocked', 'maintenance', 'closed'].includes(str)) return 'blocked';
     return 'booked';
-  }
-
-  private addMinutes(time: string, mins: number): string {
-    const [h, m] = time.split(':').map(Number);
-    const total = h * 60 + m + mins;
-    return `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
   }
 
   private diffMinutes(a: string, b: string): number {

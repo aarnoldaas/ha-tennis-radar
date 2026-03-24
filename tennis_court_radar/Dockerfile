@@ -3,12 +3,12 @@ ARG BUILD_FROM
 # ==========================================
 # Stage 1: Compile TypeScript
 # ==========================================
-FROM node:22-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts
+RUN NODE_OPTIONS="--max-old-space-size=256" npm ci --ignore-scripts
 
 COPY tsconfig.json ./
 COPY src/ ./src/

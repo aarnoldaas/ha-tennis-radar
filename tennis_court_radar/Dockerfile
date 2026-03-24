@@ -1,3 +1,5 @@
+ARG BUILD_FROM
+
 # ==========================================
 # Stage 1: Compile TypeScript
 # ==========================================
@@ -15,7 +17,6 @@ RUN npm run build && npm prune --production
 # ==========================================
 # Stage 2: HA Add-on Runtime
 # ==========================================
-ARG BUILD_FROM
 FROM ${BUILD_FROM}
 
 RUN apk add --no-cache nodejs

@@ -66,12 +66,6 @@ export function saveOptions(options: AddonOptions): void {
 export function getEffectiveDates(scanDates: string[]): string[] {
   if (scanDates.length > 0) return scanDates;
 
-  const dates: string[] = [];
-  const now = new Date();
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(now);
-    d.setDate(d.getDate() + i);
-    dates.push(d.toISOString().slice(0, 10));
-  }
-  return dates;
+  // TODO: restore dynamic date generation after debugging
+  return ['2026-03-30'];
 }

@@ -2,4 +2,4 @@
 # shellcheck shell=bash
 
 bashio::log.info "Starting Tennis Court Radar..."
-exec node /app/dist/index.js
+exec node /app/dist/bundle.js

@@ -8,7 +8,7 @@ __pycache__/
 
 # Node
 node_modules/
-# dist/ - committed for HA add-on builds
+# dist/bundle.js is committed for HA add-on builds
 
 # Build output
 custom_components/tennis_radar/www/

@@ -65,35 +65,35 @@ export class SebProvider implements ICourtProvider {
     return bookings;
   }
 
-  async getAvailability(date: string): Promise<TimeSlot[]> {
-    console.log(`[SEB] Fetching courts for date ${date}, salePoint ${this.salePoint}, ${this.places.length} place(s)`);
+  async getAvailability(dates: string[]): Promise<TimeSlot[]> {
+    console.log(`[SEB] Fetching courts for ${dates.length} date(s): ${dates.join(', ')}, salePoint ${this.salePoint}, ${this.places.length} place(s)`);
 
     const response = await fetch('https://ws.tenisopasaulis.lt/api/v1/placeInfoBatch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         places: this.places,
-        dates: [date],
+        dates,
         salePoint: this.salePoint,
         sessionToken: this.sessionToken,
       }),
     });
 
     if (!response.ok) {
-      console.error(`[SEB] HTTP ${response.status} for date ${date}`);
+      console.error(`[SEB] HTTP ${response.status} for dates ${dates.join(', ')}`);
       throw new Error(`SEB Arena API returned ${response.status}`);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = await response.json() as any;
 
-    const slots = this.parseResponse(result, date);
-    console.log(`[SEB] Found ${slots.length} available slot(s) for date ${date}`);
+    const slots = this.parseResponse(result);
+    console.log(`[SEB] Found ${slots.length} available slot(s) for ${dates.length} date(s)`);
     return slots;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private parseResponse(result: any, _date: string): TimeSlot[] {
+  private parseResponse(result: any): TimeSlot[] {
     const slots: TimeSlot[] = [];
 
     // Structure: { data: [ { place: N, data: [[ { courtID, courtName, date, timetable: { "HH:MM:SS": { from, to, status } } } ]] } ] }
@@ -110,7 +110,7 @@ export class SebProvider implements ICourtProvider {
 
           const courtId = String(court.courtID ?? '');
           const courtName = court.courtName ?? `Court ${courtId}`;
-          const date = court.date ?? _date;
+          const date = court.date ?? '';
 
           // Collect all 30-min entries sorted by time
           const entries: { from: string; to: string; status: TimeSlot['status'] }[] = [];

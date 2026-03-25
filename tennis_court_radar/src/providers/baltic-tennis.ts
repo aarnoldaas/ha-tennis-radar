@@ -13,17 +13,23 @@ export class BalticTennisProvider implements ICourtProvider {
     private password: string = '',
   ) {}
 
-  async getAvailability(date: string): Promise<TimeSlot[]> {
-    // Format date: YYYY-M-DD (no zero-padded month)
-    const [year, month, day] = date.split('-');
-    const formattedDate = `${year}-${parseInt(month)}-${day}`;
+  async getAvailability(dates: string[]): Promise<TimeSlot[]> {
+    const allSlots: TimeSlot[] = [];
 
-    console.log(`[BalticTennis] Fetching courts for date ${date}`);
+    for (const date of dates) {
+      // Format date: YYYY-M-DD (no zero-padded month)
+      const [year, month, day] = date.split('-');
+      const formattedDate = `${year}-${parseInt(month)}-${day}`;
 
-    const html = await this.fetchWithAuth(formattedDate, date);
-    const slots = this.parseHTML(html, date);
-    console.log(`[BalticTennis] Parsed ${slots.length} available slot(s) for date ${date}`);
-    return slots;
+      console.log(`[BalticTennis] Fetching courts for date ${date}`);
+
+      const html = await this.fetchWithAuth(formattedDate, date);
+      const slots = this.parseHTML(html, date);
+      console.log(`[BalticTennis] Parsed ${slots.length} available slot(s) for date ${date}`);
+      allSlots.push(...slots);
+    }
+
+    return allSlots;
   }
 
   async getBookings(): Promise<Booking[]> {

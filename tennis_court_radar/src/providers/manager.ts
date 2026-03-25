@@ -42,31 +42,29 @@ export class CourtProviderManager {
 
     console.log(`[ProviderManager] Fetching available courts for ${dates.length} date(s): ${dates.join(', ')} (${activeProviders.length} active provider(s))`);
 
-    for (const date of dates) {
-      const results = await Promise.allSettled(
-        activeProviders.map(p => {
-          console.log(`[ProviderManager] Querying ${p.name} for date ${date}`);
-          return p.getAvailability(date);
-        }),
-      );
+    const results = await Promise.allSettled(
+      activeProviders.map(p => {
+        console.log(`[ProviderManager] Querying ${p.name} for ${dates.length} date(s)`);
+        return p.getAvailability(dates);
+      }),
+    );
 
-      for (let i = 0; i < results.length; i++) {
-        const result = results[i];
-        const provider = activeProviders[i];
-        if (result.status === 'fulfilled') {
-          console.log(`[ProviderManager] ${provider.name} returned ${result.value.length} slot(s) for ${date}`);
-          allSlots.push(...result.value);
-        } else {
-          const errMsg = result.reason instanceof Error ? result.reason.message : String(result.reason);
-          console.error(`[ProviderManager] ${provider.name} failed for ${date}: ${errMsg} — disabling provider`);
-          this.disabledProviders.add(provider.name);
-          errors.push({
-            provider: provider.name,
-            date,
-            error: errMsg,
-            time: new Date().toISOString(),
-          });
-        }
+    for (let i = 0; i < results.length; i++) {
+      const result = results[i];
+      const provider = activeProviders[i];
+      if (result.status === 'fulfilled') {
+        console.log(`[ProviderManager] ${provider.name} returned ${result.value.length} slot(s)`);
+        allSlots.push(...result.value);
+      } else {
+        const errMsg = result.reason instanceof Error ? result.reason.message : String(result.reason);
+        console.error(`[ProviderManager] ${provider.name} failed: ${errMsg} — disabling provider`);
+        this.disabledProviders.add(provider.name);
+        errors.push({
+          provider: provider.name,
+          date: dates.join(', '),
+          error: errMsg,
+          time: new Date().toISOString(),
+        });
       }
     }
 

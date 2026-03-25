@@ -1,5 +1,5 @@
 name: "Tennis Court Radar"
-version: "1.5.0"
+version: "1.9.0"
 slug: "tennis_court_radar"
 description: "Polls tennis court providers and notifies when courts matching your preferences become available"
 url: "https://github.com/aarnoldaas/ha-tennis-radar"

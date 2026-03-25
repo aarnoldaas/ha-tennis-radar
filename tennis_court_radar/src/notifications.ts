@@ -49,6 +49,24 @@ export class HomeAssistantNotifier {
     await this.callService('notify', `mobile_app_${deviceId}`, data);
   }
 
+  async sendError(message: string, deviceId?: string): Promise<void> {
+    const title = 'Tennis Radar Error';
+    try {
+      await this.sendPersistentNotification(message, title, 'tennis_court_error');
+      console.log('[Notifier] Error notification sent');
+    } catch (err) {
+      console.error('[Notifier] Failed to send error notification:', err);
+    }
+    if (deviceId) {
+      try {
+        await this.sendMobilePush(deviceId, title, message);
+        console.log(`[Notifier] Error push sent to ${deviceId}`);
+      } catch (err) {
+        console.error('[Notifier] Failed to send error push:', err);
+      }
+    }
+  }
+
   async sendCourtAlert(slots: TimeSlot[], deviceId?: string): Promise<void> {
     // Filter out recently notified slots
     this.pruneExpired();

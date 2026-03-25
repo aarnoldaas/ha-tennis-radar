@@ -1,4 +1,4 @@
-import { loadOptions, getEffectiveDates, type AddonOptions } from './utils/config.js';
+import { loadOptions, getEffectiveDates, validateConfig, type AddonOptions } from './utils/config.js';
 import { createServer, globalState } from './server.js';
 import { PollingManager } from './polling.js';
 import { CourtProviderManager } from './providers/manager.js';
@@ -9,22 +9,59 @@ console.log('[TennisRadar] Configuration loaded:', {
   poll_interval_seconds: options.poll_interval_seconds,
   preferred_start_time: options.preferred_start_time,
   preferred_end_time: options.preferred_end_time,
-  teniso_pasaulis_enabled: options.teniso_pasaulis_enabled,
+  seb_enabled: options.seb_enabled,
   baltic_tennis_enabled: options.baltic_tennis_enabled,
   debug: options.debug,
 });
 
+const configWarnings = validateConfig(options);
+if (configWarnings.length > 0) {
+  console.warn('[TennisRadar] Config warnings:', configWarnings.map(w => w.message).join('; '));
+}
+
 const notifier = new HomeAssistantNotifier();
 let providerManager = new CourtProviderManager(options);
+
+// Track which providers we've already sent error notifications for
+const notifiedErrors = new Set<string>();
 
 const poller = new PollingManager(
   async () => {
     const dates = getEffectiveDates(options.scan_dates);
     console.log(`[TennisRadar] Polling for dates: ${dates.join(', ')}`);
 
-    const results = await providerManager.checkAll(dates);
+    const pollStart = Date.now();
+    const { slots: results, errors } = await providerManager.checkAll(dates);
+    const durationMs = Date.now() - pollStart;
+
     globalState.latestResults = results;
     globalState.lastPollTime = new Date().toISOString();
+    // Accumulate errors from disabled providers
+    globalState.providerErrors = errors;
+    globalState.disabledProviders = providerManager.disabledProviderNames;
+
+    // Build per-provider breakdown
+    const providerBreakdown: Record<string, number> = {};
+    for (const slot of results) {
+      providerBreakdown[slot.provider] = (providerBreakdown[slot.provider] || 0) + 1;
+    }
+    globalState.pollStats = {
+      durationMs,
+      datesChecked: dates.length,
+      totalSlots: results.length,
+      providerBreakdown,
+    };
+
+    // Notify about newly failed providers
+    for (const err of errors) {
+      if (!notifiedErrors.has(err.provider)) {
+        notifiedErrors.add(err.provider);
+        await notifier.sendError(
+          `Tennis Radar: ${err.provider} failed and was disabled. Error: ${err.error}. Check config or resume from the UI.`,
+          options.notify_device || undefined,
+        );
+      }
+    }
 
     const matching = results.filter(slot =>
       slot.status === 'available' &&
@@ -33,7 +70,7 @@ const poller = new PollingManager(
       slot.durationMinutes >= options.preferred_duration_minutes,
     );
 
-    console.log(`[TennisRadar] Found ${results.length} total slots, ${matching.length} matching preferences.`);
+    console.log(`[TennisRadar] Found ${results.length} total slots, ${matching.length} matching preferences (${durationMs}ms).`);
 
     if (matching.length > 0) {
       await notifier.sendCourtAlert(matching, options.notify_device || undefined);
@@ -47,11 +84,23 @@ function onConfigChange(newOptions: AddonOptions) {
   options = newOptions;
   providerManager.disposeAll();
   providerManager = new CourtProviderManager(options);
+  globalState.providerErrors = [];
+  globalState.disabledProviders = [];
+  notifiedErrors.clear();
   poller.updateInterval(options.poll_interval_seconds * 1000);
+  poller.start();
+}
+
+function onResumeProviders() {
+  providerManager.resumeAll();
+  globalState.providerErrors = [];
+  globalState.disabledProviders = [];
+  notifiedErrors.clear();
+  console.log('[TennisRadar] All providers resumed via UI');
 }
 
 // Start web UI and polling
-createServer({ port: 8099, getOptions: () => options, onConfigChange });
+createServer({ port: 8099, getOptions: () => options, onConfigChange, onResumeProviders, fetchBookings: () => providerManager.fetchBookings() });
 poller.start();
 
 // Graceful shutdown

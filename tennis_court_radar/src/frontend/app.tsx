@@ -21,13 +21,11 @@ interface Config {
   preferred_end_time: string;
   preferred_duration_minutes: number;
   notify_device: string;
-  teniso_pasaulis_enabled: boolean;
-  teniso_pasaulis_session_token: string;
-  teniso_pasaulis_sale_point: number;
-  teniso_pasaulis_places: string;
+  seb_enabled: boolean;
+  seb_session_token: string;
   baltic_tennis_enabled: boolean;
-  baltic_tennis_session_token: string;
-  baltic_tennis_place_ids: string;
+  baltic_tennis_username: string;
+  baltic_tennis_password: string;
   debug: boolean;
 }
 
@@ -49,6 +47,18 @@ async function saveConfig(config: Config): Promise<boolean> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(config),
   });
+  const result = await res.json();
+  return result.success;
+}
+
+async function fetchBookings() {
+  const res = await fetch(`${BASE}/api/bookings`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+async function resumeProviders(): Promise<boolean> {
+  const res = await fetch(`${BASE}/api/resume`, { method: 'POST' });
   const result = await res.json();
   return result.success;
 }
@@ -281,33 +291,19 @@ function SettingsPanel() {
         </div>
       </Card>
 
-      <Card title="Teniso Pasaulis">
+      <Card title="SEB Arena">
         <Toggle
           label="Enabled"
-          checked={config.teniso_pasaulis_enabled}
-          onChange={v => update('teniso_pasaulis_enabled', v)}
+          checked={config.seb_enabled}
+          onChange={v => update('seb_enabled', v)}
         />
-        {config.teniso_pasaulis_enabled && (
+        {config.seb_enabled && (
           <div class="field-grid" style={{ marginTop: '12px' }}>
             <Field label="Session Token">
               <input
-                type="password" autocomplete="off"
-                value={config.teniso_pasaulis_session_token}
-                onInput={(e: any) => update('teniso_pasaulis_session_token', e.target.value)}
-              />
-            </Field>
-            <Field label="Sale Point">
-              <input
-                type="number" min="1"
-                value={config.teniso_pasaulis_sale_point}
-                onInput={(e: any) => update('teniso_pasaulis_sale_point', +e.target.value)}
-              />
-            </Field>
-            <Field label="Court IDs (comma-separated, empty = all)">
-              <input
-                type="text" placeholder="e.g. 2, 5, 8"
-                value={config.teniso_pasaulis_places}
-                onInput={(e: any) => update('teniso_pasaulis_places', e.target.value)}
+                type="text" autocomplete="off"
+                value={config.seb_session_token}
+                onInput={(e: any) => update('seb_session_token', e.target.value)}
               />
             </Field>
           </div>
@@ -322,18 +318,18 @@ function SettingsPanel() {
         />
         {config.baltic_tennis_enabled && (
           <div class="field-grid" style={{ marginTop: '12px' }}>
-            <Field label="PHPSESSID Token">
+            <Field label="Username">
               <input
-                type="password" autocomplete="off"
-                value={config.baltic_tennis_session_token}
-                onInput={(e: any) => update('baltic_tennis_session_token', e.target.value)}
+                type="text" autocomplete="off" placeholder="email@example.com"
+                value={config.baltic_tennis_username}
+                onInput={(e: any) => update('baltic_tennis_username', e.target.value)}
               />
             </Field>
-            <Field label="Place IDs (comma-separated)">
+            <Field label="Password">
               <input
-                type="text" placeholder="e.g. 1, 2"
-                value={config.baltic_tennis_place_ids}
-                onInput={(e: any) => update('baltic_tennis_place_ids', e.target.value)}
+                type="text" autocomplete="off"
+                value={config.baltic_tennis_password}
+                onInput={(e: any) => update('baltic_tennis_password', e.target.value)}
               />
             </Field>
           </div>
@@ -359,8 +355,113 @@ function SettingsPanel() {
   );
 }
 
+interface BookingItem {
+  courtName: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  durationMinutes: number;
+  price?: string;
+  status?: string;
+  provider: string;
+}
+
+function BookingsPanel() {
+  const [bookings, setBookings] = useState<BookingItem[]>([]);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await fetchBookings();
+      setBookings(data.bookings ?? []);
+      setErrors(data.errors ?? []);
+    } catch {
+      setErrors(['Failed to fetch bookings']);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) return <p class="text-muted">Loading bookings...</p>;
+
+  return (
+    <div>
+      {errors.length > 0 && (
+        <div class="alert alert-error" style={{ marginBottom: '12px' }}>
+          <span class="alert-icon">!</span>
+          <div class="alert-content">
+            {errors.map((e, i) => <div key={i}>{e}</div>)}
+          </div>
+        </div>
+      )}
+      {bookings.length === 0 ? (
+        <div class="empty-state">
+          <div class="empty-state-icon">📋</div>
+          <p class="empty-state-title">No bookings</p>
+          <p class="empty-state-sub">No upcoming court bookings found.</p>
+        </div>
+      ) : (
+        <div class="slots-section">
+          <div class="slots-summary">
+            <span class="slots-count">{bookings.length}</span>
+            <span class="slots-count-label">booking{bookings.length !== 1 ? 's' : ''}</span>
+          </div>
+          {Object.entries(
+            bookings.reduce<Record<string, BookingItem[]>>((acc, b) => {
+              (acc[b.date] ??= []).push(b);
+              return acc;
+            }, {}),
+          ).sort().map(([date, items]) => (
+            <div class="date-group" key={date}>
+              <div class="date-group-header">
+                <span class="date-group-title">{formatDate(date)}</span>
+                <span class="date-group-count">{items.length} booking{items.length !== 1 ? 's' : ''}</span>
+              </div>
+              <div class="slot-grid">
+                {items.sort((a, b) => a.startTime.localeCompare(b.startTime)).map((b, i) => (
+                  <div class="slot-card slot-card-booked" key={i}>
+                    <div class="slot-card-time">
+                      <span class="slot-time-range">{b.startTime} – {b.endTime}</span>
+                      <span class="slot-duration">{b.durationMinutes} min</span>
+                    </div>
+                    <div class="slot-card-details">
+                      <span class="slot-court-name">{b.courtName}</span>
+                      <span class="slot-provider">{b.provider}</span>
+                    </div>
+                    {(b.price || b.status) && (
+                      <div class="slot-card-meta">
+                        {b.price && <span>{b.price}</span>}
+                        {b.status && <span>{b.status}</span>}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <button class="btn-refresh" onClick={load} style={{ marginTop: '12px' }}>
+        Refresh
+      </button>
+    </div>
+  );
+}
+
+function AlertBanner({ variant, children }: { variant: 'warning' | 'error'; children: any }) {
+  return (
+    <div class={`alert alert-${variant}`}>
+      <span class="alert-icon">{variant === 'error' ? '!' : '!'}</span>
+      <div class="alert-content">{children}</div>
+    </div>
+  );
+}
+
 function App() {
-  const [tab, setTab] = useState<'courts' | 'settings'>('courts');
+  const [tab, setTab] = useState<'courts' | 'bookings' | 'settings'>('courts');
   const [status, setStatus] = useState<any>(null);
   const [error, setError] = useState(false);
 
@@ -380,6 +481,22 @@ function App() {
     return () => clearInterval(id);
   }, [refresh]);
 
+  const [resuming, setResuming] = useState(false);
+
+  const handleResume = useCallback(async () => {
+    setResuming(true);
+    try {
+      await resumeProviders();
+      await refresh();
+    } catch { /* ignore */ }
+    setResuming(false);
+  }, [refresh]);
+
+  const configWarnings: { field: string; message: string }[] = status?.configWarnings ?? [];
+  const providerErrors: { provider: string; date: string; error: string; time: string }[] = status?.providerErrors ?? [];
+  const disabledProviders: string[] = status?.disabledProviders ?? [];
+  const hasIssues = configWarnings.length > 0 || disabledProviders.length > 0;
+
   return (
     <div class="app">
       <header>
@@ -387,14 +504,19 @@ function App() {
           <h1>Tennis Court Radar</h1>
           {error
             ? <Badge variant="error">Error</Badge>
-            : status
-              ? <Badge variant="ok">Running</Badge>
-              : <Badge variant="default">Loading...</Badge>
+            : hasIssues
+              ? <Badge variant="error">Issues</Badge>
+              : status
+                ? <Badge variant="ok">Running</Badge>
+                : <Badge variant="default">Loading...</Badge>
           }
         </div>
         <nav class="tabs">
           <button class={`tab ${tab === 'courts' ? 'active' : ''}`} onClick={() => setTab('courts')}>
             Courts
+          </button>
+          <button class={`tab ${tab === 'bookings' ? 'active' : ''}`} onClick={() => setTab('bookings')}>
+            Bookings
           </button>
           <button class={`tab ${tab === 'settings' ? 'active' : ''}`} onClick={() => setTab('settings')}>
             Settings
@@ -402,16 +524,63 @@ function App() {
         </nav>
       </header>
 
+      {configWarnings.length > 0 && (
+        <AlertBanner variant="warning">
+          <strong>Configuration issues:</strong>
+          <ul class="alert-list">
+            {configWarnings.map((w: any, i: number) => <li key={i}>{w.message}</li>)}
+          </ul>
+        </AlertBanner>
+      )}
+
+      {disabledProviders.length > 0 && (
+        <AlertBanner variant="error">
+          <strong>Disabled providers:</strong>
+          <ul class="alert-list">
+            {providerErrors.map((e: any, i: number) => (
+              <li key={i}>{e.provider} ({e.date}): {e.error}</li>
+            ))}
+            {disabledProviders
+              .filter(name => !providerErrors.some((e: any) => e.provider === name))
+              .map((name, i) => <li key={`d-${i}`}>{name}: disabled due to previous error</li>)
+            }
+          </ul>
+          <button class="btn-resume" onClick={handleResume} disabled={resuming}>
+            {resuming ? 'Resuming...' : 'Resume All Providers'}
+          </button>
+        </AlertBanner>
+      )}
+
       {tab === 'courts' && (
         <section>
           <SlotTable slots={status?.availableSlots ?? []} />
           {status?.lastPoll && (
-            <p class="text-muted" style={{ marginTop: '16px', fontSize: '0.8rem' }}>
-              Last poll: {new Date(status.lastPoll).toLocaleTimeString()}
-            </p>
+            <div class="fetch-summary">
+              <span>Last poll: {new Date(status.lastPoll).toLocaleTimeString()}</span>
+              {status.pollStats && (
+                <>
+                  <span class="fetch-summary-sep">|</span>
+                  <span>{status.pollStats.datesChecked} date{status.pollStats.datesChecked !== 1 ? 's' : ''} checked</span>
+                  <span class="fetch-summary-sep">|</span>
+                  <span>{status.totalSlots} total / {(status.availableSlots ?? []).length} matching</span>
+                  <span class="fetch-summary-sep">|</span>
+                  <span>{status.pollStats.durationMs}ms</span>
+                  {Object.keys(status.pollStats.providerBreakdown ?? {}).length > 0 && (
+                    <>
+                      <span class="fetch-summary-sep">|</span>
+                      <span>
+                        {Object.entries(status.pollStats.providerBreakdown).map(([k, v]) => `${k}: ${v}`).join(', ')}
+                      </span>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
           )}
         </section>
       )}
+
+      {tab === 'bookings' && <BookingsPanel />}
 
       {tab === 'settings' && <SettingsPanel />}
     </div>

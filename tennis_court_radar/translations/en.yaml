@@ -17,24 +17,21 @@ configuration:
   notify_device:
     name: Notify Device
     description: Mobile device name for push notifications (e.g., "iphone"). Leave empty to skip mobile push.
-  teniso_pasaulis_enabled:
-    name: Teniso Pasaulis Enabled
-    description: Enable polling the Teniso Pasaulis (SEB Arena) provider.
-  teniso_pasaulis_session_token:
-    name: Teniso Pasaulis Session Token
+  seb_enabled:
+    name: SEB Arena Enabled
+    description: Enable polling the SEB Arena provider.
+  seb_session_token:
+    name: SEB Arena Session Token
     description: Session token from savitarna.tenisopasaulis.lt (found in browser DevTools).
-  teniso_pasaulis_sale_point:
-    name: Teniso Pasaulis Sale Point
-    description: Sale point identifier for the location.
-  teniso_pasaulis_places:
-    name: Teniso Pasaulis Court IDs
-    description: "Comma-separated court IDs to check (e.g. \"2\" or \"2, 5, 8\"). Leave empty to check all courts (1-28)."
   baltic_tennis_enabled:
     name: Baltic Tennis Enabled
     description: Enable polling the Baltic Tennis provider.
-  baltic_tennis_place_ids:
-    name: Baltic Tennis Place IDs
-    description: Place IDs to check (1 = indoor, 2 = outdoor).
+  baltic_tennis_username:
+    name: Baltic Tennis Username
+    description: Login email for savitarna.baltictennis.lt.
+  baltic_tennis_password:
+    name: Baltic Tennis Password
+    description: Login password for savitarna.baltictennis.lt.
   debug:
     name: Debug Mode
     description: Enable verbose logging for troubleshooting.

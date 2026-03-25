@@ -1,16 +1,73 @@
-import type { ICourtProvider, TimeSlot } from './types.js';
+import type { ICourtProvider, TimeSlot, Booking } from './types.js';
 
-export class TenisoPasaulisProvider implements ICourtProvider {
-  readonly name = 'Teniso Pasaulis';
-  readonly key = 'teniso_pasaulis' as const;
+export class SebProvider implements ICourtProvider {
+  readonly name = 'SEB Arena';
+  readonly key = 'SEB' as const;
 
-  constructor(
-    private sessionToken: string,
-    private salePoint: number = 1,
-    private places: number[] = Array.from({ length: 28 }, (_, i) => i + 1),
-  ) {}
+  private readonly salePoint = 11;
+  private readonly places = [2, 18];
+
+  constructor(private sessionToken: string) {}
+
+  async getBookings(): Promise<Booking[]> {
+    const today = new Date().toISOString().slice(0, 10);
+    // Fetch bookings for the next 6 months
+    const future = new Date();
+    future.setMonth(future.getMonth() + 6);
+    const to = future.toISOString().slice(0, 10);
+
+    console.log(`[SEB] Fetching bookings from ${today} to ${to}`);
+    const url = `https://ws.tenisopasaulis.lt/api/v1/orders?sessionToken=${encodeURIComponent(this.sessionToken)}&from=${today}&to=${to}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`SEB Arena bookings API returned ${response.status}`);
+    }
+
+    const result = await response.json() as any;
+    return this.parseBookings(result);
+  }
+
+  private parseBookings(result: any): Booking[] {
+    const bookings: Booking[] = [];
+    const list = result?.data?.results ?? [];
+    if (!Array.isArray(list)) return bookings;
+
+    for (const order of list) {
+      // sasi_galiojanuo = "2026-04-01 19:30:00", iki = "2026-04-01 20:30:00"
+      const from = order.sasi_galiojanuo ?? '';
+      const to = order.iki ?? '';
+      if (!from || !to) continue;
+
+      const date = from.slice(0, 10);
+      const startTime = from.slice(11, 16);
+      const endTime = to.slice(11, 16);
+      const courtName = order.pasl_pavadinimas ?? 'Unknown';
+      const price = order.kaina;
+      const surface = order.pv_pavadinimas ?? '';
+
+      const [sh, sm] = startTime.split(':').map(Number);
+      const [eh, em] = endTime.split(':').map(Number);
+      const durationMinutes = (eh * 60 + em) - (sh * 60 + sm);
+
+      bookings.push({
+        courtName: surface ? `${courtName} (${surface})` : courtName,
+        date,
+        startTime,
+        endTime,
+        durationMinutes,
+        price: price != null ? `${price} €` : undefined,
+        provider: 'SEB',
+      });
+    }
+
+    console.log(`[SEB] Found ${bookings.length} booking(s)`);
+    return bookings;
+  }
 
   async getAvailability(date: string): Promise<TimeSlot[]> {
+    console.log(`[SEB] Fetching courts for date ${date}, salePoint ${this.salePoint}, ${this.places.length} place(s)`);
+
     const response = await fetch('https://ws.tenisopasaulis.lt/api/v1/placeInfoBatch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -23,13 +80,16 @@ export class TenisoPasaulisProvider implements ICourtProvider {
     });
 
     if (!response.ok) {
-      throw new Error(`Teniso Pasaulis API returned ${response.status}`);
+      console.error(`[SEB] HTTP ${response.status} for date ${date}`);
+      throw new Error(`SEB Arena API returned ${response.status}`);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = await response.json() as any;
 
-    return this.parseResponse(result, date);
+    const slots = this.parseResponse(result, date);
+    console.log(`[SEB] Found ${slots.length} available slot(s) for date ${date}`);
+    return slots;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -3,19 +3,39 @@ import fastifyStatic from '@fastify/static';
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import type { TimeSlot } from './providers/types.js';
-import type { AddonOptions } from './utils/config.js';
-import { loadOptions, saveOptions } from './utils/config.js';
+import type { AddonOptions, ConfigWarning } from './utils/config.js';
+import { loadOptions, saveOptions, validateConfig } from './utils/config.js';
 
 // Shared state — updated by the polling loop
+export interface PollStats {
+  durationMs: number;
+  datesChecked: number;
+  totalSlots: number;
+  providerBreakdown: Record<string, number>;
+}
+
+export interface ProviderError {
+  provider: string;
+  date: string;
+  error: string;
+  time: string;
+}
+
 export const globalState: {
   lastPollTime: string | null;
   latestResults: TimeSlot[];
+  pollStats: PollStats | null;
+  providerErrors: ProviderError[];
+  disabledProviders: string[];
 } = {
   lastPollTime: null,
   latestResults: [],
+  pollStats: null,
+  providerErrors: [],
+  disabledProviders: [],
 };
 
-export function createServer(options: { port: number; getOptions: () => AddonOptions; onConfigChange: (opts: AddonOptions) => void }) {
+export function createServer(options: { port: number; getOptions: () => AddonOptions; onConfigChange: (opts: AddonOptions) => void; onResumeProviders: () => void; fetchBookings: () => Promise<{ bookings: any[]; errors: string[] }> }) {
   const app = Fastify({ logger: true });
   const appDir = resolve(process.env.APP_DIR || '/app');
   const publicDir = join(appDir, 'public');
@@ -44,12 +64,16 @@ export function createServer(options: { port: number; getOptions: () => AddonOpt
 
   // API: return current status
   app.get('/api/status', async () => {
+    const opts = options.getOptions();
     return {
       running: true,
       lastPoll: globalState.lastPollTime,
       totalSlots: globalState.latestResults.length,
+      pollStats: globalState.pollStats,
+      configWarnings: validateConfig(opts),
+      providerErrors: globalState.providerErrors,
+      disabledProviders: globalState.disabledProviders,
       availableSlots: globalState.latestResults.filter(s => {
-        const opts = options.getOptions();
         return s.status === 'available' &&
           s.startTime >= opts.preferred_start_time &&
           s.startTime <= opts.preferred_end_time &&
@@ -60,13 +84,7 @@ export function createServer(options: { port: number; getOptions: () => AddonOpt
 
   // API: get config
   app.get('/api/config', async () => {
-    const opts = loadOptions();
-    // Don't send session token in full
-    return {
-      ...opts,
-      teniso_pasaulis_session_token: opts.teniso_pasaulis_session_token ? '••••••••' : '',
-      baltic_tennis_session_token: opts.baltic_tennis_session_token ? '••••••••' : '',
-    };
+    return loadOptions();
   });
 
   // API: save config
@@ -77,20 +95,26 @@ export function createServer(options: { port: number; getOptions: () => AddonOpt
     const updated: AddonOptions = {
       ...current,
       ...body,
-      // If token is masked, keep the old one
-      teniso_pasaulis_session_token:
-        body.teniso_pasaulis_session_token === '••••••••' || body.teniso_pasaulis_session_token === ''
-          ? current.teniso_pasaulis_session_token
-          : (body.teniso_pasaulis_session_token ?? current.teniso_pasaulis_session_token),
-      baltic_tennis_session_token:
-        body.baltic_tennis_session_token === '••••••••' || body.baltic_tennis_session_token === ''
-          ? current.baltic_tennis_session_token
-          : (body.baltic_tennis_session_token ?? current.baltic_tennis_session_token),
     };
 
     saveOptions(updated);
     options.onConfigChange(updated);
 
+    return { success: true };
+  });
+
+  // API: fetch bookings on demand
+  app.get('/api/bookings', async () => {
+    try {
+      return await options.fetchBookings();
+    } catch (err) {
+      return { bookings: [], errors: [err instanceof Error ? err.message : String(err)] };
+    }
+  });
+
+  // API: resume disabled providers
+  app.post('/api/resume', async () => {
+    options.onResumeProviders();
     return { success: true };
   });
 

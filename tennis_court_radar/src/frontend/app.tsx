@@ -1,5 +1,30 @@
-import { h, render } from 'preact';
-import { useState, useEffect, useCallback } from 'preact/hooks';
+import { useState, useEffect, useCallback } from 'react';
+import { createRoot } from 'react-dom/client';
+import {
+  MantineProvider,
+  createTheme,
+  Container,
+  Group,
+  Stack,
+  SimpleGrid,
+  Center,
+  Tabs,
+  Badge,
+  Card,
+  Paper,
+  Text,
+  Title,
+  Button,
+  TextInput,
+  NumberInput,
+  PasswordInput,
+  Switch,
+  Alert,
+  Loader,
+  UnstyledButton,
+} from '@mantine/core';
+import '@mantine/core/styles.css';
+import './custom.css';
 
 const BASE = (window as any).INGRESS_PATH || '';
 
@@ -27,6 +52,17 @@ interface Config {
   baltic_tennis_username: string;
   baltic_tennis_password: string;
   debug: boolean;
+}
+
+interface BookingItem {
+  courtName: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  durationMinutes: number;
+  price?: string;
+  status?: string;
+  provider: string;
 }
 
 // --- API ---
@@ -63,106 +99,15 @@ async function resumeProviders(): Promise<boolean> {
   return result.success;
 }
 
-// --- Components ---
-function Badge({ variant, children }: { variant: 'ok' | 'error' | 'default'; children: any }) {
-  return <span class={`badge badge-${variant}`}>{children}</span>;
-}
-
-function Card({ title, children }: { title?: string; children: any }) {
-  return (
-    <div class="card">
-      {title && <div class="card-header">{title}</div>}
-      <div class="card-body">{children}</div>
-    </div>
-  );
-}
-
-function SlotTable({ slots }: { slots: TimeSlot[] }) {
-  if (!slots || slots.length === 0) {
-    return (
-      <div class="empty-state">
-        <div class="empty-state-icon">🎾</div>
-        <p class="empty-state-title">No courts available</p>
-        <p class="empty-state-sub">No courts matching your preferences were found. We'll keep checking!</p>
-      </div>
-    );
-  }
-
-  const byDate: Record<string, TimeSlot[]> = {};
-  for (const slot of slots) {
-    if (!byDate[slot.date]) byDate[slot.date] = [];
-    byDate[slot.date].push(slot);
-  }
-
-  const totalCount = slots.length;
-
-  return (
-    <div class="slots-section">
-      <div class="slots-summary">
-        <span class="slots-count">{totalCount}</span>
-        <span class="slots-count-label">court{totalCount !== 1 ? 's' : ''} available</span>
-      </div>
-      {Object.entries(byDate).sort().map(([date, dateSlots]) => (
-        <div class="date-group" key={date}>
-          <div class="date-group-header">
-            <span class="date-group-title">{formatDate(date)}</span>
-            <span class="date-group-count">{dateSlots.length} slot{dateSlots.length !== 1 ? 's' : ''}</span>
-          </div>
-          <div class="slot-grid">
-            {dateSlots
-              .sort((a, b) => a.startTime.localeCompare(b.startTime))
-              .map((s, i) => (
-                <div class="slot-card" key={i}>
-                  <div class="slot-card-time">
-                    <span class="slot-time-range">{s.startTime} – {s.endTime}</span>
-                    <span class="slot-duration">{s.durationMinutes} min</span>
-                  </div>
-                  <div class="slot-card-details">
-                    <span class="slot-court-name">{s.courtName}</span>
-                    <span class="slot-provider">{s.provider}</span>
-                  </div>
-                </div>
-              ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
+// --- Helpers ---
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00');
   return d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
 }
 
-function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <label class="toggle-row">
-      <span>{label}</span>
-      <button
-        type="button"
-        class={`toggle ${checked ? 'toggle-on' : ''}`}
-        onClick={() => onChange(!checked)}
-        role="switch"
-        aria-checked={checked}
-      >
-        <span class="toggle-knob" />
-      </button>
-    </label>
-  );
-}
-
-function Field({ label, children }: { label: string; children: any }) {
-  return (
-    <div class="field">
-      <label class="field-label">{label}</label>
-      {children}
-    </div>
-  );
-}
+// --- Components ---
 
 function DatePicker({ selected, onChange }: { selected: string[]; onChange: (dates: string[]) => void }) {
-  // Generate next 14 days starting from tomorrow
   const days: { date: string; label: string; weekday: string }[] = [];
   const now = new Date();
   for (let i = 1; i <= 14; i++) {
@@ -191,25 +136,99 @@ function DatePicker({ selected, onChange }: { selected: string[]; onChange: (dat
 
   return (
     <div>
-      <div class="date-picker-grid">
+      <div className="date-picker-grid">
         {days.map(d => (
-          <button
-            type="button"
+          <UnstyledButton
             key={d.date}
-            class={`date-chip ${selected.includes(d.date) ? 'date-chip-selected' : ''} ${isWeekend(d.date) ? 'date-chip-weekend' : ''}`}
+            className={`date-chip ${selected.includes(d.date) ? 'date-chip-selected' : ''} ${isWeekend(d.date) ? 'date-chip-weekend' : ''}`}
             onClick={() => toggle(d.date)}
           >
-            <span class="date-chip-weekday">{d.weekday}</span>
-            <span class="date-chip-date">{d.label}</span>
-          </button>
+            <Text size="xs" ta="center" opacity={0.7} tt="uppercase" lh={1.2}>
+              {d.weekday}
+            </Text>
+            <Text size="xs" ta="center" fw={600} lh={1.2}>
+              {d.label}
+            </Text>
+          </UnstyledButton>
         ))}
       </div>
-      <p class="text-muted" style={{ fontSize: '0.75rem', marginTop: '8px' }}>
+      <Text size="xs" c="dimmed" mt="xs" fs="italic">
         {selected.length === 0
-          ? 'No dates selected — scanning next 7 days automatically'
+          ? 'No dates selected \u2014 scanning next 7 days automatically'
           : `${selected.length} date(s) selected`}
-      </p>
+      </Text>
     </div>
+  );
+}
+
+function SlotTable({ slots }: { slots: TimeSlot[] }) {
+  if (!slots || slots.length === 0) {
+    return (
+      <Center py={48}>
+        <Stack align="center" gap="xs">
+          <Text size="2.5rem" opacity={0.7}>&#127934;</Text>
+          <Text fw={600} size="md">No courts available</Text>
+          <Text size="sm" c="dimmed" maw={300} ta="center">
+            No courts matching your preferences were found. We'll keep checking!
+          </Text>
+        </Stack>
+      </Center>
+    );
+  }
+
+  const byDate: Record<string, TimeSlot[]> = {};
+  for (const slot of slots) {
+    if (!byDate[slot.date]) byDate[slot.date] = [];
+    byDate[slot.date].push(slot);
+  }
+
+  return (
+    <Stack gap="lg">
+      <Group gap="xs" align="baseline">
+        <Text size="2rem" fw={700} c="blue" lh={1}>{slots.length}</Text>
+        <Text size="sm" c="dimmed" fw={500}>
+          court{slots.length !== 1 ? 's' : ''} available
+        </Text>
+      </Group>
+      {Object.entries(byDate).sort().map(([date, dateSlots]) => (
+        <Stack key={date} gap="sm">
+          <Group
+            justify="space-between"
+            pb={6}
+            style={{ borderBottom: '1px solid var(--mantine-color-dark-4)' }}
+          >
+            <Text fw={600} size="sm" c="dimmed">{formatDate(date)}</Text>
+            <Badge size="sm" variant="default" radius="xl">
+              {dateSlots.length} slot{dateSlots.length !== 1 ? 's' : ''}
+            </Badge>
+          </Group>
+          <SimpleGrid cols={{ base: 1, xs: 2, sm: 3 }} spacing="sm">
+            {dateSlots
+              .sort((a, b) => a.startTime.localeCompare(b.startTime))
+              .map((s, i) => (
+                <Paper key={i} withBorder p="sm" radius="md" className="slot-card">
+                  <Group justify="space-between" mb={4}>
+                    <Text ff="monospace" fw={600} size="sm">
+                      {s.startTime} &ndash; {s.endTime}
+                    </Text>
+                    <Badge size="xs" variant="light" color="gray" radius="xl">
+                      {s.durationMinutes} min
+                    </Badge>
+                  </Group>
+                  <Group justify="space-between">
+                    <Text size="xs" c="dimmed" truncate>
+                      {s.courtName}
+                    </Text>
+                    <Badge size="xs" variant="dot" color="blue">
+                      {s.provider}
+                    </Badge>
+                  </Group>
+                </Paper>
+              ))}
+          </SimpleGrid>
+        </Stack>
+      ))}
+    </Stack>
   );
 }
 
@@ -223,7 +242,7 @@ function SettingsPanel() {
   }, []);
 
   const update = useCallback((key: keyof Config, value: any) => {
-    setConfig(prev => prev ? { ...prev, [key]: value } : prev);
+    setConfig(prev => (prev ? { ...prev, [key]: value } : prev));
   }, []);
 
   const handleSave = async () => {
@@ -240,130 +259,171 @@ function SettingsPanel() {
     setTimeout(() => setSaveResult(null), 3000);
   };
 
-  if (!config) return <p class="text-muted">Loading settings...</p>;
+  if (!config) {
+    return (
+      <Center py="xl">
+        <Loader size="sm" />
+      </Center>
+    );
+  }
 
   return (
-    <div class="settings">
-      <Card title="Dates to Scan">
-        <DatePicker
-          selected={config.scan_dates ?? []}
-          onChange={dates => update('scan_dates', dates)}
-        />
+    <Stack gap="md">
+      <Card withBorder radius="md">
+        <Card.Section withBorder inheritPadding py="xs">
+          <Text fw={600} size="sm">Dates to Scan</Text>
+        </Card.Section>
+        <Card.Section inheritPadding py="md">
+          <DatePicker
+            selected={config.scan_dates ?? []}
+            onChange={dates => update('scan_dates', dates)}
+          />
+        </Card.Section>
       </Card>
 
-      <Card title="General">
-        <div class="field-grid">
-          <Field label="Poll Interval (seconds)">
-            <input
-              type="number" min="10" max="3600"
+      <Card withBorder radius="md">
+        <Card.Section withBorder inheritPadding py="xs">
+          <Text fw={600} size="sm">General</Text>
+        </Card.Section>
+        <Card.Section inheritPadding py="md">
+          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+            <NumberInput
+              label="Poll Interval (seconds)"
+              min={10}
+              max={3600}
               value={config.poll_interval_seconds}
-              onInput={(e: any) => update('poll_interval_seconds', +e.target.value)}
+              onChange={v =>
+                update('poll_interval_seconds', typeof v === 'number' ? v : config.poll_interval_seconds)
+              }
+              size="sm"
             />
-          </Field>
-          <Field label="Preferred Start Time">
-            <input
+            <TextInput
+              label="Preferred Start Time"
               type="time"
               value={config.preferred_start_time}
-              onInput={(e: any) => update('preferred_start_time', e.target.value)}
+              onChange={e => update('preferred_start_time', e.currentTarget.value)}
+              size="sm"
             />
-          </Field>
-          <Field label="Preferred End Time">
-            <input
+            <TextInput
+              label="Preferred End Time"
               type="time"
               value={config.preferred_end_time}
-              onInput={(e: any) => update('preferred_end_time', e.target.value)}
+              onChange={e => update('preferred_end_time', e.currentTarget.value)}
+              size="sm"
             />
-          </Field>
-          <Field label="Min Duration (minutes)">
-            <input
-              type="number" min="30" max="180" step="30"
+            <NumberInput
+              label="Min Duration (minutes)"
+              min={30}
+              max={180}
+              step={30}
               value={config.preferred_duration_minutes}
-              onInput={(e: any) => update('preferred_duration_minutes', +e.target.value)}
+              onChange={v =>
+                update(
+                  'preferred_duration_minutes',
+                  typeof v === 'number' ? v : config.preferred_duration_minutes,
+                )
+              }
+              size="sm"
             />
-          </Field>
-          <Field label="Notify Device">
-            <input
-              type="text" placeholder="e.g. iphone"
+            <TextInput
+              label="Notify Device"
+              placeholder="e.g. iphone"
               value={config.notify_device}
-              onInput={(e: any) => update('notify_device', e.target.value)}
+              onChange={e => update('notify_device', e.currentTarget.value)}
+              size="sm"
             />
-          </Field>
-        </div>
+          </SimpleGrid>
+        </Card.Section>
       </Card>
 
-      <Card title="SEB Arena">
-        <Toggle
-          label="Enabled"
-          checked={config.seb_enabled}
-          onChange={v => update('seb_enabled', v)}
-        />
-        {config.seb_enabled && (
-          <div class="field-grid" style={{ marginTop: '12px' }}>
-            <Field label="Session Token">
-              <input
-                type="text" autocomplete="off"
-                value={config.seb_session_token}
-                onInput={(e: any) => update('seb_session_token', e.target.value)}
-              />
-            </Field>
-          </div>
-        )}
+      <Card withBorder radius="md">
+        <Card.Section withBorder inheritPadding py="xs">
+          <Text fw={600} size="sm">SEB Arena</Text>
+        </Card.Section>
+        <Card.Section inheritPadding py="md">
+          <Switch
+            label="Enabled"
+            checked={config.seb_enabled}
+            onChange={e => update('seb_enabled', e.currentTarget.checked)}
+            size="sm"
+          />
+          {config.seb_enabled && (
+            <TextInput
+              label="Session Token"
+              value={config.seb_session_token}
+              onChange={e => update('seb_session_token', e.currentTarget.value)}
+              autoComplete="off"
+              size="sm"
+              mt="sm"
+            />
+          )}
+        </Card.Section>
       </Card>
 
-      <Card title="Baltic Tennis">
-        <Toggle
-          label="Enabled"
-          checked={config.baltic_tennis_enabled}
-          onChange={v => update('baltic_tennis_enabled', v)}
-        />
-        {config.baltic_tennis_enabled && (
-          <div class="field-grid" style={{ marginTop: '12px' }}>
-            <Field label="Username">
-              <input
-                type="text" autocomplete="off" placeholder="email@example.com"
+      <Card withBorder radius="md">
+        <Card.Section withBorder inheritPadding py="xs">
+          <Text fw={600} size="sm">Baltic Tennis</Text>
+        </Card.Section>
+        <Card.Section inheritPadding py="md">
+          <Switch
+            label="Enabled"
+            checked={config.baltic_tennis_enabled}
+            onChange={e => update('baltic_tennis_enabled', e.currentTarget.checked)}
+            size="sm"
+          />
+          {config.baltic_tennis_enabled && (
+            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm" mt="sm">
+              <TextInput
+                label="Username"
+                placeholder="email@example.com"
                 value={config.baltic_tennis_username}
-                onInput={(e: any) => update('baltic_tennis_username', e.target.value)}
+                onChange={e => update('baltic_tennis_username', e.currentTarget.value)}
+                autoComplete="off"
+                size="sm"
               />
-            </Field>
-            <Field label="Password">
-              <input
-                type="text" autocomplete="off"
+              <PasswordInput
+                label="Password"
                 value={config.baltic_tennis_password}
-                onInput={(e: any) => update('baltic_tennis_password', e.target.value)}
+                onChange={e => update('baltic_tennis_password', e.currentTarget.value)}
+                autoComplete="off"
+                size="sm"
               />
-            </Field>
-          </div>
+            </SimpleGrid>
+          )}
+        </Card.Section>
+      </Card>
+
+      <Card withBorder radius="md">
+        <Card.Section withBorder inheritPadding py="xs">
+          <Text fw={600} size="sm">Advanced</Text>
+        </Card.Section>
+        <Card.Section inheritPadding py="md">
+          <Switch
+            label="Debug Mode"
+            checked={config.debug}
+            onChange={e => update('debug', e.currentTarget.checked)}
+            size="sm"
+          />
+        </Card.Section>
+      </Card>
+
+      <Group gap="md" className="save-bar">
+        <Button onClick={handleSave} loading={saving} size="sm">
+          Save Settings
+        </Button>
+        {saveResult === 'ok' && (
+          <Text size="sm" c="green">
+            Settings saved! Changes applied.
+          </Text>
         )}
-      </Card>
-
-      <Card title="Advanced">
-        <Toggle
-          label="Debug Mode"
-          checked={config.debug}
-          onChange={v => update('debug', v)}
-        />
-      </Card>
-
-      <div class="save-bar">
-        <button class="btn-primary" onClick={handleSave} disabled={saving}>
-          {saving ? 'Saving...' : 'Save Settings'}
-        </button>
-        {saveResult === 'ok' && <span class="text-success">Settings saved! Changes applied.</span>}
-        {saveResult === 'error' && <span class="text-error">Failed to save settings.</span>}
-      </div>
-    </div>
+        {saveResult === 'error' && (
+          <Text size="sm" c="red">
+            Failed to save settings.
+          </Text>
+        )}
+      </Group>
+    </Stack>
   );
-}
-
-interface BookingItem {
-  courtName: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  durationMinutes: number;
-  price?: string;
-  status?: string;
-  provider: string;
 }
 
 function BookingsPanel() {
@@ -383,85 +443,121 @@ function BookingsPanel() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  if (loading) return <p class="text-muted">Loading bookings...</p>;
+  if (loading) {
+    return (
+      <Center py="xl">
+        <Loader size="sm" />
+      </Center>
+    );
+  }
 
   return (
-    <div>
+    <Stack gap="md">
       {errors.length > 0 && (
-        <div class="alert alert-error" style={{ marginBottom: '12px' }}>
-          <span class="alert-icon">!</span>
-          <div class="alert-content">
-            {errors.map((e, i) => <div key={i}>{e}</div>)}
-          </div>
-        </div>
+        <Alert color="red" variant="light" title="Error">
+          {errors.map((e, i) => (
+            <div key={i}>{e}</div>
+          ))}
+        </Alert>
       )}
       {bookings.length === 0 ? (
-        <div class="empty-state">
-          <div class="empty-state-icon">📋</div>
-          <p class="empty-state-title">No bookings</p>
-          <p class="empty-state-sub">No upcoming court bookings found.</p>
-        </div>
+        <Center py={48}>
+          <Stack align="center" gap="xs">
+            <Text size="2.5rem" opacity={0.7}>&#128203;</Text>
+            <Text fw={600} size="md">No bookings</Text>
+            <Text size="sm" c="dimmed">No upcoming court bookings found.</Text>
+          </Stack>
+        </Center>
       ) : (
-        <div class="slots-section">
-          <div class="slots-summary">
-            <span class="slots-count">{bookings.length}</span>
-            <span class="slots-count-label">booking{bookings.length !== 1 ? 's' : ''}</span>
-          </div>
+        <Stack gap="lg">
+          <Group gap="xs" align="baseline">
+            <Text size="2rem" fw={700} c="blue" lh={1}>
+              {bookings.length}
+            </Text>
+            <Text size="sm" c="dimmed" fw={500}>
+              booking{bookings.length !== 1 ? 's' : ''}
+            </Text>
+          </Group>
           {Object.entries(
             bookings.reduce<Record<string, BookingItem[]>>((acc, b) => {
               (acc[b.date] ??= []).push(b);
               return acc;
             }, {}),
-          ).sort().map(([date, items]) => (
-            <div class="date-group" key={date}>
-              <div class="date-group-header">
-                <span class="date-group-title">{formatDate(date)}</span>
-                <span class="date-group-count">{items.length} booking{items.length !== 1 ? 's' : ''}</span>
-              </div>
-              <div class="slot-grid">
-                {items.sort((a, b) => a.startTime.localeCompare(b.startTime)).map((b, i) => (
-                  <div class="slot-card slot-card-booked" key={i}>
-                    <div class="slot-card-time">
-                      <span class="slot-time-range">{b.startTime} – {b.endTime}</span>
-                      <span class="slot-duration">{b.durationMinutes} min</span>
-                    </div>
-                    <div class="slot-card-details">
-                      <span class="slot-court-name">{b.courtName}</span>
-                      <span class="slot-provider">{b.provider}</span>
-                    </div>
-                    {(b.price || b.status) && (
-                      <div class="slot-card-meta">
-                        {b.price && <span>{b.price}</span>}
-                        {b.status && <span>{b.status}</span>}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+          )
+            .sort()
+            .map(([date, items]) => (
+              <Stack key={date} gap="sm">
+                <Group
+                  justify="space-between"
+                  pb={6}
+                  style={{ borderBottom: '1px solid var(--mantine-color-dark-4)' }}
+                >
+                  <Text fw={600} size="sm" c="dimmed">{formatDate(date)}</Text>
+                  <Badge size="sm" variant="default" radius="xl">
+                    {items.length} booking{items.length !== 1 ? 's' : ''}
+                  </Badge>
+                </Group>
+                <SimpleGrid cols={{ base: 1, xs: 2, sm: 3 }} spacing="sm">
+                  {items
+                    .sort((a, b) => a.startTime.localeCompare(b.startTime))
+                    .map((b, i) => (
+                      <Paper
+                        key={i}
+                        withBorder
+                        p="sm"
+                        radius="md"
+                        className="slot-card slot-card-booked"
+                      >
+                        <Group justify="space-between" mb={4}>
+                          <Text ff="monospace" fw={600} size="sm">
+                            {b.startTime} &ndash; {b.endTime}
+                          </Text>
+                          <Badge size="xs" variant="light" color="gray" radius="xl">
+                            {b.durationMinutes} min
+                          </Badge>
+                        </Group>
+                        <Group justify="space-between">
+                          <Text size="xs" c="dimmed" truncate>
+                            {b.courtName}
+                          </Text>
+                          <Badge size="xs" variant="dot" color="blue">
+                            {b.provider}
+                          </Badge>
+                        </Group>
+                        {(b.price || b.status) && (
+                          <Group gap="xs" mt={4}>
+                            {b.price && (
+                              <Text size="xs" c="dimmed">
+                                {b.price}
+                              </Text>
+                            )}
+                            {b.status && (
+                              <Text size="xs" c="dimmed">
+                                {b.status}
+                              </Text>
+                            )}
+                          </Group>
+                        )}
+                      </Paper>
+                    ))}
+                </SimpleGrid>
+              </Stack>
+            ))}
+        </Stack>
       )}
-      <button class="btn-refresh" onClick={load} style={{ marginTop: '12px' }}>
+      <Button variant="default" size="xs" onClick={load}>
         Refresh
-      </button>
-    </div>
-  );
-}
-
-function AlertBanner({ variant, children }: { variant: 'warning' | 'error'; children: any }) {
-  return (
-    <div class={`alert alert-${variant}`}>
-      <span class="alert-icon">{variant === 'error' ? '!' : '!'}</span>
-      <div class="alert-content">{children}</div>
-    </div>
+      </Button>
+    </Stack>
   );
 }
 
 function App() {
-  const [tab, setTab] = useState<'courts' | 'bookings' | 'settings'>('courts');
+  const [tab, setTab] = useState<string | null>('courts');
   const [status, setStatus] = useState<any>(null);
   const [error, setError] = useState(false);
 
@@ -488,113 +584,149 @@ function App() {
     try {
       await resumeProviders();
       await refresh();
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     setResuming(false);
   }, [refresh]);
 
   const configWarnings: { field: string; message: string }[] = status?.configWarnings ?? [];
-  const providerErrors: { provider: string; date: string; error: string; time: string }[] = status?.providerErrors ?? [];
+  const providerErrors: { provider: string; date: string; error: string; time: string }[] =
+    status?.providerErrors ?? [];
   const disabledProviders: string[] = status?.disabledProviders ?? [];
   const hasIssues = configWarnings.length > 0 || disabledProviders.length > 0;
 
+  const statusBadge = error ? (
+    <Badge color="red" variant="light">Error</Badge>
+  ) : hasIssues ? (
+    <Badge color="red" variant="light">Issues</Badge>
+  ) : status ? (
+    <Badge color="green" variant="light">Running</Badge>
+  ) : (
+    <Badge color="gray" variant="light">Loading...</Badge>
+  );
+
   return (
-    <div class="app">
-      <header>
-        <div class="header-left">
-          <h1>Tennis Court Radar</h1>
-          {error
-            ? <Badge variant="error">Error</Badge>
-            : hasIssues
-              ? <Badge variant="error">Issues</Badge>
-              : status
-                ? <Badge variant="ok">Running</Badge>
-                : <Badge variant="default">Loading...</Badge>
-          }
-        </div>
-        <nav class="tabs">
-          <button class={`tab ${tab === 'courts' ? 'active' : ''}`} onClick={() => setTab('courts')}>
-            Courts
-          </button>
-          <button class={`tab ${tab === 'bookings' ? 'active' : ''}`} onClick={() => setTab('bookings')}>
-            Bookings
-          </button>
-          <button class={`tab ${tab === 'settings' ? 'active' : ''}`} onClick={() => setTab('settings')}>
-            Settings
-          </button>
-        </nav>
-      </header>
+    <Container size={860} px="md" py="lg">
+      <Stack gap="lg">
+        <Group justify="space-between" wrap="wrap">
+          <Group gap="sm">
+            <Title order={3}>Tennis Court Radar</Title>
+            {statusBadge}
+          </Group>
+        </Group>
 
-      {configWarnings.length > 0 && (
-        <AlertBanner variant="warning">
-          <strong>Configuration issues:</strong>
-          <ul class="alert-list">
-            {configWarnings.map((w: any, i: number) => <li key={i}>{w.message}</li>)}
-          </ul>
-        </AlertBanner>
-      )}
+        {configWarnings.length > 0 && (
+          <Alert color="yellow" variant="light" title="Configuration issues">
+            <ul style={{ margin: 0, paddingLeft: 16 }}>
+              {configWarnings.map((w, i) => (
+                <li key={i}>{w.message}</li>
+              ))}
+            </ul>
+          </Alert>
+        )}
 
-      {disabledProviders.length > 0 && (
-        <AlertBanner variant="error">
-          <strong>Disabled providers:</strong>
-          <ul class="alert-list">
-            {providerErrors.map((e: any, i: number) => (
-              <li key={i}>{e.provider} ({e.date}): {e.error}</li>
-            ))}
-            {disabledProviders
-              .filter(name => !providerErrors.some((e: any) => e.provider === name))
-              .map((name, i) => <li key={`d-${i}`}>{name}: disabled due to previous error</li>)
-            }
-          </ul>
-          <button class="btn-resume" onClick={handleResume} disabled={resuming}>
-            {resuming ? 'Resuming...' : 'Resume All Providers'}
-          </button>
-        </AlertBanner>
-      )}
+        {disabledProviders.length > 0 && (
+          <Alert color="red" variant="light" title="Disabled providers">
+            <ul style={{ margin: 0, paddingLeft: 16 }}>
+              {providerErrors.map((e, i) => (
+                <li key={i}>
+                  {e.provider} ({e.date}): {e.error}
+                </li>
+              ))}
+              {disabledProviders
+                .filter(name => !providerErrors.some(e => e.provider === name))
+                .map((name, i) => (
+                  <li key={`d-${i}`}>{name}: disabled due to previous error</li>
+                ))}
+            </ul>
+            <Button
+              variant="light"
+              color="red"
+              size="xs"
+              mt="sm"
+              onClick={handleResume}
+              loading={resuming}
+            >
+              Resume All Providers
+            </Button>
+          </Alert>
+        )}
 
-      {tab === 'courts' && (
-        <section>
-          <SlotTable slots={status?.availableSlots ?? []} />
-          {status?.lastPoll && (
-            <div class="fetch-summary">
-              <span>Last poll: {new Date(status.lastPoll).toLocaleTimeString()}</span>
-              {status.pollStats && (
-                <>
-                  <span class="fetch-summary-sep">|</span>
-                  <span>{status.pollStats.datesChecked} date{status.pollStats.datesChecked !== 1 ? 's' : ''} checked</span>
-                  <span class="fetch-summary-sep">|</span>
-                  <span>{status.totalSlots} total / {(status.availableSlots ?? []).length} matching</span>
-                  <span class="fetch-summary-sep">|</span>
-                  <span>{status.pollStats.durationMs}ms</span>
-                  {Object.keys(status.pollStats.providerBreakdown ?? {}).length > 0 && (
-                    <>
-                      <span class="fetch-summary-sep">|</span>
-                      <span>
-                        {Object.entries(status.pollStats.providerBreakdown).map(([k, v]) => `${k}: ${v}`).join(', ')}
-                      </span>
-                    </>
-                  )}
-                </>
-              )}
-            </div>
-          )}
-        </section>
-      )}
+        <Tabs value={tab} onChange={setTab} variant="pills">
+          <Tabs.List>
+            <Tabs.Tab value="courts">Courts</Tabs.Tab>
+            <Tabs.Tab value="bookings">Bookings</Tabs.Tab>
+            <Tabs.Tab value="settings">Settings</Tabs.Tab>
+          </Tabs.List>
 
-      {tab === 'bookings' && <BookingsPanel />}
+          <Tabs.Panel value="courts" pt="md">
+            <SlotTable slots={status?.availableSlots ?? []} />
+            {status?.lastPoll && (
+              <Group gap={4} mt="md" wrap="wrap">
+                <Text size="xs" c="dimmed">
+                  Last poll: {new Date(status.lastPoll).toLocaleTimeString()}
+                </Text>
+                {status.pollStats && (
+                  <>
+                    <Text size="xs" c="dimmed" opacity={0.4}>|</Text>
+                    <Text size="xs" c="dimmed">
+                      {status.pollStats.datesChecked} date
+                      {status.pollStats.datesChecked !== 1 ? 's' : ''} checked
+                    </Text>
+                    <Text size="xs" c="dimmed" opacity={0.4}>|</Text>
+                    <Text size="xs" c="dimmed">
+                      {status.totalSlots} total / {(status.availableSlots ?? []).length} matching
+                    </Text>
+                    <Text size="xs" c="dimmed" opacity={0.4}>|</Text>
+                    <Text size="xs" c="dimmed">{status.pollStats.durationMs}ms</Text>
+                    {Object.keys(status.pollStats.providerBreakdown ?? {}).length > 0 && (
+                      <>
+                        <Text size="xs" c="dimmed" opacity={0.4}>|</Text>
+                        <Text size="xs" c="dimmed">
+                          {Object.entries(status.pollStats.providerBreakdown)
+                            .map(([k, v]) => `${k}: ${v}`)
+                            .join(', ')}
+                        </Text>
+                      </>
+                    )}
+                  </>
+                )}
+              </Group>
+            )}
+          </Tabs.Panel>
 
-      {tab === 'settings' && <SettingsPanel />}
-    </div>
+          <Tabs.Panel value="bookings" pt="md">
+            <BookingsPanel />
+          </Tabs.Panel>
+
+          <Tabs.Panel value="settings" pt="md">
+            <SettingsPanel />
+          </Tabs.Panel>
+        </Tabs>
+      </Stack>
+    </Container>
   );
 }
 
+// --- Theme & Mount ---
+const theme = createTheme({
+  primaryColor: 'blue',
+  defaultRadius: 'md',
+});
+
 function mount() {
   const root = document.getElementById('app');
+  const app = (
+    <MantineProvider theme={theme} defaultColorScheme="dark">
+      <App />
+    </MantineProvider>
+  );
   if (root) {
-    render(<App />, root);
+    createRoot(root).render(app);
   } else {
-    // HA ingress may delay DOM — retry when ready
     document.addEventListener('DOMContentLoaded', () => {
-      render(<App />, document.getElementById('app')!);
+      createRoot(document.getElementById('app')!).render(app);
     });
   }
 }

@@ -1,0 +1,73 @@
+/* Date picker grid */
+.date-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+@media (max-width: 600px) {
+  .date-picker-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Date chips */
+.date-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  background: var(--mantine-color-dark-6);
+  border: 1px solid var(--mantine-color-dark-4);
+  border-radius: var(--mantine-radius-sm);
+  transition: all 0.15s;
+}
+
+.date-chip:hover {
+  border-color: var(--mantine-color-dark-3);
+  background: var(--mantine-color-dark-5);
+}
+
+.date-chip-selected {
+  background: var(--mantine-primary-color-filled) !important;
+  border-color: var(--mantine-primary-color-filled) !important;
+  color: var(--mantine-color-white);
+}
+
+.date-chip-selected * {
+  color: var(--mantine-color-white) !important;
+  opacity: 1 !important;
+}
+
+.date-chip-weekend {
+  color: var(--mantine-color-red-4);
+}
+
+.date-chip-weekend.date-chip-selected {
+  color: var(--mantine-color-white);
+}
+
+/* Slot cards */
+.slot-card {
+  transition: border-color 0.15s, box-shadow 0.15s;
+  cursor: default;
+}
+
+.slot-card:hover {
+  border-color: var(--mantine-primary-color-filled);
+  box-shadow: 0 0 0 1px var(--mantine-primary-color-filled),
+    0 4px 16px rgba(66, 165, 245, 0.08);
+}
+
+.slot-card-booked {
+  border-left: 3px solid var(--mantine-primary-color-filled);
+}
+
+/* Save bar */
+.save-bar {
+  position: sticky;
+  bottom: 0;
+  padding: 16px 0;
+  background: var(--mantine-color-body);
+}

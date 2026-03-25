@@ -71,3 +71,12 @@
   padding: 16px 0;
   background: var(--mantine-color-body);
 }
+
+/* Portfolio — P&L colors for table cells */
+.pnl-positive {
+  color: var(--mantine-color-green-5);
+}
+
+.pnl-negative {
+  color: var(--mantine-color-red-5);
+}

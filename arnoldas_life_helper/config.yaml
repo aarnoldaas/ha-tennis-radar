@@ -1,7 +1,7 @@
-name: "Tennis Court Radar"
-version: "1.11.0"
-slug: "tennis_court_radar"
-description: "Polls tennis court providers and notifies when courts matching your preferences become available"
+name: "Arnoldas Life Helper"
+version: "1.13.0"
+slug: "arnoldas_life_helper"
+description: "Personal life assistant — tennis court scanning, portfolio tracking, TODO lists, AI helper, and more"
 url: "https://github.com/aarnoldaas/ha-tennis-radar"
 arch:
   - amd64
@@ -14,8 +14,8 @@ boot: auto
 ingress: true
 ingress_port: 8099
 ingress_entry: "/"
-panel_icon: "mdi:tennis"
-panel_title: "Tennis Radar"
+panel_icon: "mdi:star"
+panel_title: "Life Helper"
 panel_admin: false
 
 homeassistant_api: true

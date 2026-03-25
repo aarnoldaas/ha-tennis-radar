@@ -1,6 +1,6 @@
 import Fastify from 'fastify';
 import fastifyStatic from '@fastify/static';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import type { TimeSlot } from './providers/types.js';
 import type { AddonOptions, ConfigWarning } from './utils/config.js';
@@ -116,6 +116,24 @@ export function createServer(options: { port: number; getOptions: () => AddonOpt
   app.post('/api/resume', async () => {
     options.onResumeProviders();
     return { success: true };
+  });
+
+  // API: serve raw portfolio CSV files for frontend parsing
+  app.get('/api/portfolio/files', async () => {
+    const dataDir = resolve(process.env.DATA_DIR || '/data');
+    const investmentsDir = join(dataDir, 'Investments');
+    const result: Record<string, Record<string, string>> = {};
+
+    for (const broker of ['interactive-brokers', 'swedbank', 'wix', 'revolut']) {
+      const brokerDir = join(investmentsDir, broker);
+      if (!existsSync(brokerDir)) continue;
+      result[broker] = {};
+      const files = readdirSync(brokerDir).filter(f => f.endsWith('.csv'));
+      for (const file of files) {
+        result[broker][file] = readFileSync(join(brokerDir, file), 'utf-8');
+      }
+    }
+    return result;
   });
 
   app.listen({ port: options.port, host: '0.0.0.0' });

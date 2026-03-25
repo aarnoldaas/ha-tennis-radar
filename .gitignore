@@ -9,11 +9,11 @@ __pycache__/
 # Node
 node_modules/
 # Only dist/bundle.cjs is committed for HA add-on builds
-tennis_court_radar/dist/*
-!tennis_court_radar/dist/bundle.cjs
+arnoldas_life_helper/dist/*
+!arnoldas_life_helper/dist/bundle.cjs
 
 # Dev
-tennis_court_radar/data/
+arnoldas_life_helper/data/
 
 # Build output
 custom_components/tennis_radar/www/

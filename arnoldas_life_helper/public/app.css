@@ -6576,4 +6576,10 @@ fieldset:disabled .m_c9ade57f:where([data-inverted]),
   padding: 16px 0;
   background: var(--mantine-color-body);
 }
+.pnl-positive {
+  color: var(--mantine-color-green-5);
+}
+.pnl-negative {
+  color: var(--mantine-color-red-5);
+}
 /*# sourceMappingURL=app.css.map */

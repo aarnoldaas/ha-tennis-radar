@@ -1,5 +1,5 @@
 {
-  "name": "tennis-court-radar",
+  "name": "arnoldas-life-helper",
   "version": "1.0.0",
   "type": "module",
   "main": "dist/index.js",
@@ -15,11 +15,13 @@
     "@mantine/hooks": "^7.0.0",
     "cheerio": "^1.1.0",
     "fastify": "^5.0.0",
+    "papaparse": "^5.5.3",
     "react": "^18.0.0",
     "react-dom": "^18.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@types/papaparse": "^5.5.2",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "esbuild": "^0.27.3",
@@ -27,8 +29,5 @@
   },
   "engines": {
     "node": ">=20.0.0"
-  },
-  "publishConfig": {
-    "registry": "https://npm.dev.wixpress.com/"
   }
 }

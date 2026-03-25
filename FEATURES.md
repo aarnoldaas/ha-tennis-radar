@@ -1,4 +1,4 @@
-# Tennis Court Radar — Features
+# Arnoldas Life Helper — Features
 
 ## Court Availability Monitoring
 

@@ -1,5 +1,5 @@
 #!/usr/bin/with-contenv bashio
 # shellcheck shell=bash
 
-bashio::log.info "Starting Tennis Court Radar..."
+bashio::log.info "Starting Arnoldas Life Helper..."
 exec node /app/dist/bundle.cjs

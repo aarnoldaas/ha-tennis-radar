@@ -5910,7 +5910,7 @@ var require_transport = __commonJS({
   "node_modules/pino/lib/transport.js"(exports2, module2) {
     "use strict";
     var { createRequire } = require("module");
-    var { existsSync: existsSync2 } = require("node:fs");
+    var { existsSync: existsSync3 } = require("node:fs");
     var getCallers = require_caller();
     var { join: join2, isAbsolute, sep } = require("node:path");
     var { fileURLToPath } = require("node:url");
@@ -5984,7 +5984,7 @@ var require_transport = __commonJS({
           return false;
         }
       }
-      return isAbsolute(path) && !existsSync2(path);
+      return isAbsolute(path) && !existsSync3(path);
     }
     function stripQuotes(value) {
       const first2 = value[0];
@@ -71827,6 +71827,21 @@ function createServer(options2) {
   app.post("/api/resume", async () => {
     options2.onResumeProviders();
     return { success: true };
+  });
+  app.get("/api/portfolio/files", async () => {
+    const dataDir = (0, import_node_path.resolve)(process.env.DATA_DIR || "/data");
+    const investmentsDir = (0, import_node_path.join)(dataDir, "Investments");
+    const result = {};
+    for (const broker of ["interactive-brokers", "swedbank", "wix", "revolut"]) {
+      const brokerDir = (0, import_node_path.join)(investmentsDir, broker);
+      if (!(0, import_node_fs2.existsSync)(brokerDir)) continue;
+      result[broker] = {};
+      const files = (0, import_node_fs2.readdirSync)(brokerDir).filter((f) => f.endsWith(".csv"));
+      for (const file of files) {
+        result[broker][file] = (0, import_node_fs2.readFileSync)((0, import_node_path.join)(brokerDir, file), "utf-8");
+      }
+    }
+    return result;
   });
   app.listen({ port: options2.port, host: "0.0.0.0" });
   return app;

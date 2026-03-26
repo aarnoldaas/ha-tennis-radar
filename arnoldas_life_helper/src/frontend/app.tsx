@@ -22,11 +22,9 @@ import {
   Alert,
   Loader,
   UnstyledButton,
-  SegmentedControl,
 } from '@mantine/core';
 import '@mantine/core/styles.css';
 import './custom.css';
-import { PortfolioApp } from './portfolio/portfolio-app';
 
 const BASE = (window as any).INGRESS_PATH || '';
 
@@ -559,7 +557,6 @@ function BookingsPanel() {
 }
 
 function App() {
-  const [activeModule, setActiveModule] = useState<string>('tennis');
   const [tab, setTab] = useState<string | null>('courts');
   const [status, setStatus] = useState<any>(null);
   const [error, setError] = useState(false);
@@ -615,23 +612,9 @@ function App() {
         <Group justify="space-between" wrap="wrap">
           <Group gap="sm">
             <Title order={3}>Arnoldas Life Helper</Title>
-            {activeModule === 'tennis' && statusBadge}
+            {statusBadge}
           </Group>
-          <SegmentedControl
-            value={activeModule}
-            onChange={setActiveModule}
-            data={[
-              { label: 'Tennis Radar', value: 'tennis' },
-              { label: 'Portfolio', value: 'portfolio' },
-            ]}
-            size="sm"
-          />
         </Group>
-
-        {activeModule === 'portfolio' ? (
-          <PortfolioApp />
-        ) : (
-        <>
         {configWarnings.length > 0 && (
           <Alert color="yellow" variant="light" title="Configuration issues">
             <ul style={{ margin: 0, paddingLeft: 16 }}>
@@ -720,8 +703,6 @@ function App() {
             <SettingsPanel />
           </Tabs.Panel>
         </Tabs>
-        </>
-        )}
       </Stack>
     </Container>
   );

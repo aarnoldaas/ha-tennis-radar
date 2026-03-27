@@ -142,7 +142,8 @@
 
 - FIFO lot tracking from parsed buy/sell transactions
 - Current holdings with unrealized P&L (using hardcoded current prices)
-- EUR base currency values
+- Multi-currency P&L: cost basis and current value converted to EUR using date-based exchange rates
+- EUR base currency values displayed with € prefix
 
 ### Investments Page
 

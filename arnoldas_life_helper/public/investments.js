@@ -30511,20 +30511,32 @@
         /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { children: /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Text, { fw: 600, children: h.symbol }) }),
         /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right" }, children: formatNum(h.totalQuantity, h.totalQuantity % 1 === 0 ? 0 : 4) }),
         /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right" }, children: formatNum(h.averageCostBasis) }),
-        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right" }, children: formatNum(h.totalCostBasisEur) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Table.Td, { style: { textAlign: "right" }, children: [
+          "\u20AC",
+          formatNum(h.totalCostBasisEur)
+        ] }),
         /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right" }, children: h.currentPrice > 0 ? formatNum(h.currentPrice) : "\u2014" }),
-        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right" }, children: h.currentPrice > 0 ? formatNum(h.currentValueEur) : "\u2014" }),
-        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right", color: h.unrealizedPnl >= 0 ? "#51cf66" : "#ff6b6b" }, children: h.currentPrice > 0 ? formatNum(h.unrealizedPnlEur) : "\u2014" }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right" }, children: h.currentPrice > 0 ? `\u20AC${formatNum(h.currentValueEur)}` : "\u2014" }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right", color: h.unrealizedPnl >= 0 ? "#51cf66" : "#ff6b6b" }, children: h.currentPrice > 0 ? `\u20AC${formatNum(h.unrealizedPnlEur)}` : "\u2014" }),
         /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right", color: h.unrealizedPnlPercent >= 0 ? "#51cf66" : "#ff6b6b" }, children: h.currentPrice > 0 ? `${formatNum(h.unrealizedPnlPercent)}%` : "\u2014" })
       ] }, h.symbol)) }),
       /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Tfoot, { children: /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Table.Tr, { style: { fontWeight: 700 }, children: [
         /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { children: "Total" }),
         /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, {}),
         /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, {}),
-        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right" }, children: formatNum(totals.totalCost) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Table.Td, { style: { textAlign: "right" }, children: [
+          "\u20AC",
+          formatNum(totals.totalCost)
+        ] }),
         /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, {}),
-        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right" }, children: formatNum(totals.totalValue) }),
-        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right", color: totals.totalPnl >= 0 ? "#51cf66" : "#ff6b6b" }, children: formatNum(totals.totalPnl) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Table.Td, { style: { textAlign: "right" }, children: [
+          "\u20AC",
+          formatNum(totals.totalValue)
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Table.Td, { style: { textAlign: "right", color: totals.totalPnl >= 0 ? "#51cf66" : "#ff6b6b" }, children: [
+          "\u20AC",
+          formatNum(totals.totalPnl)
+        ] }),
         /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right", color: totals.totalPnl >= 0 ? "#51cf66" : "#ff6b6b" }, children: totals.totalCost > 0 ? `${formatNum(totals.totalPnl / totals.totalCost * 100)}%` : "\u2014" })
       ] }) })
     ] }) });

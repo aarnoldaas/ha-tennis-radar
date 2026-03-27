@@ -1,5 +1,6 @@
 import type { ITransaction, IHolding, ILot, Broker } from './types.js';
 import { getCurrentPrice } from './prices.js';
+import { convertAmount } from './currency.js';
 
 export function computeHoldings(transactions: ITransaction[]): IHolding[] {
   const sorted = [...transactions].sort((a, b) => a.date.localeCompare(b.date));
@@ -56,13 +57,18 @@ export function computeHoldings(transactions: ITransaction[]): IHolding[] {
 
     const priceInfo = getCurrentPrice(symbol);
     const currentPrice = priceInfo?.price ?? 0;
+    const priceCurrency = priceInfo?.currency ?? currency;
     const currentValue = totalQuantity * currentPrice;
     const unrealizedPnl = currentValue - totalCostBasis;
     const unrealizedPnlPercent = totalCostBasis > 0
       ? (unrealizedPnl / totalCostBasis) * 100
       : 0;
 
-    // All Swedbank transactions are EUR, so EUR values = original values
+    const today = new Date().toISOString().slice(0, 10);
+    const totalCostBasisEur = convertAmount(totalCostBasis, today, currency, 'EUR');
+    const currentValueEur = convertAmount(currentValue, today, priceCurrency, 'EUR');
+    const unrealizedPnlEur = currentValueEur - totalCostBasisEur;
+
     holdings.push({
       symbol,
       name: symbol,
@@ -76,9 +82,9 @@ export function computeHoldings(transactions: ITransaction[]): IHolding[] {
       currentValue: Math.round(currentValue * 100) / 100,
       unrealizedPnl: Math.round(unrealizedPnl * 100) / 100,
       unrealizedPnlPercent: Math.round(unrealizedPnlPercent * 100) / 100,
-      totalCostBasisEur: Math.round(totalCostBasis * 100) / 100,
-      currentValueEur: Math.round(currentValue * 100) / 100,
-      unrealizedPnlEur: Math.round(unrealizedPnl * 100) / 100,
+      totalCostBasisEur: Math.round(totalCostBasisEur * 100) / 100,
+      currentValueEur: Math.round(currentValueEur * 100) / 100,
+      unrealizedPnlEur: Math.round(unrealizedPnlEur * 100) / 100,
     });
   }
 

@@ -148,11 +148,11 @@ function HoldingsTable({ holdings }: { holdings: IHolding[] }) {
               <Table.Td><Text fw={600}>{h.symbol}</Text></Table.Td>
               <Table.Td style={{ textAlign: 'right' }}>{formatNum(h.totalQuantity, h.totalQuantity % 1 === 0 ? 0 : 4)}</Table.Td>
               <Table.Td style={{ textAlign: 'right' }}>{formatNum(h.averageCostBasis)}</Table.Td>
-              <Table.Td style={{ textAlign: 'right' }}>{formatNum(h.totalCostBasisEur)}</Table.Td>
+              <Table.Td style={{ textAlign: 'right' }}>{'\u20AC'}{formatNum(h.totalCostBasisEur)}</Table.Td>
               <Table.Td style={{ textAlign: 'right' }}>{h.currentPrice > 0 ? formatNum(h.currentPrice) : '—'}</Table.Td>
-              <Table.Td style={{ textAlign: 'right' }}>{h.currentPrice > 0 ? formatNum(h.currentValueEur) : '—'}</Table.Td>
+              <Table.Td style={{ textAlign: 'right' }}>{h.currentPrice > 0 ? `\u20AC${formatNum(h.currentValueEur)}` : '—'}</Table.Td>
               <Table.Td style={{ textAlign: 'right', color: h.unrealizedPnl >= 0 ? '#51cf66' : '#ff6b6b' }}>
-                {h.currentPrice > 0 ? formatNum(h.unrealizedPnlEur) : '—'}
+                {h.currentPrice > 0 ? `\u20AC${formatNum(h.unrealizedPnlEur)}` : '—'}
               </Table.Td>
               <Table.Td style={{ textAlign: 'right', color: h.unrealizedPnlPercent >= 0 ? '#51cf66' : '#ff6b6b' }}>
                 {h.currentPrice > 0 ? `${formatNum(h.unrealizedPnlPercent)}%` : '—'}
@@ -165,11 +165,11 @@ function HoldingsTable({ holdings }: { holdings: IHolding[] }) {
             <Table.Td>Total</Table.Td>
             <Table.Td />
             <Table.Td />
-            <Table.Td style={{ textAlign: 'right' }}>{formatNum(totals.totalCost)}</Table.Td>
+            <Table.Td style={{ textAlign: 'right' }}>{'\u20AC'}{formatNum(totals.totalCost)}</Table.Td>
             <Table.Td />
-            <Table.Td style={{ textAlign: 'right' }}>{formatNum(totals.totalValue)}</Table.Td>
+            <Table.Td style={{ textAlign: 'right' }}>{'\u20AC'}{formatNum(totals.totalValue)}</Table.Td>
             <Table.Td style={{ textAlign: 'right', color: totals.totalPnl >= 0 ? '#51cf66' : '#ff6b6b' }}>
-              {formatNum(totals.totalPnl)}
+              {'\u20AC'}{formatNum(totals.totalPnl)}
             </Table.Td>
             <Table.Td style={{ textAlign: 'right', color: totals.totalPnl >= 0 ? '#51cf66' : '#ff6b6b' }}>
               {totals.totalCost > 0 ? `${formatNum((totals.totalPnl / totals.totalCost) * 100)}%` : '—'}

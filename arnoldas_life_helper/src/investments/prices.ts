@@ -135,6 +135,15 @@ const HARDCODED_PRICES: Record<string, PriceEntry[]> = {
     { date: "2025-01-01", price: 204.80, currency: "USD" },
     { date: "2026-03-01", price: 280.74, currency: "USD" },
   ],
+  PBR: [ // Petrobras (Brazilian oil company, ADR)
+    { date: "2020-01-01", price: 15.50, currency: "USD" },
+    { date: "2021-01-01", price: 10.80, currency: "USD" },
+    { date: "2022-01-01", price: 11.20, currency: "USD" },
+    { date: "2023-01-01", price: 11.90, currency: "USD" },
+    { date: "2024-01-01", price: 17.30, currency: "USD" },
+    { date: "2025-01-01", price: 14.25, currency: "USD" },
+    { date: "2026-03-01", price: 19.75, currency: "USD" },
+  ],
   NOVA: [ // Novo Nordisk (IB ticker)
     { date: "2020-01-01", price: 27.32, currency: "USD" },
     { date: "2021-01-01", price: 31.95, currency: "USD" },

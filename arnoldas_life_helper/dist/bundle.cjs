@@ -73922,6 +73922,36 @@ var HARDCODED_PRICES = {
     { date: "2025-01-01", price: 290, currency: "CNH" },
     { date: "2026-03-01", price: 360, currency: "CNH" }
   ],
+  // ---- US stocks (Interactive Brokers, USD) ----
+  GOOG: [
+    { date: "2020-01-01", price: 71.18, currency: "USD" },
+    { date: "2021-01-01", price: 91.1, currency: "USD" },
+    { date: "2022-01-01", price: 134.69, currency: "USD" },
+    { date: "2023-01-01", price: 99.13, currency: "USD" },
+    { date: "2024-01-01", price: 140.74, currency: "USD" },
+    { date: "2025-01-01", price: 204.8, currency: "USD" },
+    { date: "2026-03-01", price: 280.74, currency: "USD" }
+  ],
+  PBR: [
+    // Petrobras (Brazilian oil company, ADR)
+    { date: "2020-01-01", price: 15.5, currency: "USD" },
+    { date: "2021-01-01", price: 10.8, currency: "USD" },
+    { date: "2022-01-01", price: 11.2, currency: "USD" },
+    { date: "2023-01-01", price: 11.9, currency: "USD" },
+    { date: "2024-01-01", price: 17.3, currency: "USD" },
+    { date: "2025-01-01", price: 14.25, currency: "USD" },
+    { date: "2026-03-01", price: 19.75, currency: "USD" }
+  ],
+  NOVA: [
+    // Novo Nordisk (IB ticker)
+    { date: "2020-01-01", price: 27.32, currency: "USD" },
+    { date: "2021-01-01", price: 31.95, currency: "USD" },
+    { date: "2022-01-01", price: 46.75, currency: "USD" },
+    { date: "2023-01-01", price: 65.95, currency: "USD" },
+    { date: "2024-01-01", price: 110.45, currency: "USD" },
+    { date: "2025-01-01", price: 82.18, currency: "USD" },
+    { date: "2026-03-01", price: 36.4, currency: "USD" }
+  ],
   // ---- Revolut brokerage ----
   E3G1: [
     // Evolution AB
@@ -74010,9 +74040,14 @@ function computeHoldings(transactions) {
     const brokers = [...new Set(lots.map((l) => l.broker))];
     const priceInfo = getCurrentPrice(symbol);
     const currentPrice = priceInfo?.price ?? 0;
+    const priceCurrency = priceInfo?.currency ?? currency;
     const currentValue = totalQuantity * currentPrice;
     const unrealizedPnl = currentValue - totalCostBasis;
     const unrealizedPnlPercent = totalCostBasis > 0 ? unrealizedPnl / totalCostBasis * 100 : 0;
+    const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+    const totalCostBasisEur = convertAmount(totalCostBasis, today, currency, "EUR");
+    const currentValueEur = convertAmount(currentValue, today, priceCurrency, "EUR");
+    const unrealizedPnlEur = currentValueEur - totalCostBasisEur;
     holdings.push({
       symbol,
       name: symbol,
@@ -74026,9 +74061,9 @@ function computeHoldings(transactions) {
       currentValue: Math.round(currentValue * 100) / 100,
       unrealizedPnl: Math.round(unrealizedPnl * 100) / 100,
       unrealizedPnlPercent: Math.round(unrealizedPnlPercent * 100) / 100,
-      totalCostBasisEur: Math.round(totalCostBasis * 100) / 100,
-      currentValueEur: Math.round(currentValue * 100) / 100,
-      unrealizedPnlEur: Math.round(unrealizedPnl * 100) / 100
+      totalCostBasisEur: Math.round(totalCostBasisEur * 100) / 100,
+      currentValueEur: Math.round(currentValueEur * 100) / 100,
+      unrealizedPnlEur: Math.round(unrealizedPnlEur * 100) / 100
     });
   }
   return holdings.sort((a, b) => b.currentValueEur - a.currentValueEur);

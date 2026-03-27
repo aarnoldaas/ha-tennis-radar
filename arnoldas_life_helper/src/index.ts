@@ -3,6 +3,7 @@ import { createServer, globalState } from './server.js';
 import { PollingManager } from './polling.js';
 import { CourtProviderManager } from './providers/manager.js';
 import { HomeAssistantNotifier } from './notifications.js';
+import { loadInvestmentData } from './investments/portfolio-service.js';
 
 let options = loadOptions();
 console.log('[TennisRadar] Configuration loaded:', {
@@ -98,6 +99,12 @@ function onResumeProviders() {
   notifiedErrors.clear();
   console.log('[TennisRadar] All providers resumed via UI');
 }
+
+// Load investment data
+const dataDir = process.env.DATA_DIR || '/data';
+loadInvestmentData(dataDir).catch(err => {
+  console.error('[Investments] Failed to load portfolio data:', err);
+});
 
 // Start web UI and polling
 createServer({ port: 8099, getOptions: () => options, onConfigChange, onResumeProviders, fetchBookings: () => providerManager.fetchBookings() });

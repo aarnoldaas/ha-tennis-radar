@@ -5,6 +5,7 @@ import { join, resolve } from 'node:path';
 import type { TimeSlot } from './providers/types.js';
 import type { AddonOptions, ConfigWarning } from './utils/config.js';
 import { loadOptions, saveOptions, validateConfig } from './utils/config.js';
+import { getInvestmentData } from './investments/portfolio-service.js';
 
 // Shared state — updated by the polling loop
 export interface PollStats {
@@ -61,6 +62,23 @@ export function createServer(options: { port: number; getOptions: () => AddonOpt
   };
   app.get('/', serveIndex);
   app.get('//', serveIndex);
+
+  // Serve investments page
+  const serveInvestments = async (request: any, reply: any) => {
+    const ingressPath = (request.headers['x-ingress-path'] as string) || '';
+    const html = readFileSync(join(publicDir, 'investments.html'), 'utf-8')
+      .replace(/\{\{INGRESS_PATH\}\}/g, ingressPath);
+    reply.type('text/html').send(html);
+  };
+  app.get('/investments', serveInvestments);
+  app.get('/investments/', serveInvestments);
+
+  // API: investment data
+  app.get('/api/investments', async () => {
+    const data = getInvestmentData();
+    if (!data) return { transactions: [], holdings: [] };
+    return data;
+  });
 
   // API: return current status
   app.get('/api/status', async () => {

@@ -614,6 +614,9 @@ function App() {
             <Title order={3}>Arnoldas Life Helper</Title>
             {statusBadge}
           </Group>
+          <Button variant="subtle" component="a" href={`${BASE}/investments`} size="xs">
+            Investments
+          </Button>
         </Group>
         {configWarnings.length > 0 && (
           <Alert color="yellow" variant="light" title="Configuration issues">

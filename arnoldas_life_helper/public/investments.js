@@ -125,38 +125,38 @@
             ReactSharedInternals.ReactDebugCurrentFrame = ReactDebugCurrentFrame;
             ReactSharedInternals.ReactCurrentActQueue = ReactCurrentActQueue;
           }
-          function warn(format2) {
+          function warn(format) {
             {
               {
                 for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
                   args[_key - 1] = arguments[_key];
                 }
-                printWarning("warn", format2, args);
+                printWarning("warn", format, args);
               }
             }
           }
-          function error(format2) {
+          function error(format) {
             {
               {
                 for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
                   args[_key2 - 1] = arguments[_key2];
                 }
-                printWarning("error", format2, args);
+                printWarning("error", format, args);
               }
             }
           }
-          function printWarning(level, format2, args) {
+          function printWarning(level, format, args) {
             {
               var ReactDebugCurrentFrame2 = ReactSharedInternals.ReactDebugCurrentFrame;
               var stack = ReactDebugCurrentFrame2.getStackAddendum();
               if (stack !== "") {
-                format2 += "%s";
+                format += "%s";
                 args = args.concat([stack]);
               }
               var argsWithFormat = args.map(function(item) {
                 return String(item);
               });
-              argsWithFormat.unshift("Warning: " + format2);
+              argsWithFormat.unshift("Warning: " + format);
               Function.prototype.apply.call(console[level], console, argsWithFormat);
             }
           }
@@ -555,10 +555,10 @@
               props.children = childArray;
             }
             if (type && type.defaultProps) {
-              var defaultProps39 = type.defaultProps;
-              for (propName in defaultProps39) {
+              var defaultProps25 = type.defaultProps;
+              for (propName in defaultProps25) {
                 if (props[propName] === void 0) {
-                  props[propName] = defaultProps39[propName];
+                  props[propName] = defaultProps25[propName];
                 }
               }
             }
@@ -579,7 +579,7 @@
             var newElement = ReactElement(oldElement.type, newKey, oldElement.ref, oldElement._self, oldElement._source, oldElement._owner, oldElement.props);
             return newElement;
           }
-          function cloneElement2(element, config, children) {
+          function cloneElement3(element, config, children) {
             if (element === null || element === void 0) {
               throw new Error("React.cloneElement(...): The argument must be a React element, but you passed " + element + ".");
             }
@@ -601,14 +601,14 @@
                 }
                 key = "" + config.key;
               }
-              var defaultProps39;
+              var defaultProps25;
               if (element.type && element.type.defaultProps) {
-                defaultProps39 = element.type.defaultProps;
+                defaultProps25 = element.type.defaultProps;
               }
               for (propName in config) {
                 if (hasOwnProperty.call(config, propName) && !RESERVED_PROPS.hasOwnProperty(propName)) {
-                  if (config[propName] === void 0 && defaultProps39 !== void 0) {
-                    props[propName] = defaultProps39[propName];
+                  if (config[propName] === void 0 && defaultProps25 !== void 0) {
+                    props[propName] = defaultProps25[propName];
                   } else {
                     props[propName] = config[propName];
                   }
@@ -785,7 +785,7 @@
             }
             return children;
           }
-          function createContext7(defaultValue) {
+          function createContext6(defaultValue) {
             var context = {
               $$typeof: REACT_CONTEXT_TYPE,
               // As a workaround to support multiple concurrent renderers, we categorize
@@ -939,17 +939,17 @@
               _init: lazyInitializer
             };
             {
-              var defaultProps39;
+              var defaultProps25;
               var propTypes;
               Object.defineProperties(lazyType, {
                 defaultProps: {
                   configurable: true,
                   get: function() {
-                    return defaultProps39;
+                    return defaultProps25;
                   },
                   set: function(newDefaultProps) {
                     error("React.lazy(...): It is not supported to assign `defaultProps` to a lazy component import. Either specify them where the component is defined, or create a wrapping component around it.");
-                    defaultProps39 = newDefaultProps;
+                    defaultProps25 = newDefaultProps;
                     Object.defineProperty(lazyType, "defaultProps", {
                       enumerable: true
                     });
@@ -972,7 +972,7 @@
             }
             return lazyType;
           }
-          function forwardRef9(render) {
+          function forwardRef21(render) {
             {
               if (render != null && render.$$typeof === REACT_MEMO_TYPE) {
                 error("forwardRef requires a render function but received a `memo` component. Instead of forwardRef(memo(...)), use memo(forwardRef(...)).");
@@ -1071,7 +1071,7 @@
             }
             return dispatcher;
           }
-          function useContext7(Context) {
+          function useContext6(Context) {
             var dispatcher = resolveDispatcher();
             {
               if (Context._context !== void 0) {
@@ -1085,23 +1085,23 @@
             }
             return dispatcher.useContext(Context);
           }
-          function useState9(initialState) {
+          function useState19(initialState) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useState(initialState);
           }
-          function useReducer(reducer, initialArg, init) {
+          function useReducer2(reducer, initialArg, init) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useReducer(reducer, initialArg, init);
           }
-          function useRef7(initialValue) {
+          function useRef15(initialValue) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useRef(initialValue);
           }
-          function useEffect8(create, deps) {
+          function useEffect19(create, deps) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useEffect(create, deps);
           }
-          function useInsertionEffect(create, deps) {
+          function useInsertionEffect2(create, deps) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useInsertionEffect(create, deps);
           }
@@ -1109,11 +1109,11 @@
             var dispatcher = resolveDispatcher();
             return dispatcher.useLayoutEffect(create, deps);
           }
-          function useCallback4(callback, deps) {
+          function useCallback5(callback, deps) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useCallback(callback, deps);
           }
-          function useMemo3(create, deps) {
+          function useMemo5(create, deps) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useMemo(create, deps);
           }
@@ -1649,7 +1649,7 @@
             return validatedFactory;
           }
           function cloneElementWithValidation(element, props, children) {
-            var newElement = cloneElement2.apply(this, arguments);
+            var newElement = cloneElement3.apply(this, arguments);
             for (var i = 2; i < arguments.length; i++) {
               validateChildKeys(arguments[i], newElement.type);
             }
@@ -1866,29 +1866,29 @@
           exports.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = ReactSharedInternals;
           exports.act = act;
           exports.cloneElement = cloneElement$1;
-          exports.createContext = createContext7;
+          exports.createContext = createContext6;
           exports.createElement = createElement$1;
           exports.createFactory = createFactory;
           exports.createRef = createRef;
-          exports.forwardRef = forwardRef9;
+          exports.forwardRef = forwardRef21;
           exports.isValidElement = isValidElement;
           exports.lazy = lazy;
           exports.memo = memo;
           exports.startTransition = startTransition;
           exports.unstable_act = act;
-          exports.useCallback = useCallback4;
-          exports.useContext = useContext7;
+          exports.useCallback = useCallback5;
+          exports.useContext = useContext6;
           exports.useDebugValue = useDebugValue;
           exports.useDeferredValue = useDeferredValue;
-          exports.useEffect = useEffect8;
+          exports.useEffect = useEffect19;
           exports.useId = useId3;
           exports.useImperativeHandle = useImperativeHandle;
-          exports.useInsertionEffect = useInsertionEffect;
+          exports.useInsertionEffect = useInsertionEffect2;
           exports.useLayoutEffect = useLayoutEffect3;
-          exports.useMemo = useMemo3;
-          exports.useReducer = useReducer;
-          exports.useRef = useRef7;
-          exports.useState = useState9;
+          exports.useMemo = useMemo5;
+          exports.useReducer = useReducer2;
+          exports.useRef = useRef15;
+          exports.useState = useState19;
           exports.useSyncExternalStore = useSyncExternalStore;
           exports.useTransition = useTransition2;
           exports.version = ReactVersion;
@@ -2393,38 +2393,38 @@
               suppressWarning = newSuppressWarning;
             }
           }
-          function warn(format2) {
+          function warn(format) {
             {
               if (!suppressWarning) {
                 for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
                   args[_key - 1] = arguments[_key];
                 }
-                printWarning("warn", format2, args);
+                printWarning("warn", format, args);
               }
             }
           }
-          function error(format2) {
+          function error(format) {
             {
               if (!suppressWarning) {
                 for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
                   args[_key2 - 1] = arguments[_key2];
                 }
-                printWarning("error", format2, args);
+                printWarning("error", format, args);
               }
             }
           }
-          function printWarning(level, format2, args) {
+          function printWarning(level, format, args) {
             {
               var ReactDebugCurrentFrame2 = ReactSharedInternals.ReactDebugCurrentFrame;
               var stack = ReactDebugCurrentFrame2.getStackAddendum();
               if (stack !== "") {
-                format2 += "%s";
+                format += "%s";
                 args = args.concat([stack]);
               }
               var argsWithFormat = args.map(function(item) {
                 return String(item);
               });
-              argsWithFormat.unshift("Warning: " + format2);
+              argsWithFormat.unshift("Warning: " + format);
               Function.prototype.apply.call(console[level], console, argsWithFormat);
             }
           }
@@ -2435,7 +2435,7 @@
           var HostPortal = 4;
           var HostComponent = 5;
           var HostText = 6;
-          var Fragment7 = 7;
+          var Fragment5 = 7;
           var Mode = 8;
           var ContextConsumer = 9;
           var ContextProvider = 10;
@@ -3592,7 +3592,7 @@
                 return "DehydratedFragment";
               case ForwardRef:
                 return getWrappedName$1(type, type.render, "ForwardRef");
-              case Fragment7:
+              case Fragment5:
                 return "Fragment";
               case HostComponent:
                 return type;
@@ -9354,10 +9354,10 @@
           function getOwnerDocumentFromRootContainer(rootContainerElement) {
             return rootContainerElement.nodeType === DOCUMENT_NODE ? rootContainerElement : rootContainerElement.ownerDocument;
           }
-          function noop3() {
+          function noop() {
           }
           function trapClickOnNonInteractiveElement(node) {
-            node.onclick = noop3;
+            node.onclick = noop;
           }
           function setInitialDOMProperties(tag, domElement, rootContainerElement, nextProps, isCustomComponentTag) {
             for (var propKey in nextProps) {
@@ -12021,7 +12021,7 @@
               }
             }
             function updateFragment2(returnFiber, current2, fragment, lanes, key) {
-              if (current2 === null || current2.tag !== Fragment7) {
+              if (current2 === null || current2.tag !== Fragment5) {
                 var created = createFiberFromFragment(fragment, returnFiber.mode, lanes, key);
                 created.return = returnFiber;
                 return created;
@@ -12424,7 +12424,7 @@
                 if (child.key === key) {
                   var elementType = element.type;
                   if (elementType === REACT_FRAGMENT_TYPE) {
-                    if (child.tag === Fragment7) {
+                    if (child.tag === Fragment5) {
                       deleteRemainingChildren(returnFiber, child.sibling);
                       var existing = useFiber(child, element.props.children);
                       existing.return = returnFiber;
@@ -15322,10 +15322,10 @@
           function resolveDefaultProps(Component, baseProps) {
             if (Component && Component.defaultProps) {
               var props = assign({}, baseProps);
-              var defaultProps39 = Component.defaultProps;
-              for (var propName in defaultProps39) {
+              var defaultProps25 = Component.defaultProps;
+              for (var propName in defaultProps25) {
                 if (props[propName] === void 0) {
-                  props[propName] = defaultProps39[propName];
+                  props[propName] = defaultProps25[propName];
                 }
               }
               return props;
@@ -17900,7 +17900,7 @@
                 var _resolvedProps2 = workInProgress2.elementType === type ? _unresolvedProps2 : resolveDefaultProps(type, _unresolvedProps2);
                 return updateForwardRef(current2, workInProgress2, type, _resolvedProps2, renderLanes2);
               }
-              case Fragment7:
+              case Fragment5:
                 return updateFragment(current2, workInProgress2, renderLanes2);
               case Mode:
                 return updateMode(current2, workInProgress2, renderLanes2);
@@ -18172,7 +18172,7 @@
               case SimpleMemoComponent:
               case FunctionComponent:
               case ForwardRef:
-              case Fragment7:
+              case Fragment5:
               case Mode:
               case Profiler:
               case ContextConsumer:
@@ -20895,7 +20895,7 @@
               }
             }
           }
-          function flushSync(fn) {
+          function flushSync2(fn) {
             if (rootWithPendingPassiveEffects !== null && rootWithPendingPassiveEffects.tag === LegacyRoot && (executionContext & (RenderContext | CommitContext)) === NoContext) {
               flushPassiveEffects();
             }
@@ -21961,7 +21961,7 @@
               }
               var staleFamilies = update.staleFamilies, updatedFamilies = update.updatedFamilies;
               flushPassiveEffects();
-              flushSync(function() {
+              flushSync2(function() {
                 scheduleFibersWithFamiliesRecursively(root2.current, updatedFamilies, staleFamilies);
               });
             }
@@ -21972,7 +21972,7 @@
                 return;
               }
               flushPassiveEffects();
-              flushSync(function() {
+              flushSync2(function() {
                 updateContainer(element, root2, null, null);
               });
             }
@@ -22433,7 +22433,7 @@
             return fiber;
           }
           function createFiberFromFragment(elements, mode, lanes, key) {
-            var fiber = createFiber(Fragment7, elements, key, mode);
+            var fiber = createFiber(Fragment5, elements, key, mode);
             fiber.lanes = lanes;
             return fiber;
           }
@@ -22610,7 +22610,7 @@
             return root2;
           }
           var ReactVersion = "18.3.1";
-          function createPortal(children, containerInfo, implementation) {
+          function createPortal2(children, containerInfo, implementation) {
             var key = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : null;
             {
               checkKeyStringCoercion(key);
@@ -22766,7 +22766,7 @@
                 break;
               }
               case SuspenseComponent: {
-                flushSync(function() {
+                flushSync2(function() {
                   var root3 = enqueueConcurrentRenderForLane(fiber, SyncLane);
                   if (root3 !== null) {
                     var eventTime = requestEventTime();
@@ -23095,7 +23095,7 @@
                   error("Attempted to synchronously unmount a root while React was already rendering. React cannot finish unmounting the root until the current render has completed, which may lead to a race condition.");
                 }
               }
-              flushSync(function() {
+              flushSync2(function() {
                 updateContainer(null, root2, null, null);
               });
               unmarkContainerAsRoot(container);
@@ -23270,7 +23270,7 @@
               markContainerAsRoot(root2.current, container);
               var rootContainerElement = container.nodeType === COMMENT_NODE ? container.parentNode : container;
               listenToAllSupportedEvents(rootContainerElement);
-              flushSync();
+              flushSync2();
               return root2;
             } else {
               var rootSibling;
@@ -23301,7 +23301,7 @@
               markContainerAsRoot(_root.current, container);
               var _rootContainerElement = container.nodeType === COMMENT_NODE ? container.parentNode : container;
               listenToAllSupportedEvents(_rootContainerElement);
-              flushSync(function() {
+              flushSync2(function() {
                 updateContainer(initialChildren, _root, parentComponent, callback);
               });
               return _root;
@@ -23429,7 +23429,7 @@
                   error("unmountComponentAtNode(): The node you're attempting to unmount was rendered by another copy of React.");
                 }
               }
-              flushSync(function() {
+              flushSync2(function() {
                 legacyRenderSubtreeIntoContainer(null, null, container, false, function() {
                   container._reactRootContainer = null;
                   unmarkContainerAsRoot(container);
@@ -23461,13 +23461,13 @@
             }
           }
           setRestoreImplementation(restoreControlledState$3);
-          setBatchingImplementation(batchedUpdates$1, discreteUpdates, flushSync);
+          setBatchingImplementation(batchedUpdates$1, discreteUpdates, flushSync2);
           function createPortal$1(children, container) {
             var key = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null;
             if (!isValidContainer(container)) {
               throw new Error("Target container is not a DOM element.");
             }
-            return createPortal(children, container, null, key);
+            return createPortal2(children, container, null, key);
           }
           function renderSubtreeIntoContainer(parentComponent, element, containerNode, callback) {
             return unstable_renderSubtreeIntoContainer(parentComponent, element, containerNode, callback);
@@ -23500,7 +23500,7 @@
                 error("flushSync was called from inside a lifecycle method. React cannot flush when React is already rendering. Consider moving this call to a scheduler task or micro task.");
               }
             }
-            return flushSync(fn);
+            return flushSync2(fn);
           }
           var foundDevTools = injectIntoDevTools({
             findFiberByHostInstance: getClosestInstanceFromNode,
@@ -23616,28 +23616,28 @@
             return null;
           }
           var ReactSharedInternals = React3.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
-          function error(format2) {
+          function error(format) {
             {
               {
                 for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
                   args[_key2 - 1] = arguments[_key2];
                 }
-                printWarning("error", format2, args);
+                printWarning("error", format, args);
               }
             }
           }
-          function printWarning(level, format2, args) {
+          function printWarning(level, format, args) {
             {
               var ReactDebugCurrentFrame2 = ReactSharedInternals.ReactDebugCurrentFrame;
               var stack = ReactDebugCurrentFrame2.getStackAddendum();
               if (stack !== "") {
-                format2 += "%s";
+                format += "%s";
                 args = args.concat([stack]);
               }
               var argsWithFormat = args.map(function(item) {
                 return String(item);
               });
-              argsWithFormat.unshift("Warning: " + format2);
+              argsWithFormat.unshift("Warning: " + format);
               Function.prototype.apply.call(console[level], console, argsWithFormat);
             }
           }
@@ -24207,10 +24207,10 @@
                 }
               }
               if (type && type.defaultProps) {
-                var defaultProps39 = type.defaultProps;
-                for (propName in defaultProps39) {
+                var defaultProps25 = type.defaultProps;
+                for (propName in defaultProps25) {
                   if (props[propName] === void 0) {
-                    props[propName] = defaultProps39[propName];
+                    props[propName] = defaultProps25[propName];
                   }
                 }
               }
@@ -24465,11 +24465,11 @@
               return jsxWithValidation(type, props, key, false);
             }
           }
-          var jsx61 = jsxWithValidationDynamic;
-          var jsxs18 = jsxWithValidationStatic;
+          var jsx54 = jsxWithValidationDynamic;
+          var jsxs13 = jsxWithValidationStatic;
           exports.Fragment = REACT_FRAGMENT_TYPE;
-          exports.jsx = jsx61;
-          exports.jsxs = jsxs18;
+          exports.jsx = jsx54;
+          exports.jsxs = jsxs13;
         })();
       }
     }
@@ -24487,8 +24487,8 @@
     }
   });
 
-  // src/frontend/app.tsx
-  var import_react98 = __toESM(require_react(), 1);
+  // src/frontend/investments.tsx
+  var import_react93 = __toESM(require_react(), 1);
   var import_client = __toESM(require_client(), 1);
 
   // node_modules/@mantine/core/esm/core/utils/keys/keys.mjs
@@ -24641,16 +24641,6 @@
     return [Provider, useSafeContext];
   }
 
-  // node_modules/@mantine/core/esm/core/utils/create-optional-context/create-optional-context.mjs
-  var import_jsx_runtime2 = __toESM(require_jsx_runtime(), 1);
-  var import_react2 = __toESM(require_react(), 1);
-  function createOptionalContext(initialValue = null) {
-    const Context = (0, import_react2.createContext)(initialValue);
-    const useOptionalContext = () => (0, import_react2.useContext)(Context);
-    const Provider = ({ children, value }) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Context.Provider, { value, children });
-    return [Provider, useOptionalContext];
-  }
-
   // node_modules/@mantine/core/esm/core/utils/get-safe-id/get-safe-id.mjs
   function getSafeId(uid, errorMessage) {
     return (value) => {
@@ -24778,10 +24768,6 @@
     };
   }
 
-  // node_modules/@mantine/core/esm/core/utils/noop/noop.mjs
-  var noop = () => {
-  };
-
   // node_modules/@mantine/core/esm/core/utils/get-size/get-size.mjs
   function getSize(size, prefix = "size", convertToRem = true) {
     if (size === void 0) {
@@ -24811,56 +24797,62 @@
     return getSize(size, "mantine-shadow", false);
   }
 
-  // node_modules/@mantine/core/esm/core/utils/get-breakpoint-value/get-breakpoint-value.mjs
-  function getBreakpointValue(breakpoint, breakpoints) {
-    if (breakpoint in breakpoints) {
-      return px(breakpoints[breakpoint]);
-    }
-    return px(breakpoint);
-  }
-
-  // node_modules/@mantine/core/esm/core/utils/get-sorted-breakpoints/get-sorted-breakpoints.mjs
-  function getSortedBreakpoints(values2, breakpoints) {
-    const convertedBreakpoints = values2.map((breakpoint) => ({
-      value: breakpoint,
-      px: getBreakpointValue(breakpoint, breakpoints)
-    }));
-    convertedBreakpoints.sort((a, b) => a.px - b.px);
-    return convertedBreakpoints;
-  }
-
-  // node_modules/@mantine/core/esm/core/utils/get-base-value/get-base-value.mjs
-  function getBaseValue(value) {
-    if (typeof value === "object" && value !== null) {
-      if ("base" in value) {
-        return value.base;
-      }
-      return void 0;
-    }
-    return value;
-  }
-
-  // node_modules/@mantine/hooks/esm/utils/clamp/clamp.mjs
-  function clamp(value, min, max) {
-    if (min === void 0 && max === void 0) {
-      return value;
-    }
-    if (min !== void 0 && max === void 0) {
-      return Math.max(value, min);
-    }
-    if (min === void 0 && max !== void 0) {
-      return Math.min(value, max);
-    }
-    return Math.min(Math.max(value, min), max);
-  }
-
   // node_modules/@mantine/hooks/esm/utils/random-id/random-id.mjs
   function randomId(prefix = "mantine-") {
     return `${prefix}${Math.random().toString(36).slice(2, 11)}`;
   }
 
-  // node_modules/@mantine/hooks/esm/use-media-query/use-media-query.mjs
+  // node_modules/@mantine/hooks/esm/use-callback-ref/use-callback-ref.mjs
+  var import_react2 = __toESM(require_react(), 1);
+  function useCallbackRef(callback) {
+    const callbackRef = (0, import_react2.useRef)(callback);
+    (0, import_react2.useEffect)(() => {
+      callbackRef.current = callback;
+    });
+    return (0, import_react2.useMemo)(() => (...args) => callbackRef.current?.(...args), []);
+  }
+
+  // node_modules/@mantine/hooks/esm/use-debounced-callback/use-debounced-callback.mjs
   var import_react3 = __toESM(require_react(), 1);
+  function useDebouncedCallback(callback, options) {
+    const delay = typeof options === "number" ? options : options.delay;
+    const flushOnUnmount = typeof options === "number" ? false : options.flushOnUnmount;
+    const handleCallback = useCallbackRef(callback);
+    const debounceTimerRef = (0, import_react3.useRef)(0);
+    const flushRef = (0, import_react3.useRef)(() => {
+    });
+    const lastCallback = Object.assign(
+      (0, import_react3.useCallback)(
+        (...args) => {
+          window.clearTimeout(debounceTimerRef.current);
+          const flush = () => {
+            if (debounceTimerRef.current !== 0) {
+              debounceTimerRef.current = 0;
+              handleCallback(...args);
+            }
+          };
+          flushRef.current = flush;
+          lastCallback.flush = flush;
+          debounceTimerRef.current = window.setTimeout(flush, delay);
+        },
+        [handleCallback, delay]
+      ),
+      { flush: flushRef.current }
+    );
+    (0, import_react3.useEffect)(
+      () => () => {
+        window.clearTimeout(debounceTimerRef.current);
+        if (flushOnUnmount) {
+          lastCallback.flush();
+        }
+      },
+      [lastCallback, flushOnUnmount]
+    );
+    return lastCallback;
+  }
+
+  // node_modules/@mantine/hooks/esm/use-media-query/use-media-query.mjs
+  var import_react4 = __toESM(require_react(), 1);
   function attachMediaListener(query, callback) {
     try {
       query.addEventListener("change", callback);
@@ -24879,11 +24871,11 @@
   function useMediaQuery(query, initialValue, { getInitialValueInEffect } = {
     getInitialValueInEffect: true
   }) {
-    const [matches, setMatches] = (0, import_react3.useState)(
+    const [matches, setMatches] = (0, import_react4.useState)(
       getInitialValueInEffect ? initialValue : getInitialValue(query)
     );
-    const queryRef = (0, import_react3.useRef)(null);
-    (0, import_react3.useEffect)(() => {
+    const queryRef = (0, import_react4.useRef)(null);
+    (0, import_react4.useEffect)(() => {
       if ("matchMedia" in window) {
         queryRef.current = window.matchMedia(query);
         setMatches(queryRef.current.matches);
@@ -24895,20 +24887,20 @@
   }
 
   // node_modules/@mantine/hooks/esm/use-isomorphic-effect/use-isomorphic-effect.mjs
-  var import_react4 = __toESM(require_react(), 1);
-  var useIsomorphicEffect = typeof document !== "undefined" ? import_react4.useLayoutEffect : import_react4.useEffect;
+  var import_react5 = __toESM(require_react(), 1);
+  var useIsomorphicEffect = typeof document !== "undefined" ? import_react5.useLayoutEffect : import_react5.useEffect;
 
   // node_modules/@mantine/hooks/esm/use-did-update/use-did-update.mjs
-  var import_react5 = __toESM(require_react(), 1);
+  var import_react6 = __toESM(require_react(), 1);
   function useDidUpdate(fn, dependencies) {
-    const mounted = (0, import_react5.useRef)(false);
-    (0, import_react5.useEffect)(
+    const mounted = (0, import_react6.useRef)(false);
+    (0, import_react6.useEffect)(
       () => () => {
         mounted.current = false;
       },
       []
     );
-    (0, import_react5.useEffect)(() => {
+    (0, import_react6.useEffect)(() => {
       if (mounted.current) {
         return fn();
       }
@@ -24918,11 +24910,11 @@
   }
 
   // node_modules/@mantine/hooks/esm/use-id/use-id.mjs
-  var import_react7 = __toESM(require_react(), 1);
+  var import_react8 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/hooks/esm/use-id/use-react-id.mjs
-  var import_react6 = __toESM(require_react(), 1);
-  var __useId = import_react6.default["useId".toString()] || (() => void 0);
+  var import_react7 = __toESM(require_react(), 1);
+  var __useId = import_react7.default["useId".toString()] || (() => void 0);
   function useReactId() {
     const id = __useId();
     return id ? `mantine-${id.replace(/:/g, "")}` : "";
@@ -24931,7 +24923,7 @@
   // node_modules/@mantine/hooks/esm/use-id/use-id.mjs
   function useId(staticId) {
     const reactId = useReactId();
-    const [uuid, setUuid] = (0, import_react7.useState)(reactId);
+    const [uuid, setUuid] = (0, import_react8.useState)(reactId);
     useIsomorphicEffect(() => {
       setUuid(randomId());
     }, []);
@@ -24945,7 +24937,7 @@
   }
 
   // node_modules/@mantine/hooks/esm/use-merged-ref/use-merged-ref.mjs
-  var import_react8 = __toESM(require_react(), 1);
+  var import_react9 = __toESM(require_react(), 1);
   function assignRef(ref, value) {
     if (typeof ref === "function") {
       return ref(value);
@@ -24978,11 +24970,11 @@
     };
   }
   function useMergedRef(...refs) {
-    return (0, import_react8.useCallback)(mergeRefs(...refs), refs);
+    return (0, import_react9.useCallback)(mergeRefs(...refs), refs);
   }
 
   // node_modules/@mantine/hooks/esm/use-uncontrolled/use-uncontrolled.mjs
-  var import_react9 = __toESM(require_react(), 1);
+  var import_react10 = __toESM(require_react(), 1);
   function useUncontrolled({
     value,
     defaultValue,
@@ -24990,7 +24982,7 @@
     onChange = () => {
     }
   }) {
-    const [uncontrolledValue, setUncontrolledValue] = (0, import_react9.useState)(
+    const [uncontrolledValue, setUncontrolledValue] = (0, import_react10.useState)(
       defaultValue !== void 0 ? defaultValue : finalValue
     );
     const handleUncontrolledChange = (val, ...payload) => {
@@ -25063,15 +25055,11 @@
     }, {});
   }
 
-  // node_modules/@mantine/core/esm/core/styles-api/use-resolved-styles-api/use-resolved-styles-api.mjs
-  var import_react23 = __toESM(require_react(), 1);
-  var import_jsx_runtime15 = __toESM(require_jsx_runtime(), 1);
-
   // node_modules/@mantine/core/esm/core/MantineProvider/Mantine.context.mjs
-  var import_react10 = __toESM(require_react(), 1);
-  var MantineContext = (0, import_react10.createContext)(null);
+  var import_react11 = __toESM(require_react(), 1);
+  var MantineContext = (0, import_react11.createContext)(null);
   function useMantineContext() {
-    const ctx = (0, import_react10.useContext)(MantineContext);
+    const ctx = (0, import_react11.useContext)(MantineContext);
     if (!ctx) {
       throw new Error("[@mantine/core] MantineProvider was not found in tree");
     }
@@ -25103,12 +25091,12 @@
   }
 
   // node_modules/@mantine/core/esm/core/MantineProvider/default-theme.mjs
-  var import_react12 = __toESM(require_react(), 1);
-  var import_jsx_runtime4 = __toESM(require_jsx_runtime(), 1);
+  var import_react13 = __toESM(require_react(), 1);
+  var import_jsx_runtime3 = __toESM(require_jsx_runtime(), 1);
 
   // node_modules/@mantine/core/esm/core/MantineProvider/color-functions/default-variant-colors-resolver/default-variant-colors-resolver.mjs
-  var import_react11 = __toESM(require_react(), 1);
-  var import_jsx_runtime3 = __toESM(require_jsx_runtime(), 1);
+  var import_react12 = __toESM(require_react(), 1);
+  var import_jsx_runtime2 = __toESM(require_jsx_runtime(), 1);
 
   // node_modules/@mantine/core/esm/core/MantineProvider/color-functions/to-rgba/to-rgba.mjs
   function isHexColor(hex) {
@@ -25824,7 +25812,7 @@
   };
 
   // node_modules/@mantine/core/esm/core/MantineProvider/MantineProvider.mjs
-  var import_jsx_runtime14 = __toESM(require_jsx_runtime(), 1);
+  var import_jsx_runtime13 = __toESM(require_jsx_runtime(), 1);
 
   // node_modules/@mantine/core/esm/core/MantineProvider/color-scheme-managers/is-mantine-color-scheme.mjs
   function isMantineColorScheme(value) {
@@ -25876,16 +25864,16 @@
   }
 
   // node_modules/@mantine/core/esm/core/MantineProvider/MantineClasses/MantineClasses.mjs
-  var import_jsx_runtime7 = __toESM(require_jsx_runtime(), 1);
-  var import_react15 = __toESM(require_react(), 1);
+  var import_jsx_runtime6 = __toESM(require_jsx_runtime(), 1);
+  var import_react16 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/core/MantineProvider/MantineThemeProvider/MantineThemeProvider.mjs
-  var import_jsx_runtime6 = __toESM(require_jsx_runtime(), 1);
-  var import_react14 = __toESM(require_react(), 1);
+  var import_jsx_runtime5 = __toESM(require_jsx_runtime(), 1);
+  var import_react15 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/core/MantineProvider/merge-mantine-theme/merge-mantine-theme.mjs
-  var import_react13 = __toESM(require_react(), 1);
-  var import_jsx_runtime5 = __toESM(require_jsx_runtime(), 1);
+  var import_react14 = __toESM(require_react(), 1);
+  var import_jsx_runtime4 = __toESM(require_jsx_runtime(), 1);
   var INVALID_PRIMARY_COLOR_ERROR = "[@mantine/core] MantineProvider: Invalid theme.primaryColor, it accepts only key of theme.colors, learn more \u2013 https://mantine.dev/theming/colors/#primary-color";
   var INVALID_PRIMARY_SHADE_ERROR = "[@mantine/core] MantineProvider: Invalid theme.primaryShade, it accepts only 0-9 integers or an object { light: 0-9, dark: 0-9 }";
   function isValidPrimaryShade(shade) {
@@ -25921,10 +25909,10 @@
   }
 
   // node_modules/@mantine/core/esm/core/MantineProvider/MantineThemeProvider/MantineThemeProvider.mjs
-  var MantineThemeContext = (0, import_react14.createContext)(null);
-  var useSafeMantineTheme = () => (0, import_react14.useContext)(MantineThemeContext) || DEFAULT_THEME;
+  var MantineThemeContext = (0, import_react15.createContext)(null);
+  var useSafeMantineTheme = () => (0, import_react15.useContext)(MantineThemeContext) || DEFAULT_THEME;
   function useMantineTheme() {
-    const ctx = (0, import_react14.useContext)(MantineThemeContext);
+    const ctx = (0, import_react15.useContext)(MantineThemeContext);
     if (!ctx) {
       throw new Error(
         "@mantine/core: MantineProvider was not found in component tree, make sure you have it in your app"
@@ -25938,11 +25926,11 @@
     inherit = true
   }) {
     const parentTheme = useSafeMantineTheme();
-    const mergedTheme = (0, import_react14.useMemo)(
+    const mergedTheme = (0, import_react15.useMemo)(
       () => mergeMantineTheme(inherit ? parentTheme : DEFAULT_THEME, theme2),
       [theme2, parentTheme, inherit]
     );
-    return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(MantineThemeContext.Provider, { value: mergedTheme, children });
+    return /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(MantineThemeContext.Provider, { value: mergedTheme, children });
   }
   MantineThemeProvider.displayName = "@mantine/core/MantineThemeProvider";
 
@@ -25950,25 +25938,25 @@
   function MantineClasses() {
     const theme2 = useMantineTheme();
     const nonce = useMantineStyleNonce();
-    const classes23 = keys(theme2.breakpoints).reduce((acc, breakpoint) => {
+    const classes17 = keys(theme2.breakpoints).reduce((acc, breakpoint) => {
       const isPxBreakpoint = theme2.breakpoints[breakpoint].includes("px");
       const pxValue = px(theme2.breakpoints[breakpoint]);
       const maxWidthBreakpoint = isPxBreakpoint ? `${pxValue - 0.1}px` : em(pxValue - 0.1);
       const minWidthBreakpoint = isPxBreakpoint ? `${pxValue}px` : em(pxValue);
       return `${acc}@media (max-width: ${maxWidthBreakpoint}) {.mantine-visible-from-${breakpoint} {display: none !important;}}@media (min-width: ${minWidthBreakpoint}) {.mantine-hidden-from-${breakpoint} {display: none !important;}}`;
     }, "");
-    return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
       "style",
       {
         "data-mantine-styles": "classes",
         nonce: nonce?.(),
-        dangerouslySetInnerHTML: { __html: classes23 }
+        dangerouslySetInnerHTML: { __html: classes17 }
       }
     );
   }
 
   // node_modules/@mantine/core/esm/core/MantineProvider/MantineCssVariables/MantineCssVariables.mjs
-  var import_jsx_runtime13 = __toESM(require_jsx_runtime(), 1);
+  var import_jsx_runtime12 = __toESM(require_jsx_runtime(), 1);
 
   // node_modules/@mantine/core/esm/core/MantineProvider/convert-css-variables/css-variables-object-to-string.mjs
   function cssVariablesObjectToString(variables) {
@@ -25993,12 +25981,12 @@
   }
 
   // node_modules/@mantine/core/esm/core/MantineProvider/MantineCssVariables/get-merged-variables.mjs
-  var import_react19 = __toESM(require_react(), 1);
-  var import_jsx_runtime11 = __toESM(require_jsx_runtime(), 1);
+  var import_react20 = __toESM(require_react(), 1);
+  var import_jsx_runtime10 = __toESM(require_jsx_runtime(), 1);
 
   // node_modules/@mantine/core/esm/core/MantineProvider/MantineCssVariables/default-css-variables-resolver.mjs
-  var import_react18 = __toESM(require_react(), 1);
-  var import_jsx_runtime10 = __toESM(require_jsx_runtime(), 1);
+  var import_react19 = __toESM(require_react(), 1);
+  var import_jsx_runtime9 = __toESM(require_jsx_runtime(), 1);
 
   // node_modules/@mantine/core/esm/core/MantineProvider/color-functions/get-contrast-color/get-contrast-color.mjs
   function getContrastColor({ color, theme: theme2, autoContrast }) {
@@ -26018,8 +26006,8 @@
   }
 
   // node_modules/@mantine/core/esm/core/MantineProvider/MantineCssVariables/get-css-color-variables.mjs
-  var import_react16 = __toESM(require_react(), 1);
-  var import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
+  var import_react17 = __toESM(require_react(), 1);
+  var import_jsx_runtime7 = __toESM(require_jsx_runtime(), 1);
   function getCSSColorVariables({
     theme: theme2,
     color,
@@ -26098,8 +26086,8 @@
   }
 
   // node_modules/@mantine/core/esm/core/MantineProvider/MantineCssVariables/virtual-color/virtual-color.mjs
-  var import_react17 = __toESM(require_react(), 1);
-  var import_jsx_runtime9 = __toESM(require_jsx_runtime(), 1);
+  var import_react18 = __toESM(require_react(), 1);
+  var import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
   function isVirtualColor(value) {
     return !!value && typeof value === "object" && "mantine-virtual-color" in value;
   }
@@ -26238,8 +26226,8 @@
   }
 
   // node_modules/@mantine/core/esm/core/MantineProvider/MantineCssVariables/remove-default-variables.mjs
-  var import_react20 = __toESM(require_react(), 1);
-  var import_jsx_runtime12 = __toESM(require_jsx_runtime(), 1);
+  var import_react21 = __toESM(require_react(), 1);
+  var import_jsx_runtime11 = __toESM(require_jsx_runtime(), 1);
   var defaultCssVariables = defaultCssVariablesResolver(DEFAULT_THEME);
   function removeDefaultVariables(input) {
     const cleaned = {
@@ -26284,7 +26272,7 @@
     const cleanedVariables = shouldCleanVariables ? removeDefaultVariables(mergedVariables) : mergedVariables;
     const css = convertCssVariables(cleanedVariables, cssVariablesSelector);
     if (css) {
-      return /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+      return /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
         "style",
         {
           "data-mantine-styles": true,
@@ -26300,7 +26288,7 @@
   MantineCssVariables.displayName = "@mantine/CssVariables";
 
   // node_modules/@mantine/core/esm/core/MantineProvider/MantineProvider.mjs
-  var import_react22 = __toESM(require_react(), 1);
+  var import_react23 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/core/MantineProvider/suppress-nextjs-warning.mjs
   function suppressNextjsWarning() {
@@ -26314,7 +26302,7 @@
   }
 
   // node_modules/@mantine/core/esm/core/MantineProvider/use-mantine-color-scheme/use-provider-color-scheme.mjs
-  var import_react21 = __toESM(require_react(), 1);
+  var import_react22 = __toESM(require_react(), 1);
   function setColorSchemeAttribute(colorScheme, getRootElement) {
     const hasDarkColorScheme = typeof window !== "undefined" && "matchMedia" in window && window.matchMedia("(prefers-color-scheme: dark)")?.matches;
     const computedColorScheme = colorScheme !== "auto" ? colorScheme : hasDarkColorScheme ? "dark" : "light";
@@ -26326,10 +26314,10 @@
     getRootElement,
     forceColorScheme
   }) {
-    const media = (0, import_react21.useRef)(null);
-    const [value, setValue] = (0, import_react21.useState)(() => manager.get(defaultColorScheme));
+    const media = (0, import_react22.useRef)(null);
+    const [value, setValue] = (0, import_react22.useState)(() => manager.get(defaultColorScheme));
     const colorSchemeValue = forceColorScheme || value;
-    const setColorScheme = (0, import_react21.useCallback)(
+    const setColorScheme = (0, import_react22.useCallback)(
       (colorScheme) => {
         if (!forceColorScheme) {
           setColorSchemeAttribute(colorScheme, getRootElement);
@@ -26339,19 +26327,19 @@
       },
       [manager.set, colorSchemeValue, forceColorScheme]
     );
-    const clearColorScheme = (0, import_react21.useCallback)(() => {
+    const clearColorScheme = (0, import_react22.useCallback)(() => {
       setValue(defaultColorScheme);
       setColorSchemeAttribute(defaultColorScheme, getRootElement);
       manager.clear();
     }, [manager.clear, defaultColorScheme]);
-    (0, import_react21.useEffect)(() => {
+    (0, import_react22.useEffect)(() => {
       manager.subscribe(setColorScheme);
       return manager.unsubscribe;
     }, [manager.subscribe, manager.unsubscribe]);
     useIsomorphicEffect(() => {
       setColorSchemeAttribute(manager.get(defaultColorScheme), getRootElement);
     }, []);
-    (0, import_react21.useEffect)(() => {
+    (0, import_react22.useEffect)(() => {
       if (forceColorScheme) {
         setColorSchemeAttribute(forceColorScheme, getRootElement);
         return () => {
@@ -26416,7 +26404,7 @@
       respectReducedMotion: theme2?.respectReducedMotion || false,
       getRootElement
     });
-    return /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
       MantineContext.Provider,
       {
         value: {
@@ -26432,15 +26420,15 @@
           stylesTransform,
           env
         },
-        children: /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)(MantineThemeProvider, { theme: theme2, children: [
-          withCssVariables && /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+        children: /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)(MantineThemeProvider, { theme: theme2, children: [
+          withCssVariables && /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
             MantineCssVariables,
             {
               cssVariablesSelector,
               deduplicateCssVariables
             }
           ),
-          withGlobalClasses && /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(MantineClasses, {}),
+          withGlobalClasses && /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(MantineClasses, {}),
           children
         ] })
       }
@@ -26448,7 +26436,7 @@
   }
   MantineProvider.displayName = "@mantine/core/MantineProvider";
   function HeadlessMantineProvider({ children, theme: theme2 }) {
-    return /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
       MantineContext.Provider,
       {
         value: {
@@ -26463,35 +26451,11 @@
           withStaticClasses: false,
           headless: true
         },
-        children: /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(MantineThemeProvider, { theme: theme2, children })
+        children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(MantineThemeProvider, { theme: theme2, children })
       }
     );
   }
   HeadlessMantineProvider.displayName = "@mantine/core/HeadlessMantineProvider";
-
-  // node_modules/@mantine/core/esm/core/styles-api/use-resolved-styles-api/use-resolved-styles-api.mjs
-  function useResolvedStylesApi({
-    classNames,
-    styles,
-    props,
-    stylesCtx
-  }) {
-    const theme2 = useMantineTheme();
-    return {
-      resolvedClassNames: resolveClassNames({
-        theme: theme2,
-        classNames,
-        props,
-        stylesCtx: stylesCtx || void 0
-      }),
-      resolvedStyles: resolveStyles({
-        theme: theme2,
-        styles,
-        props,
-        stylesCtx: stylesCtx || void 0
-      })
-    };
-  }
 
   // node_modules/@mantine/core/esm/core/styles-api/use-styles/get-class-name/get-global-class-names/get-global-class-names.mjs
   var FOCUS_CLASS_NAMES = {
@@ -26508,7 +26472,7 @@
 
   // node_modules/@mantine/core/esm/core/styles-api/use-styles/use-styles.mjs
   var import_react26 = __toESM(require_react(), 1);
-  var import_jsx_runtime18 = __toESM(require_jsx_runtime(), 1);
+  var import_jsx_runtime16 = __toESM(require_jsx_runtime(), 1);
 
   // node_modules/@mantine/core/esm/core/styles-api/use-styles/get-class-name/get-options-class-names/get-options-class-names.mjs
   function getOptionsClassNames({
@@ -26543,8 +26507,8 @@
   }
 
   // node_modules/@mantine/core/esm/core/styles-api/use-styles/get-class-name/get-selector-class-name/get-selector-class-name.mjs
-  function getSelectorClassName({ selector, classes: classes23, unstyled }) {
-    return unstyled ? void 0 : classes23[selector];
+  function getSelectorClassName({ selector, classes: classes17, unstyled }) {
+    return unstyled ? void 0 : classes17[selector];
   }
 
   // node_modules/@mantine/core/esm/core/styles-api/use-styles/get-class-name/get-static-class-names/get-static-class-names.mjs
@@ -26581,11 +26545,11 @@
   // node_modules/@mantine/core/esm/core/styles-api/use-styles/get-class-name/get-variant-class-name/get-variant-class-name.mjs
   function getVariantClassName({
     options,
-    classes: classes23,
+    classes: classes17,
     selector,
     unstyled
   }) {
-    return options?.variant && !unstyled ? classes23[`${selector}--${options.variant}`] : void 0;
+    return options?.variant && !unstyled ? classes17[`${selector}--${options.variant}`] : void 0;
   }
 
   // node_modules/@mantine/core/esm/core/styles-api/use-styles/get-class-name/get-class-name.mjs
@@ -26596,7 +26560,7 @@
     selector,
     classNamesPrefix,
     classNames,
-    classes: classes23,
+    classes: classes17,
     unstyled,
     className,
     rootSelector,
@@ -26609,12 +26573,12 @@
     return clsx_default(
       getGlobalClassNames({ theme: theme2, options, unstyled: unstyled || headless }),
       getThemeClassNames({ theme: theme2, themeName, selector, props, stylesCtx }),
-      getVariantClassName({ options, classes: classes23, selector, unstyled }),
+      getVariantClassName({ options, classes: classes17, selector, unstyled }),
       getResolvedClassNames({ selector, stylesCtx, theme: theme2, classNames, props }),
       getResolvedClassNames({ selector, stylesCtx, theme: theme2, classNames: transformedStyles, props }),
       getOptionsClassNames({ selector, stylesCtx, options, props, theme: theme2 }),
       getRootClassName({ rootSelector, selector, className }),
-      getSelectorClassName({ selector, classes: classes23, unstyled: unstyled || headless }),
+      getSelectorClassName({ selector, classes: classes17, unstyled: unstyled || headless }),
       withStaticClasses && !headless && getStaticClassNames({
         themeName,
         classNamesPrefix,
@@ -26662,7 +26626,7 @@
 
   // node_modules/@mantine/core/esm/core/styles-api/use-styles/get-style/resolve-vars/merge-vars.mjs
   var import_react24 = __toESM(require_react(), 1);
-  var import_jsx_runtime16 = __toESM(require_jsx_runtime(), 1);
+  var import_jsx_runtime14 = __toESM(require_jsx_runtime(), 1);
   function mergeVars(vars) {
     return vars.reduce((acc, current) => {
       if (current) {
@@ -26677,7 +26641,7 @@
   // node_modules/@mantine/core/esm/core/styles-api/use-styles/get-style/resolve-vars/resolve-vars.mjs
   function resolveVars({
     vars,
-    varsResolver: varsResolver27,
+    varsResolver: varsResolver18,
     theme: theme2,
     props,
     stylesCtx,
@@ -26686,7 +26650,7 @@
     headless
   }) {
     return mergeVars([
-      headless ? {} : varsResolver27?.(theme2, props, stylesCtx),
+      headless ? {} : varsResolver18?.(theme2, props, stylesCtx),
       ...themeName.map((name) => theme2.components?.[name]?.vars?.(theme2, props, stylesCtx)),
       vars?.(theme2, props, stylesCtx)
     ])?.[selector];
@@ -26704,7 +26668,7 @@
     styles,
     style,
     vars,
-    varsResolver: varsResolver27,
+    varsResolver: varsResolver18,
     headless,
     withStylesTransform
   }) {
@@ -26712,7 +26676,7 @@
       ...!withStylesTransform && getThemeStyles({ theme: theme2, themeName, props, stylesCtx, selector }),
       ...!withStylesTransform && resolveStyles({ theme: theme2, styles, props, stylesCtx })[selector],
       ...!withStylesTransform && resolveStyles({ theme: theme2, styles: options?.styles, props: options?.props || props, stylesCtx })[selector],
-      ...resolveVars({ theme: theme2, props, stylesCtx, vars, varsResolver: varsResolver27, selector, themeName, headless }),
+      ...resolveVars({ theme: theme2, props, stylesCtx, vars, varsResolver: varsResolver18, selector, themeName, headless }),
       ...rootSelector === selector ? resolveStyle({ style, theme: theme2 }) : null,
       ...resolveStyle({ style: options?.style, theme: theme2 })
     };
@@ -26720,7 +26684,7 @@
 
   // node_modules/@mantine/core/esm/core/styles-api/use-styles/use-transformed-styles.mjs
   var import_react25 = __toESM(require_react(), 1);
-  var import_jsx_runtime17 = __toESM(require_jsx_runtime(), 1);
+  var import_jsx_runtime15 = __toESM(require_jsx_runtime(), 1);
   function useStylesTransform({ props, stylesCtx, themeName }) {
     const theme2 = useMantineTheme();
     const stylesTransform = useMantineStylesTransform()?.();
@@ -26747,7 +26711,7 @@
   // node_modules/@mantine/core/esm/core/styles-api/use-styles/use-styles.mjs
   function useStyles({
     name,
-    classes: classes23,
+    classes: classes17,
     props,
     stylesCtx,
     className,
@@ -26757,7 +26721,7 @@
     classNames,
     styles,
     vars,
-    varsResolver: varsResolver27
+    varsResolver: varsResolver18
   }) {
     const theme2 = useMantineTheme();
     const classNamesPrefix = useMantineClassNamesPrefix();
@@ -26777,7 +26741,7 @@
         selector,
         classNamesPrefix,
         classNames,
-        classes: classes23,
+        classes: classes17,
         unstyled,
         className,
         rootSelector,
@@ -26798,7 +26762,7 @@
         styles,
         style,
         vars,
-        varsResolver: varsResolver27,
+        varsResolver: varsResolver18,
         headless,
         withStylesTransform
       })
@@ -26812,12 +26776,12 @@
 
   // node_modules/@mantine/core/esm/core/MantineProvider/use-props/use-props.mjs
   var import_react27 = __toESM(require_react(), 1);
-  var import_jsx_runtime19 = __toESM(require_jsx_runtime(), 1);
-  function useProps(component, defaultProps39, props) {
+  var import_jsx_runtime17 = __toESM(require_jsx_runtime(), 1);
+  function useProps(component, defaultProps25, props) {
     const theme2 = useMantineTheme();
     const contextPropsPayload = theme2.components[component]?.defaultProps;
     const contextProps = typeof contextPropsPayload === "function" ? contextPropsPayload(theme2) : contextPropsPayload;
-    return { ...defaultProps39, ...contextProps, ...filterProps(props) };
+    return { ...defaultProps25, ...contextProps, ...filterProps(props) };
   }
 
   // node_modules/@mantine/core/esm/core/MantineProvider/create-theme/create-theme.mjs
@@ -26826,12 +26790,12 @@
   }
 
   // node_modules/@mantine/core/esm/core/InlineStyles/InlineStyles.mjs
-  var import_jsx_runtime21 = __toESM(require_jsx_runtime(), 1);
+  var import_jsx_runtime19 = __toESM(require_jsx_runtime(), 1);
   var import_react29 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/core/InlineStyles/css-object-to-string/css-object-to-string.mjs
   var import_react28 = __toESM(require_react(), 1);
-  var import_jsx_runtime20 = __toESM(require_jsx_runtime(), 1);
+  var import_jsx_runtime18 = __toESM(require_jsx_runtime(), 1);
   function cssObjectToString(css) {
     return keys(css).reduce(
       (acc, rule) => css[rule] !== void 0 ? `${acc}${camelToKebabCase(rule)}:${css[rule]};` : acc,
@@ -26852,7 +26816,7 @@
   // node_modules/@mantine/core/esm/core/InlineStyles/InlineStyles.mjs
   function InlineStyles(props) {
     const nonce = useMantineStyleNonce();
-    return /* @__PURE__ */ (0, import_jsx_runtime21.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime19.jsx)(
       "style",
       {
         "data-mantine-styles": "inline",
@@ -26864,7 +26828,7 @@
 
   // node_modules/@mantine/core/esm/core/Box/style-props/extract-style-props/extract-style-props.mjs
   var import_react30 = __toESM(require_react(), 1);
-  var import_jsx_runtime22 = __toESM(require_jsx_runtime(), 1);
+  var import_jsx_runtime20 = __toESM(require_jsx_runtime(), 1);
   function extractStyleProps(others) {
     const {
       m,
@@ -27037,15 +27001,15 @@
 
   // node_modules/@mantine/core/esm/core/Box/style-props/parse-style-props/parse-style-props.mjs
   var import_react36 = __toESM(require_react(), 1);
-  var import_jsx_runtime28 = __toESM(require_jsx_runtime(), 1);
+  var import_jsx_runtime26 = __toESM(require_jsx_runtime(), 1);
 
   // node_modules/@mantine/core/esm/core/Box/style-props/resolvers/border-resolver/border-resolver.mjs
   var import_react32 = __toESM(require_react(), 1);
-  var import_jsx_runtime24 = __toESM(require_jsx_runtime(), 1);
+  var import_jsx_runtime22 = __toESM(require_jsx_runtime(), 1);
 
   // node_modules/@mantine/core/esm/core/Box/style-props/resolvers/color-resolver/color-resolver.mjs
   var import_react31 = __toESM(require_react(), 1);
-  var import_jsx_runtime23 = __toESM(require_jsx_runtime(), 1);
+  var import_jsx_runtime21 = __toESM(require_jsx_runtime(), 1);
   function colorResolver(color, theme2) {
     const parsedColor = parseThemeColor({ color, theme: theme2 });
     if (parsedColor.color === "dimmed") {
@@ -27096,7 +27060,7 @@
 
   // node_modules/@mantine/core/esm/core/Box/style-props/resolvers/font-size-resolver/font-size-resolver.mjs
   var import_react33 = __toESM(require_react(), 1);
-  var import_jsx_runtime25 = __toESM(require_jsx_runtime(), 1);
+  var import_jsx_runtime23 = __toESM(require_jsx_runtime(), 1);
   var headings = ["h1", "h2", "h3", "h4", "h5", "h6"];
   function fontSizeResolver(value, theme2) {
     if (typeof value === "string" && value in theme2.fontSizes) {
@@ -27133,7 +27097,7 @@
 
   // node_modules/@mantine/core/esm/core/Box/style-props/resolvers/size-resolver/size-resolver.mjs
   var import_react34 = __toESM(require_react(), 1);
-  var import_jsx_runtime26 = __toESM(require_jsx_runtime(), 1);
+  var import_jsx_runtime24 = __toESM(require_jsx_runtime(), 1);
   function sizeResolver(value) {
     if (typeof value === "number") {
       return rem(value);
@@ -27143,7 +27107,7 @@
 
   // node_modules/@mantine/core/esm/core/Box/style-props/resolvers/spacing-resolver/spacing-resolver.mjs
   var import_react35 = __toESM(require_react(), 1);
-  var import_jsx_runtime27 = __toESM(require_jsx_runtime(), 1);
+  var import_jsx_runtime25 = __toESM(require_jsx_runtime(), 1);
   function spacingResolver(value, theme2) {
     if (typeof value === "number") {
       return rem(value);
@@ -27196,7 +27160,7 @@
     }
     return true;
   }
-  function getBaseValue2(value) {
+  function getBaseValue(value) {
     if (typeof value === "object" && value !== null) {
       if ("base" in value) {
         return value.base;
@@ -27211,7 +27175,7 @@
     }
     return [];
   }
-  function getBreakpointValue2(value, breakpoint) {
+  function getBreakpointValue(value, breakpoint) {
     if (typeof value === "object" && value !== null && breakpoint in value) {
       return value[breakpoint];
     }
@@ -27230,7 +27194,7 @@
           }
           const propertyData = data[styleProp];
           const properties = Array.isArray(propertyData.property) ? propertyData.property : [propertyData.property];
-          const baseValue = getBaseValue2(styleProps[styleProp]);
+          const baseValue = getBaseValue(styleProps[styleProp]);
           if (!hasResponsiveStyles(styleProps[styleProp])) {
             properties.forEach((property) => {
               acc.inlineStyles[property] = resolvers[propertyData.type](baseValue, theme2);
@@ -27248,7 +27212,7 @@
               acc.media[bp] = {
                 ...acc.media[bp],
                 [property]: resolvers[propertyData.type](
-                  getBreakpointValue2(styleProps[styleProp], breakpoint),
+                  getBreakpointValue(styleProps[styleProp], breakpoint),
                   theme2
                 )
               };
@@ -27274,7 +27238,7 @@
   }
 
   // node_modules/@mantine/core/esm/core/Box/Box.mjs
-  var import_jsx_runtime29 = __toESM(require_jsx_runtime(), 1);
+  var import_jsx_runtime27 = __toESM(require_jsx_runtime(), 1);
   var import_react38 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/core/factory/create-polymorphic-component.mjs
@@ -27389,8 +27353,8 @@
         ...getBoxMod(mod),
         ...rest
       };
-      return /* @__PURE__ */ (0, import_jsx_runtime29.jsxs)(import_jsx_runtime29.Fragment, { children: [
-        parsedStyleProps.hasResponsiveStyles && /* @__PURE__ */ (0, import_jsx_runtime29.jsx)(
+      return /* @__PURE__ */ (0, import_jsx_runtime27.jsxs)(import_jsx_runtime27.Fragment, { children: [
+        parsedStyleProps.hasResponsiveStyles && /* @__PURE__ */ (0, import_jsx_runtime27.jsx)(
           InlineStyles,
           {
             selector: `.${responsiveClassName}`,
@@ -27398,7 +27362,7 @@
             media: parsedStyleProps.media
           }
         ),
-        typeof renderRoot === "function" ? renderRoot(props) : /* @__PURE__ */ (0, import_jsx_runtime29.jsx)(Element, { ...props })
+        typeof renderRoot === "function" ? renderRoot(props) : /* @__PURE__ */ (0, import_jsx_runtime27.jsx)(Element, { ...props })
       ] });
     }
   );
@@ -27406,7 +27370,7 @@
   var Box = createPolymorphicComponent(_Box);
 
   // node_modules/@mantine/core/esm/core/factory/factory.mjs
-  var import_jsx_runtime30 = __toESM(require_jsx_runtime(), 1);
+  var import_jsx_runtime28 = __toESM(require_jsx_runtime(), 1);
   var import_react39 = __toESM(require_react(), 1);
   function identity(value) {
     return value;
@@ -27415,7 +27379,7 @@
     const Component = (0, import_react39.forwardRef)(ui);
     Component.extend = identity;
     Component.withProps = (fixedProps) => {
-      const Extended = (0, import_react39.forwardRef)((props, ref) => /* @__PURE__ */ (0, import_jsx_runtime30.jsx)(Component, { ...fixedProps, ...props, ref }));
+      const Extended = (0, import_react39.forwardRef)((props, ref) => /* @__PURE__ */ (0, import_jsx_runtime28.jsx)(Component, { ...fixedProps, ...props, ref }));
       Extended.extend = Component.extend;
       Extended.displayName = `WithProps(${Component.displayName})`;
       return Extended;
@@ -27424,12 +27388,12 @@
   }
 
   // node_modules/@mantine/core/esm/core/factory/polymorphic-factory.mjs
-  var import_jsx_runtime31 = __toESM(require_jsx_runtime(), 1);
+  var import_jsx_runtime29 = __toESM(require_jsx_runtime(), 1);
   var import_react40 = __toESM(require_react(), 1);
   function polymorphicFactory(ui) {
     const Component = (0, import_react40.forwardRef)(ui);
     Component.withProps = (fixedProps) => {
-      const Extended = (0, import_react40.forwardRef)((props, ref) => /* @__PURE__ */ (0, import_jsx_runtime31.jsx)(Component, { ...fixedProps, ...props, ref }));
+      const Extended = (0, import_react40.forwardRef)((props, ref) => /* @__PURE__ */ (0, import_jsx_runtime29.jsx)(Component, { ...fixedProps, ...props, ref }));
       Extended.extend = Component.extend;
       Extended.displayName = `WithProps(${Component.displayName})`;
       return Extended;
@@ -27439,7 +27403,7 @@
   }
 
   // node_modules/@mantine/core/esm/core/DirectionProvider/DirectionProvider.mjs
-  var import_jsx_runtime32 = __toESM(require_jsx_runtime(), 1);
+  var import_jsx_runtime30 = __toESM(require_jsx_runtime(), 1);
   var import_react41 = __toESM(require_react(), 1);
   var DirectionContext = (0, import_react41.createContext)({
     dir: "ltr",
@@ -27452,20 +27416,1022 @@
     return (0, import_react41.useContext)(DirectionContext);
   }
 
-  // node_modules/@mantine/core/esm/components/UnstyledButton/UnstyledButton.mjs
-  var import_jsx_runtime33 = __toESM(require_jsx_runtime(), 1);
+  // node_modules/@mantine/core/esm/components/ScrollArea/ScrollArea.mjs
+  var import_jsx_runtime45 = __toESM(require_jsx_runtime(), 1);
+  var import_react57 = __toESM(require_react(), 1);
+
+  // node_modules/@floating-ui/react/dist/floating-ui.react.mjs
+  var React2 = __toESM(require_react(), 1);
   var import_react42 = __toESM(require_react(), 1);
+  var ReactDOM = __toESM(require_react_dom(), 1);
+  function useMergeRefs(refs) {
+    return React2.useMemo(() => {
+      if (refs.every((ref) => ref == null)) {
+        return null;
+      }
+      return (value) => {
+        refs.forEach((ref) => {
+          if (typeof ref === "function") {
+            ref(value);
+          } else if (ref != null) {
+            ref.current = value;
+          }
+        });
+      };
+    }, refs);
+  }
+  var SafeReact = {
+    ...React2
+  };
+  var useInsertionEffect = SafeReact.useInsertionEffect;
+  var ARROW_UP = "ArrowUp";
+  var ARROW_DOWN = "ArrowDown";
+  var ARROW_LEFT = "ArrowLeft";
+  var ARROW_RIGHT = "ArrowRight";
+  var horizontalKeys = [ARROW_LEFT, ARROW_RIGHT];
+  var verticalKeys = [ARROW_UP, ARROW_DOWN];
+  var allKeys = [...horizontalKeys, ...verticalKeys];
+  var useReactId2 = SafeReact.useId;
+  var devMessageSet;
+  if (true) {
+    devMessageSet = /* @__PURE__ */ new Set();
+  }
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/ScrollAreaCorner/ScrollAreaCorner.mjs
+  var import_jsx_runtime32 = __toESM(require_jsx_runtime(), 1);
+  var import_react44 = __toESM(require_react(), 1);
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/ScrollArea.context.mjs
+  var import_react43 = __toESM(require_react(), 1);
+  var import_jsx_runtime31 = __toESM(require_jsx_runtime(), 1);
+  var [ScrollAreaProvider, useScrollAreaContext] = createSafeContext(
+    "ScrollArea.Root component was not found in tree"
+  );
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/use-resize-observer.mjs
+  function useResizeObserver(element, onResize) {
+    const handleResize = useCallbackRef(onResize);
+    useIsomorphicEffect(() => {
+      let rAF = 0;
+      if (element) {
+        const resizeObserver = new ResizeObserver(() => {
+          cancelAnimationFrame(rAF);
+          rAF = window.requestAnimationFrame(handleResize);
+        });
+        resizeObserver.observe(element);
+        return () => {
+          window.cancelAnimationFrame(rAF);
+          resizeObserver.unobserve(element);
+        };
+      }
+      return void 0;
+    }, [element, handleResize]);
+  }
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/ScrollAreaCorner/ScrollAreaCorner.mjs
+  var Corner = (0, import_react44.forwardRef)((props, ref) => {
+    const { style, ...others } = props;
+    const ctx = useScrollAreaContext();
+    const [width, setWidth] = (0, import_react44.useState)(0);
+    const [height, setHeight] = (0, import_react44.useState)(0);
+    const hasSize = Boolean(width && height);
+    useResizeObserver(ctx.scrollbarX, () => {
+      const h = ctx.scrollbarX?.offsetHeight || 0;
+      ctx.onCornerHeightChange(h);
+      setHeight(h);
+    });
+    useResizeObserver(ctx.scrollbarY, () => {
+      const w = ctx.scrollbarY?.offsetWidth || 0;
+      ctx.onCornerWidthChange(w);
+      setWidth(w);
+    });
+    return hasSize ? /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("div", { ...others, ref, style: { ...style, width, height } }) : null;
+  });
+  var ScrollAreaCorner = (0, import_react44.forwardRef)((props, ref) => {
+    const ctx = useScrollAreaContext();
+    const hasBothScrollbarsVisible = Boolean(ctx.scrollbarX && ctx.scrollbarY);
+    const hasCorner = ctx.type !== "scroll" && hasBothScrollbarsVisible;
+    return hasCorner ? /* @__PURE__ */ (0, import_jsx_runtime32.jsx)(Corner, { ...props, ref }) : null;
+  });
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/ScrollAreaRoot/ScrollAreaRoot.mjs
+  var import_jsx_runtime33 = __toESM(require_jsx_runtime(), 1);
+  var import_react45 = __toESM(require_react(), 1);
+  var defaultProps = {
+    scrollHideDelay: 1e3,
+    type: "hover"
+  };
+  var ScrollAreaRoot = (0, import_react45.forwardRef)((_props, ref) => {
+    const props = useProps("ScrollAreaRoot", defaultProps, _props);
+    const { type, scrollHideDelay, scrollbars, ...others } = props;
+    const [scrollArea, setScrollArea] = (0, import_react45.useState)(null);
+    const [viewport, setViewport] = (0, import_react45.useState)(null);
+    const [content, setContent] = (0, import_react45.useState)(null);
+    const [scrollbarX, setScrollbarX] = (0, import_react45.useState)(null);
+    const [scrollbarY, setScrollbarY] = (0, import_react45.useState)(null);
+    const [cornerWidth, setCornerWidth] = (0, import_react45.useState)(0);
+    const [cornerHeight, setCornerHeight] = (0, import_react45.useState)(0);
+    const [scrollbarXEnabled, setScrollbarXEnabled] = (0, import_react45.useState)(false);
+    const [scrollbarYEnabled, setScrollbarYEnabled] = (0, import_react45.useState)(false);
+    const rootRef = useMergedRef(ref, (node) => setScrollArea(node));
+    return /* @__PURE__ */ (0, import_jsx_runtime33.jsx)(
+      ScrollAreaProvider,
+      {
+        value: {
+          type,
+          scrollHideDelay,
+          scrollArea,
+          viewport,
+          onViewportChange: setViewport,
+          content,
+          onContentChange: setContent,
+          scrollbarX,
+          onScrollbarXChange: setScrollbarX,
+          scrollbarXEnabled,
+          onScrollbarXEnabledChange: setScrollbarXEnabled,
+          scrollbarY,
+          onScrollbarYChange: setScrollbarY,
+          scrollbarYEnabled,
+          onScrollbarYEnabledChange: setScrollbarYEnabled,
+          onCornerWidthChange: setCornerWidth,
+          onCornerHeightChange: setCornerHeight
+        },
+        children: /* @__PURE__ */ (0, import_jsx_runtime33.jsx)(
+          Box,
+          {
+            ...others,
+            ref: rootRef,
+            __vars: {
+              "--sa-corner-width": scrollbars !== "xy" ? "0px" : `${cornerWidth}px`,
+              "--sa-corner-height": scrollbars !== "xy" ? "0px" : `${cornerHeight}px`
+            }
+          }
+        )
+      }
+    );
+  });
+  ScrollAreaRoot.displayName = "@mantine/core/ScrollAreaRoot";
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/ScrollAreaScrollbar/ScrollAreaScrollbar.mjs
+  var import_jsx_runtime42 = __toESM(require_jsx_runtime(), 1);
+  var import_react54 = __toESM(require_react(), 1);
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/ScrollAreaScrollbar/ScrollAreaScrollbarAuto.mjs
+  var import_jsx_runtime39 = __toESM(require_jsx_runtime(), 1);
+  var import_react51 = __toESM(require_react(), 1);
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/ScrollAreaScrollbar/ScrollAreaScrollbarVisible.mjs
+  var import_jsx_runtime38 = __toESM(require_jsx_runtime(), 1);
+  var import_react50 = __toESM(require_react(), 1);
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/utils/get-thumb-ratio.mjs
+  function getThumbRatio(viewportSize, contentSize) {
+    const ratio = viewportSize / contentSize;
+    return Number.isNaN(ratio) ? 0 : ratio;
+  }
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/utils/get-thumb-size.mjs
+  function getThumbSize(sizes2) {
+    const ratio = getThumbRatio(sizes2.viewport, sizes2.content);
+    const scrollbarPadding = sizes2.scrollbar.paddingStart + sizes2.scrollbar.paddingEnd;
+    const thumbSize = (sizes2.scrollbar.size - scrollbarPadding) * ratio;
+    return Math.max(thumbSize, 18);
+  }
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/utils/linear-scale.mjs
+  function linearScale(input, output) {
+    return (value) => {
+      if (input[0] === input[1] || output[0] === output[1]) {
+        return output[0];
+      }
+      const ratio = (output[1] - output[0]) / (input[1] - input[0]);
+      return output[0] + ratio * (value - input[0]);
+    };
+  }
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/utils/get-thumb-offset-from-scroll.mjs
+  function clamp(value, [min, max]) {
+    return Math.min(max, Math.max(min, value));
+  }
+  function getThumbOffsetFromScroll(scrollPos, sizes2, dir = "ltr") {
+    const thumbSizePx = getThumbSize(sizes2);
+    const scrollbarPadding = sizes2.scrollbar.paddingStart + sizes2.scrollbar.paddingEnd;
+    const scrollbar = sizes2.scrollbar.size - scrollbarPadding;
+    const maxScrollPos = sizes2.content - sizes2.viewport;
+    const maxThumbPos = scrollbar - thumbSizePx;
+    const scrollClampRange = dir === "ltr" ? [0, maxScrollPos] : [maxScrollPos * -1, 0];
+    const scrollWithoutMomentum = clamp(scrollPos, scrollClampRange);
+    const interpolate = linearScale([0, maxScrollPos], [0, maxThumbPos]);
+    return interpolate(scrollWithoutMomentum);
+  }
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/utils/get-scroll-position-from-pointer.mjs
+  function getScrollPositionFromPointer(pointerPos, pointerOffset, sizes2, dir = "ltr") {
+    const thumbSizePx = getThumbSize(sizes2);
+    const thumbCenter = thumbSizePx / 2;
+    const offset = pointerOffset || thumbCenter;
+    const thumbOffsetFromEnd = thumbSizePx - offset;
+    const minPointerPos = sizes2.scrollbar.paddingStart + offset;
+    const maxPointerPos = sizes2.scrollbar.size - sizes2.scrollbar.paddingEnd - thumbOffsetFromEnd;
+    const maxScrollPos = sizes2.content - sizes2.viewport;
+    const scrollRange = dir === "ltr" ? [0, maxScrollPos] : [maxScrollPos * -1, 0];
+    const interpolate = linearScale([minPointerPos, maxPointerPos], scrollRange);
+    return interpolate(pointerPos);
+  }
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/ScrollAreaScrollbar/ScrollbarX.mjs
+  var import_jsx_runtime36 = __toESM(require_jsx_runtime(), 1);
+  var import_react48 = __toESM(require_react(), 1);
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/utils/is-scrolling-within-scrollbar-bounds.mjs
+  function isScrollingWithinScrollbarBounds(scrollPos, maxScrollPos) {
+    return scrollPos > 0 && scrollPos < maxScrollPos;
+  }
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/utils/to-int.mjs
+  function toInt(value) {
+    return value ? parseInt(value, 10) : 0;
+  }
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/ScrollAreaScrollbar/Scrollbar.mjs
+  var import_jsx_runtime35 = __toESM(require_jsx_runtime(), 1);
+  var import_react47 = __toESM(require_react(), 1);
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/utils/compose-event-handlers.mjs
+  function composeEventHandlers(originalEventHandler, ourEventHandler, { checkForDefaultPrevented = true } = {}) {
+    return (event) => {
+      originalEventHandler?.(event);
+      if (checkForDefaultPrevented === false || !event.defaultPrevented) {
+        ourEventHandler?.(event);
+      }
+    };
+  }
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/ScrollAreaScrollbar/Scrollbar.context.mjs
+  var import_react46 = __toESM(require_react(), 1);
+  var import_jsx_runtime34 = __toESM(require_jsx_runtime(), 1);
+  var [ScrollbarProvider, useScrollbarContext] = createSafeContext(
+    "ScrollAreaScrollbar was not found in tree"
+  );
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/ScrollAreaScrollbar/Scrollbar.mjs
+  var Scrollbar = (0, import_react47.forwardRef)((props, forwardedRef) => {
+    const {
+      sizes: sizes2,
+      hasThumb,
+      onThumbChange,
+      onThumbPointerUp,
+      onThumbPointerDown,
+      onThumbPositionChange,
+      onDragScroll,
+      onWheelScroll,
+      onResize,
+      ...scrollbarProps
+    } = props;
+    const context = useScrollAreaContext();
+    const [scrollbar, setScrollbar] = (0, import_react47.useState)(null);
+    const composeRefs = useMergedRef(forwardedRef, (node) => setScrollbar(node));
+    const rectRef = (0, import_react47.useRef)(null);
+    const prevWebkitUserSelectRef = (0, import_react47.useRef)("");
+    const { viewport } = context;
+    const maxScrollPos = sizes2.content - sizes2.viewport;
+    const handleWheelScroll = useCallbackRef(onWheelScroll);
+    const handleThumbPositionChange = useCallbackRef(onThumbPositionChange);
+    const handleResize = useDebouncedCallback(onResize, 10);
+    const handleDragScroll = (event) => {
+      if (rectRef.current) {
+        const x = event.clientX - rectRef.current.left;
+        const y = event.clientY - rectRef.current.top;
+        onDragScroll({ x, y });
+      }
+    };
+    (0, import_react47.useEffect)(() => {
+      const handleWheel = (event) => {
+        const element = event.target;
+        const isScrollbarWheel = scrollbar?.contains(element);
+        if (isScrollbarWheel) {
+          handleWheelScroll(event, maxScrollPos);
+        }
+      };
+      document.addEventListener("wheel", handleWheel, { passive: false });
+      return () => document.removeEventListener("wheel", handleWheel, { passive: false });
+    }, [viewport, scrollbar, maxScrollPos, handleWheelScroll]);
+    (0, import_react47.useEffect)(handleThumbPositionChange, [sizes2, handleThumbPositionChange]);
+    useResizeObserver(scrollbar, handleResize);
+    useResizeObserver(context.content, handleResize);
+    return /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(
+      ScrollbarProvider,
+      {
+        value: {
+          scrollbar,
+          hasThumb,
+          onThumbChange: useCallbackRef(onThumbChange),
+          onThumbPointerUp: useCallbackRef(onThumbPointerUp),
+          onThumbPositionChange: handleThumbPositionChange,
+          onThumbPointerDown: useCallbackRef(onThumbPointerDown)
+        },
+        children: /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(
+          "div",
+          {
+            ...scrollbarProps,
+            ref: composeRefs,
+            "data-mantine-scrollbar": true,
+            style: { position: "absolute", ...scrollbarProps.style },
+            onPointerDown: composeEventHandlers(props.onPointerDown, (event) => {
+              event.preventDefault();
+              const mainPointer = 0;
+              if (event.button === mainPointer) {
+                const element = event.target;
+                element.setPointerCapture(event.pointerId);
+                rectRef.current = scrollbar.getBoundingClientRect();
+                prevWebkitUserSelectRef.current = document.body.style.webkitUserSelect;
+                document.body.style.webkitUserSelect = "none";
+                handleDragScroll(event);
+              }
+            }),
+            onPointerMove: composeEventHandlers(props.onPointerMove, handleDragScroll),
+            onPointerUp: composeEventHandlers(props.onPointerUp, (event) => {
+              const element = event.target;
+              if (element.hasPointerCapture(event.pointerId)) {
+                event.preventDefault();
+                element.releasePointerCapture(event.pointerId);
+              }
+            }),
+            onLostPointerCapture: () => {
+              document.body.style.webkitUserSelect = prevWebkitUserSelectRef.current;
+              rectRef.current = null;
+            }
+          }
+        )
+      }
+    );
+  });
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/ScrollAreaScrollbar/ScrollbarX.mjs
+  var ScrollAreaScrollbarX = (0, import_react48.forwardRef)(
+    (props, forwardedRef) => {
+      const { sizes: sizes2, onSizesChange, style, ...others } = props;
+      const ctx = useScrollAreaContext();
+      const [computedStyle, setComputedStyle] = (0, import_react48.useState)();
+      const ref = (0, import_react48.useRef)(null);
+      const composeRefs = useMergedRef(forwardedRef, ref, ctx.onScrollbarXChange);
+      (0, import_react48.useEffect)(() => {
+        if (ref.current) {
+          setComputedStyle(getComputedStyle(ref.current));
+        }
+      }, [ref]);
+      return /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(
+        Scrollbar,
+        {
+          "data-orientation": "horizontal",
+          ...others,
+          ref: composeRefs,
+          sizes: sizes2,
+          style: {
+            ...style,
+            ["--sa-thumb-width"]: `${getThumbSize(sizes2)}px`
+          },
+          onThumbPointerDown: (pointerPos) => props.onThumbPointerDown(pointerPos.x),
+          onDragScroll: (pointerPos) => props.onDragScroll(pointerPos.x),
+          onWheelScroll: (event, maxScrollPos) => {
+            if (ctx.viewport) {
+              const scrollPos = ctx.viewport.scrollLeft + event.deltaX;
+              props.onWheelScroll(scrollPos);
+              if (isScrollingWithinScrollbarBounds(scrollPos, maxScrollPos)) {
+                event.preventDefault();
+              }
+            }
+          },
+          onResize: () => {
+            if (ref.current && ctx.viewport && computedStyle) {
+              onSizesChange({
+                content: ctx.viewport.scrollWidth,
+                viewport: ctx.viewport.offsetWidth,
+                scrollbar: {
+                  size: ref.current.clientWidth,
+                  paddingStart: toInt(computedStyle.paddingLeft),
+                  paddingEnd: toInt(computedStyle.paddingRight)
+                }
+              });
+            }
+          }
+        }
+      );
+    }
+  );
+  ScrollAreaScrollbarX.displayName = "@mantine/core/ScrollAreaScrollbarX";
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/ScrollAreaScrollbar/ScrollbarY.mjs
+  var import_jsx_runtime37 = __toESM(require_jsx_runtime(), 1);
+  var import_react49 = __toESM(require_react(), 1);
+  var ScrollAreaScrollbarY = (0, import_react49.forwardRef)(
+    (props, forwardedRef) => {
+      const { sizes: sizes2, onSizesChange, style, ...others } = props;
+      const context = useScrollAreaContext();
+      const [computedStyle, setComputedStyle] = (0, import_react49.useState)();
+      const ref = (0, import_react49.useRef)(null);
+      const composeRefs = useMergedRef(forwardedRef, ref, context.onScrollbarYChange);
+      (0, import_react49.useEffect)(() => {
+        if (ref.current) {
+          setComputedStyle(window.getComputedStyle(ref.current));
+        }
+      }, []);
+      return /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(
+        Scrollbar,
+        {
+          ...others,
+          "data-orientation": "vertical",
+          ref: composeRefs,
+          sizes: sizes2,
+          style: {
+            ["--sa-thumb-height"]: `${getThumbSize(sizes2)}px`,
+            ...style
+          },
+          onThumbPointerDown: (pointerPos) => props.onThumbPointerDown(pointerPos.y),
+          onDragScroll: (pointerPos) => props.onDragScroll(pointerPos.y),
+          onWheelScroll: (event, maxScrollPos) => {
+            if (context.viewport) {
+              const scrollPos = context.viewport.scrollTop + event.deltaY;
+              props.onWheelScroll(scrollPos);
+              if (isScrollingWithinScrollbarBounds(scrollPos, maxScrollPos)) {
+                event.preventDefault();
+              }
+            }
+          },
+          onResize: () => {
+            if (ref.current && context.viewport && computedStyle) {
+              onSizesChange({
+                content: context.viewport.scrollHeight,
+                viewport: context.viewport.offsetHeight,
+                scrollbar: {
+                  size: ref.current.clientHeight,
+                  paddingStart: toInt(computedStyle.paddingTop),
+                  paddingEnd: toInt(computedStyle.paddingBottom)
+                }
+              });
+            }
+          }
+        }
+      );
+    }
+  );
+  ScrollAreaScrollbarY.displayName = "@mantine/core/ScrollAreaScrollbarY";
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/ScrollAreaScrollbar/ScrollAreaScrollbarVisible.mjs
+  var ScrollAreaScrollbarVisible = (0, import_react50.forwardRef)((props, forwardedRef) => {
+    const { orientation = "vertical", ...scrollbarProps } = props;
+    const { dir } = useDirection();
+    const context = useScrollAreaContext();
+    const thumbRef = (0, import_react50.useRef)(null);
+    const pointerOffsetRef = (0, import_react50.useRef)(0);
+    const [sizes2, setSizes] = (0, import_react50.useState)({
+      content: 0,
+      viewport: 0,
+      scrollbar: { size: 0, paddingStart: 0, paddingEnd: 0 }
+    });
+    const thumbRatio = getThumbRatio(sizes2.viewport, sizes2.content);
+    const commonProps = {
+      ...scrollbarProps,
+      sizes: sizes2,
+      onSizesChange: setSizes,
+      hasThumb: Boolean(thumbRatio > 0 && thumbRatio < 1),
+      onThumbChange: (thumb) => {
+        thumbRef.current = thumb;
+      },
+      onThumbPointerUp: () => {
+        pointerOffsetRef.current = 0;
+      },
+      onThumbPointerDown: (pointerPos) => {
+        pointerOffsetRef.current = pointerPos;
+      }
+    };
+    const getScrollPosition = (pointerPos, direction) => getScrollPositionFromPointer(pointerPos, pointerOffsetRef.current, sizes2, direction);
+    if (orientation === "horizontal") {
+      return /* @__PURE__ */ (0, import_jsx_runtime38.jsx)(
+        ScrollAreaScrollbarX,
+        {
+          ...commonProps,
+          ref: forwardedRef,
+          onThumbPositionChange: () => {
+            if (context.viewport && thumbRef.current) {
+              const scrollPos = context.viewport.scrollLeft;
+              const offset = getThumbOffsetFromScroll(scrollPos, sizes2, dir);
+              thumbRef.current.style.transform = `translate3d(${offset}px, 0, 0)`;
+            }
+          },
+          onWheelScroll: (scrollPos) => {
+            if (context.viewport) {
+              context.viewport.scrollLeft = scrollPos;
+            }
+          },
+          onDragScroll: (pointerPos) => {
+            if (context.viewport) {
+              context.viewport.scrollLeft = getScrollPosition(pointerPos, dir);
+            }
+          }
+        }
+      );
+    }
+    if (orientation === "vertical") {
+      return /* @__PURE__ */ (0, import_jsx_runtime38.jsx)(
+        ScrollAreaScrollbarY,
+        {
+          ...commonProps,
+          ref: forwardedRef,
+          onThumbPositionChange: () => {
+            if (context.viewport && thumbRef.current) {
+              const scrollPos = context.viewport.scrollTop;
+              const offset = getThumbOffsetFromScroll(scrollPos, sizes2);
+              if (sizes2.scrollbar.size === 0) {
+                thumbRef.current.style.setProperty("--thumb-opacity", "0");
+              } else {
+                thumbRef.current.style.setProperty("--thumb-opacity", "1");
+              }
+              thumbRef.current.style.transform = `translate3d(0, ${offset}px, 0)`;
+            }
+          },
+          onWheelScroll: (scrollPos) => {
+            if (context.viewport) {
+              context.viewport.scrollTop = scrollPos;
+            }
+          },
+          onDragScroll: (pointerPos) => {
+            if (context.viewport) {
+              context.viewport.scrollTop = getScrollPosition(pointerPos);
+            }
+          }
+        }
+      );
+    }
+    return null;
+  });
+  ScrollAreaScrollbarVisible.displayName = "@mantine/core/ScrollAreaScrollbarVisible";
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/ScrollAreaScrollbar/ScrollAreaScrollbarAuto.mjs
+  var ScrollAreaScrollbarAuto = (0, import_react51.forwardRef)(
+    (props, ref) => {
+      const context = useScrollAreaContext();
+      const { forceMount, ...scrollbarProps } = props;
+      const [visible, setVisible] = (0, import_react51.useState)(false);
+      const isHorizontal = props.orientation === "horizontal";
+      const handleResize = useDebouncedCallback(() => {
+        if (context.viewport) {
+          const isOverflowX = context.viewport.offsetWidth < context.viewport.scrollWidth;
+          const isOverflowY = context.viewport.offsetHeight < context.viewport.scrollHeight;
+          setVisible(isHorizontal ? isOverflowX : isOverflowY);
+        }
+      }, 10);
+      useResizeObserver(context.viewport, handleResize);
+      useResizeObserver(context.content, handleResize);
+      if (forceMount || visible) {
+        return /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(
+          ScrollAreaScrollbarVisible,
+          {
+            "data-state": visible ? "visible" : "hidden",
+            ...scrollbarProps,
+            ref
+          }
+        );
+      }
+      return null;
+    }
+  );
+  ScrollAreaScrollbarAuto.displayName = "@mantine/core/ScrollAreaScrollbarAuto";
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/ScrollAreaScrollbar/ScrollAreaScrollbarHover.mjs
+  var import_jsx_runtime40 = __toESM(require_jsx_runtime(), 1);
+  var import_react52 = __toESM(require_react(), 1);
+  var ScrollAreaScrollbarHover = (0, import_react52.forwardRef)(
+    (props, ref) => {
+      const { forceMount, ...scrollbarProps } = props;
+      const context = useScrollAreaContext();
+      const [visible, setVisible] = (0, import_react52.useState)(false);
+      (0, import_react52.useEffect)(() => {
+        const { scrollArea } = context;
+        let hideTimer = 0;
+        if (scrollArea) {
+          const handlePointerEnter = () => {
+            window.clearTimeout(hideTimer);
+            setVisible(true);
+          };
+          const handlePointerLeave = () => {
+            hideTimer = window.setTimeout(() => setVisible(false), context.scrollHideDelay);
+          };
+          scrollArea.addEventListener("pointerenter", handlePointerEnter);
+          scrollArea.addEventListener("pointerleave", handlePointerLeave);
+          return () => {
+            window.clearTimeout(hideTimer);
+            scrollArea.removeEventListener("pointerenter", handlePointerEnter);
+            scrollArea.removeEventListener("pointerleave", handlePointerLeave);
+          };
+        }
+        return void 0;
+      }, [context.scrollArea, context.scrollHideDelay]);
+      if (forceMount || visible) {
+        return /* @__PURE__ */ (0, import_jsx_runtime40.jsx)(
+          ScrollAreaScrollbarAuto,
+          {
+            "data-state": visible ? "visible" : "hidden",
+            ...scrollbarProps,
+            ref
+          }
+        );
+      }
+      return null;
+    }
+  );
+  ScrollAreaScrollbarHover.displayName = "@mantine/core/ScrollAreaScrollbarHover";
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/ScrollAreaScrollbar/ScrollAreaScrollbarScroll.mjs
+  var import_jsx_runtime41 = __toESM(require_jsx_runtime(), 1);
+  var import_react53 = __toESM(require_react(), 1);
+  var ScrollAreaScrollbarScroll = (0, import_react53.forwardRef)(
+    (props, red) => {
+      const { forceMount, ...scrollbarProps } = props;
+      const context = useScrollAreaContext();
+      const isHorizontal = props.orientation === "horizontal";
+      const [state, setState] = (0, import_react53.useState)("hidden");
+      const debounceScrollEnd = useDebouncedCallback(() => setState("idle"), 100);
+      (0, import_react53.useEffect)(() => {
+        if (state === "idle") {
+          const hideTimer = window.setTimeout(() => setState("hidden"), context.scrollHideDelay);
+          return () => window.clearTimeout(hideTimer);
+        }
+        return void 0;
+      }, [state, context.scrollHideDelay]);
+      (0, import_react53.useEffect)(() => {
+        const { viewport } = context;
+        const scrollDirection = isHorizontal ? "scrollLeft" : "scrollTop";
+        if (viewport) {
+          let prevScrollPos = viewport[scrollDirection];
+          const handleScroll = () => {
+            const scrollPos = viewport[scrollDirection];
+            const hasScrollInDirectionChanged = prevScrollPos !== scrollPos;
+            if (hasScrollInDirectionChanged) {
+              setState("scrolling");
+              debounceScrollEnd();
+            }
+            prevScrollPos = scrollPos;
+          };
+          viewport.addEventListener("scroll", handleScroll);
+          return () => viewport.removeEventListener("scroll", handleScroll);
+        }
+        return void 0;
+      }, [context.viewport, isHorizontal, debounceScrollEnd]);
+      if (forceMount || state !== "hidden") {
+        return /* @__PURE__ */ (0, import_jsx_runtime41.jsx)(
+          ScrollAreaScrollbarVisible,
+          {
+            "data-state": state === "hidden" ? "hidden" : "visible",
+            ...scrollbarProps,
+            ref: red,
+            onPointerEnter: composeEventHandlers(props.onPointerEnter, () => setState("interacting")),
+            onPointerLeave: composeEventHandlers(props.onPointerLeave, () => setState("idle"))
+          }
+        );
+      }
+      return null;
+    }
+  );
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/ScrollAreaScrollbar/ScrollAreaScrollbar.mjs
+  var ScrollAreaScrollbar = (0, import_react54.forwardRef)(
+    (props, forwardedRef) => {
+      const { forceMount, ...scrollbarProps } = props;
+      const context = useScrollAreaContext();
+      const { onScrollbarXEnabledChange, onScrollbarYEnabledChange } = context;
+      const isHorizontal = props.orientation === "horizontal";
+      (0, import_react54.useEffect)(() => {
+        isHorizontal ? onScrollbarXEnabledChange(true) : onScrollbarYEnabledChange(true);
+        return () => {
+          isHorizontal ? onScrollbarXEnabledChange(false) : onScrollbarYEnabledChange(false);
+        };
+      }, [isHorizontal, onScrollbarXEnabledChange, onScrollbarYEnabledChange]);
+      return context.type === "hover" ? /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(ScrollAreaScrollbarHover, { ...scrollbarProps, ref: forwardedRef, forceMount }) : context.type === "scroll" ? /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(ScrollAreaScrollbarScroll, { ...scrollbarProps, ref: forwardedRef, forceMount }) : context.type === "auto" ? /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(ScrollAreaScrollbarAuto, { ...scrollbarProps, ref: forwardedRef, forceMount }) : context.type === "always" ? /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(ScrollAreaScrollbarVisible, { ...scrollbarProps, ref: forwardedRef }) : null;
+    }
+  );
+  ScrollAreaScrollbar.displayName = "@mantine/core/ScrollAreaScrollbar";
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/ScrollAreaThumb/ScrollAreaThumb.mjs
+  var import_jsx_runtime43 = __toESM(require_jsx_runtime(), 1);
+  var import_react55 = __toESM(require_react(), 1);
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/utils/add-unlinked-scroll-listener.mjs
+  function addUnlinkedScrollListener(node, handler = () => {
+  }) {
+    let prevPosition = { left: node.scrollLeft, top: node.scrollTop };
+    let rAF = 0;
+    (function loop() {
+      const position = { left: node.scrollLeft, top: node.scrollTop };
+      const isHorizontalScroll = prevPosition.left !== position.left;
+      const isVerticalScroll = prevPosition.top !== position.top;
+      if (isHorizontalScroll || isVerticalScroll) {
+        handler();
+      }
+      prevPosition = position;
+      rAF = window.requestAnimationFrame(loop);
+    })();
+    return () => window.cancelAnimationFrame(rAF);
+  }
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/ScrollAreaThumb/ScrollAreaThumb.mjs
+  var Thumb = (0, import_react55.forwardRef)((props, forwardedRef) => {
+    const { style, ...others } = props;
+    const scrollAreaContext = useScrollAreaContext();
+    const scrollbarContext = useScrollbarContext();
+    const { onThumbPositionChange } = scrollbarContext;
+    const composedRef = useMergedRef(forwardedRef, (node) => scrollbarContext.onThumbChange(node));
+    const removeUnlinkedScrollListenerRef = (0, import_react55.useRef)(void 0);
+    const debounceScrollEnd = useDebouncedCallback(() => {
+      if (removeUnlinkedScrollListenerRef.current) {
+        removeUnlinkedScrollListenerRef.current();
+        removeUnlinkedScrollListenerRef.current = void 0;
+      }
+    }, 100);
+    (0, import_react55.useEffect)(() => {
+      const { viewport } = scrollAreaContext;
+      if (viewport) {
+        const handleScroll = () => {
+          debounceScrollEnd();
+          if (!removeUnlinkedScrollListenerRef.current) {
+            const listener = addUnlinkedScrollListener(viewport, onThumbPositionChange);
+            removeUnlinkedScrollListenerRef.current = listener;
+            onThumbPositionChange();
+          }
+        };
+        onThumbPositionChange();
+        viewport.addEventListener("scroll", handleScroll);
+        return () => viewport.removeEventListener("scroll", handleScroll);
+      }
+      return void 0;
+    }, [scrollAreaContext.viewport, debounceScrollEnd, onThumbPositionChange]);
+    return /* @__PURE__ */ (0, import_jsx_runtime43.jsx)(
+      "div",
+      {
+        "data-state": scrollbarContext.hasThumb ? "visible" : "hidden",
+        ...others,
+        ref: composedRef,
+        style: {
+          width: "var(--sa-thumb-width)",
+          height: "var(--sa-thumb-height)",
+          ...style
+        },
+        onPointerDownCapture: composeEventHandlers(props.onPointerDownCapture, (event) => {
+          const thumb = event.target;
+          const thumbRect = thumb.getBoundingClientRect();
+          const x = event.clientX - thumbRect.left;
+          const y = event.clientY - thumbRect.top;
+          scrollbarContext.onThumbPointerDown({ x, y });
+        }),
+        onPointerUp: composeEventHandlers(props.onPointerUp, scrollbarContext.onThumbPointerUp)
+      }
+    );
+  });
+  Thumb.displayName = "@mantine/core/ScrollAreaThumb";
+  var ScrollAreaThumb = (0, import_react55.forwardRef)(
+    (props, forwardedRef) => {
+      const { forceMount, ...thumbProps } = props;
+      const scrollbarContext = useScrollbarContext();
+      if (forceMount || scrollbarContext.hasThumb) {
+        return /* @__PURE__ */ (0, import_jsx_runtime43.jsx)(Thumb, { ref: forwardedRef, ...thumbProps });
+      }
+      return null;
+    }
+  );
+  ScrollAreaThumb.displayName = "@mantine/core/ScrollAreaThumb";
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/ScrollAreaViewport/ScrollAreaViewport.mjs
+  var import_jsx_runtime44 = __toESM(require_jsx_runtime(), 1);
+  var import_react56 = __toESM(require_react(), 1);
+  var ScrollAreaViewport = (0, import_react56.forwardRef)(
+    ({ children, style, ...others }, ref) => {
+      const ctx = useScrollAreaContext();
+      const rootRef = useMergedRef(ref, ctx.onViewportChange);
+      return /* @__PURE__ */ (0, import_jsx_runtime44.jsx)(
+        Box,
+        {
+          ...others,
+          ref: rootRef,
+          style: {
+            overflowX: ctx.scrollbarXEnabled ? "scroll" : "hidden",
+            overflowY: ctx.scrollbarYEnabled ? "scroll" : "hidden",
+            ...style
+          },
+          children: /* @__PURE__ */ (0, import_jsx_runtime44.jsx)("div", { style: { minWidth: "100%" }, ref: ctx.onContentChange, children })
+        }
+      );
+    }
+  );
+  ScrollAreaViewport.displayName = "@mantine/core/ScrollAreaViewport";
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/ScrollArea.module.css.mjs
+  var classes = { "root": "m_d57069b5", "viewport": "m_c0783ff9", "viewportInner": "m_f8f631dd", "scrollbar": "m_c44ba933", "thumb": "m_d8b5e363", "corner": "m_21657268" };
+
+  // node_modules/@mantine/core/esm/components/ScrollArea/ScrollArea.mjs
+  var defaultProps2 = {
+    scrollHideDelay: 1e3,
+    type: "hover",
+    scrollbars: "xy"
+  };
+  var varsResolver = createVarsResolver(
+    (_, { scrollbarSize, overscrollBehavior }) => ({
+      root: {
+        "--scrollarea-scrollbar-size": rem(scrollbarSize),
+        "--scrollarea-over-scroll-behavior": overscrollBehavior
+      }
+    })
+  );
+  var ScrollArea = factory((_props, ref) => {
+    const props = useProps("ScrollArea", defaultProps2, _props);
+    const {
+      classNames,
+      className,
+      style,
+      styles,
+      unstyled,
+      scrollbarSize,
+      vars,
+      type,
+      scrollHideDelay,
+      viewportProps,
+      viewportRef,
+      onScrollPositionChange,
+      children,
+      offsetScrollbars,
+      scrollbars,
+      onBottomReached,
+      onTopReached,
+      overscrollBehavior,
+      ...others
+    } = props;
+    const [scrollbarHovered, setScrollbarHovered] = (0, import_react57.useState)(false);
+    const [verticalThumbVisible, setVerticalThumbVisible] = (0, import_react57.useState)(false);
+    const [horizontalThumbVisible, setHorizontalThumbVisible] = (0, import_react57.useState)(false);
+    const getStyles = useStyles({
+      name: "ScrollArea",
+      props,
+      classes,
+      className,
+      style,
+      classNames,
+      styles,
+      unstyled,
+      vars,
+      varsResolver
+    });
+    const localViewportRef = (0, import_react57.useRef)(null);
+    const combinedViewportRef = useMergeRefs([viewportRef, localViewportRef]);
+    (0, import_react57.useEffect)(() => {
+      if (!localViewportRef.current) {
+        return;
+      }
+      if (offsetScrollbars !== "present") {
+        return;
+      }
+      const element = localViewportRef.current;
+      const observer = new ResizeObserver(() => {
+        const { scrollHeight, clientHeight, scrollWidth, clientWidth } = element;
+        setVerticalThumbVisible(scrollHeight > clientHeight);
+        setHorizontalThumbVisible(scrollWidth > clientWidth);
+      });
+      observer.observe(element);
+      return () => observer.disconnect();
+    }, [localViewportRef, offsetScrollbars]);
+    return /* @__PURE__ */ (0, import_jsx_runtime45.jsxs)(
+      ScrollAreaRoot,
+      {
+        type: type === "never" ? "always" : type,
+        scrollHideDelay,
+        ref,
+        scrollbars,
+        ...getStyles("root"),
+        ...others,
+        children: [
+          /* @__PURE__ */ (0, import_jsx_runtime45.jsx)(
+            ScrollAreaViewport,
+            {
+              ...viewportProps,
+              ...getStyles("viewport", { style: viewportProps?.style }),
+              ref: combinedViewportRef,
+              "data-offset-scrollbars": offsetScrollbars === true ? "xy" : offsetScrollbars || void 0,
+              "data-scrollbars": scrollbars || void 0,
+              "data-horizontal-hidden": offsetScrollbars === "present" && !horizontalThumbVisible ? "true" : void 0,
+              "data-vertical-hidden": offsetScrollbars === "present" && !verticalThumbVisible ? "true" : void 0,
+              onScroll: (e) => {
+                viewportProps?.onScroll?.(e);
+                onScrollPositionChange?.({ x: e.currentTarget.scrollLeft, y: e.currentTarget.scrollTop });
+                const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+                if (scrollTop - (scrollHeight - clientHeight) >= -0.6) {
+                  onBottomReached?.();
+                }
+                if (scrollTop === 0) {
+                  onTopReached?.();
+                }
+              },
+              children
+            }
+          ),
+          (scrollbars === "xy" || scrollbars === "x") && /* @__PURE__ */ (0, import_jsx_runtime45.jsx)(
+            ScrollAreaScrollbar,
+            {
+              ...getStyles("scrollbar"),
+              orientation: "horizontal",
+              "data-hidden": type === "never" || offsetScrollbars === "present" && !horizontalThumbVisible ? true : void 0,
+              forceMount: true,
+              onMouseEnter: () => setScrollbarHovered(true),
+              onMouseLeave: () => setScrollbarHovered(false),
+              children: /* @__PURE__ */ (0, import_jsx_runtime45.jsx)(ScrollAreaThumb, { ...getStyles("thumb") })
+            }
+          ),
+          (scrollbars === "xy" || scrollbars === "y") && /* @__PURE__ */ (0, import_jsx_runtime45.jsx)(
+            ScrollAreaScrollbar,
+            {
+              ...getStyles("scrollbar"),
+              orientation: "vertical",
+              "data-hidden": type === "never" || offsetScrollbars === "present" && !verticalThumbVisible ? true : void 0,
+              forceMount: true,
+              onMouseEnter: () => setScrollbarHovered(true),
+              onMouseLeave: () => setScrollbarHovered(false),
+              children: /* @__PURE__ */ (0, import_jsx_runtime45.jsx)(ScrollAreaThumb, { ...getStyles("thumb") })
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime45.jsx)(
+            ScrollAreaCorner,
+            {
+              ...getStyles("corner"),
+              "data-hovered": scrollbarHovered || void 0,
+              "data-hidden": type === "never" || void 0
+            }
+          )
+        ]
+      }
+    );
+  });
+  ScrollArea.displayName = "@mantine/core/ScrollArea";
+  var ScrollAreaAutosize = factory((props, ref) => {
+    const {
+      children,
+      classNames,
+      styles,
+      scrollbarSize,
+      scrollHideDelay,
+      type,
+      dir,
+      offsetScrollbars,
+      viewportRef,
+      onScrollPositionChange,
+      unstyled,
+      variant,
+      viewportProps,
+      scrollbars,
+      style,
+      vars,
+      onBottomReached,
+      onTopReached,
+      ...others
+    } = useProps("ScrollAreaAutosize", defaultProps2, props);
+    return /* @__PURE__ */ (0, import_jsx_runtime45.jsx)(Box, { ...others, ref, style: [{ display: "flex", overflow: "auto" }, style], children: /* @__PURE__ */ (0, import_jsx_runtime45.jsx)(Box, { style: { display: "flex", flexDirection: "column", flex: 1 }, children: /* @__PURE__ */ (0, import_jsx_runtime45.jsx)(
+      ScrollArea,
+      {
+        classNames,
+        styles,
+        scrollHideDelay,
+        scrollbarSize,
+        type,
+        dir,
+        offsetScrollbars,
+        viewportRef,
+        onScrollPositionChange,
+        unstyled,
+        variant,
+        viewportProps,
+        vars,
+        scrollbars,
+        onBottomReached,
+        onTopReached,
+        children
+      }
+    ) }) });
+  });
+  ScrollArea.classes = classes;
+  ScrollAreaAutosize.displayName = "@mantine/core/ScrollAreaAutosize";
+  ScrollAreaAutosize.classes = classes;
+  ScrollArea.Autosize = ScrollAreaAutosize;
+
+  // node_modules/@mantine/core/esm/components/UnstyledButton/UnstyledButton.mjs
+  var import_jsx_runtime46 = __toESM(require_jsx_runtime(), 1);
+  var import_react59 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/components/UnstyledButton/UnstyledButton.module.css.mjs
-  var classes = { "root": "m_87cf2631" };
+  var classes2 = { "root": "m_87cf2631" };
 
   // node_modules/@mantine/core/esm/components/UnstyledButton/UnstyledButton.mjs
-  var defaultProps = {
+  var defaultProps3 = {
     __staticSelector: "UnstyledButton"
   };
   var UnstyledButton = polymorphicFactory(
     (_props, ref) => {
-      const props = useProps("UnstyledButton", defaultProps, _props);
+      const props = useProps("UnstyledButton", defaultProps3, _props);
       const {
         className,
         component = "button",
@@ -27479,14 +28445,14 @@
       const getStyles = useStyles({
         name: __staticSelector,
         props,
-        classes,
+        classes: classes2,
         className,
         style,
         classNames,
         styles,
         unstyled
       });
-      return /* @__PURE__ */ (0, import_jsx_runtime33.jsx)(
+      return /* @__PURE__ */ (0, import_jsx_runtime46.jsx)(
         Box,
         {
           ...getStyles("root", { focusable: true }),
@@ -27498,26 +28464,26 @@
       );
     }
   );
-  UnstyledButton.classes = classes;
+  UnstyledButton.classes = classes2;
   UnstyledButton.displayName = "@mantine/core/UnstyledButton";
 
   // node_modules/@mantine/core/esm/components/Paper/Paper.mjs
-  var import_jsx_runtime34 = __toESM(require_jsx_runtime(), 1);
-  var import_react43 = __toESM(require_react(), 1);
+  var import_jsx_runtime47 = __toESM(require_jsx_runtime(), 1);
+  var import_react60 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/components/Paper/Paper.module.css.mjs
-  var classes2 = { "root": "m_1b7284a3" };
+  var classes3 = { "root": "m_1b7284a3" };
 
   // node_modules/@mantine/core/esm/components/Paper/Paper.mjs
-  var defaultProps2 = {};
-  var varsResolver = createVarsResolver((_, { radius, shadow }) => ({
+  var defaultProps4 = {};
+  var varsResolver2 = createVarsResolver((_, { radius, shadow }) => ({
     root: {
       "--paper-radius": radius === void 0 ? void 0 : getRadius(radius),
       "--paper-shadow": getShadow(shadow)
     }
   }));
   var Paper = polymorphicFactory((_props, ref) => {
-    const props = useProps("Paper", defaultProps2, _props);
+    const props = useProps("Paper", defaultProps4, _props);
     const {
       classNames,
       className,
@@ -27535,16 +28501,16 @@
     const getStyles = useStyles({
       name: "Paper",
       props,
-      classes: classes2,
+      classes: classes3,
       className,
       style,
       classNames,
       styles,
       unstyled,
       vars,
-      varsResolver
+      varsResolver: varsResolver2
     });
-    return /* @__PURE__ */ (0, import_jsx_runtime34.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime47.jsx)(
       Box,
       {
         ref,
@@ -27555,12 +28521,12 @@
       }
     );
   });
-  Paper.classes = classes2;
+  Paper.classes = classes3;
   Paper.displayName = "@mantine/core/Paper";
 
   // node_modules/@mantine/core/esm/components/Transition/Transition.mjs
-  var import_jsx_runtime36 = __toESM(require_jsx_runtime(), 1);
-  var import_react45 = __toESM(require_react(), 1);
+  var import_jsx_runtime49 = __toESM(require_jsx_runtime(), 1);
+  var import_react62 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/components/Transition/transitions.mjs
   var popIn = (from) => ({
@@ -27723,9 +28689,9 @@
   }
 
   // node_modules/@mantine/core/esm/components/Transition/use-transition.mjs
-  var import_react44 = __toESM(require_react(), 1);
+  var import_react61 = __toESM(require_react(), 1);
   var import_react_dom = __toESM(require_react_dom(), 1);
-  var import_jsx_runtime35 = __toESM(require_jsx_runtime(), 1);
+  var import_jsx_runtime48 = __toESM(require_jsx_runtime(), 1);
   function useTransition({
     duration,
     exitDuration,
@@ -27741,11 +28707,11 @@
     const theme2 = useMantineTheme();
     const shouldReduceMotion = useReducedMotion();
     const reduceMotion = theme2.respectReducedMotion ? shouldReduceMotion : false;
-    const [transitionDuration, setTransitionDuration] = (0, import_react44.useState)(reduceMotion ? 0 : duration);
-    const [transitionStatus, setStatus] = (0, import_react44.useState)(mounted ? "entered" : "exited");
-    const transitionTimeoutRef = (0, import_react44.useRef)(-1);
-    const delayTimeoutRef = (0, import_react44.useRef)(-1);
-    const rafRef = (0, import_react44.useRef)(-1);
+    const [transitionDuration, setTransitionDuration] = (0, import_react61.useState)(reduceMotion ? 0 : duration);
+    const [transitionStatus, setStatus] = (0, import_react61.useState)(mounted ? "entered" : "exited");
+    const transitionTimeoutRef = (0, import_react61.useRef)(-1);
+    const delayTimeoutRef = (0, import_react61.useRef)(-1);
+    const rafRef = (0, import_react61.useRef)(-1);
     function clearAllTimeouts() {
       window.clearTimeout(transitionTimeoutRef.current);
       window.clearTimeout(delayTimeoutRef.current);
@@ -27794,7 +28760,7 @@
     useDidUpdate(() => {
       handleTransitionWithDelay(mounted);
     }, [mounted]);
-    (0, import_react44.useEffect)(
+    (0, import_react61.useEffect)(
       () => () => {
         clearAllTimeouts();
       },
@@ -27837,9 +28803,9 @@
       exitDelay
     });
     if (transitionDuration === 0 || env === "test") {
-      return mounted ? /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(import_jsx_runtime36.Fragment, { children: children({}) }) : keepMounted ? children({ display: "none" }) : null;
+      return mounted ? /* @__PURE__ */ (0, import_jsx_runtime49.jsx)(import_jsx_runtime49.Fragment, { children: children({}) }) : keepMounted ? children({ display: "none" }) : null;
     }
-    return transitionStatus === "exited" ? keepMounted ? children({ display: "none" }) : null : /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(import_jsx_runtime36.Fragment, { children: children(
+    return transitionStatus === "exited" ? keepMounted ? children({ display: "none" }) : null : /* @__PURE__ */ (0, import_jsx_runtime49.jsx)(import_jsx_runtime49.Fragment, { children: children(
       getTransitionStyles({
         transition,
         duration: transitionDuration,
@@ -27850,43 +28816,39 @@
   }
   Transition.displayName = "@mantine/core/Transition";
 
-  // node_modules/@mantine/core/esm/components/ActionIcon/ActionIcon.mjs
-  var import_jsx_runtime43 = __toESM(require_jsx_runtime(), 1);
-  var import_react52 = __toESM(require_react(), 1);
-
   // node_modules/@mantine/core/esm/components/Loader/Loader.mjs
-  var import_jsx_runtime40 = __toESM(require_jsx_runtime(), 1);
-  var import_react49 = __toESM(require_react(), 1);
+  var import_jsx_runtime53 = __toESM(require_jsx_runtime(), 1);
+  var import_react66 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/components/Loader/loaders/Bars.mjs
-  var import_jsx_runtime37 = __toESM(require_jsx_runtime(), 1);
-  var import_react46 = __toESM(require_react(), 1);
+  var import_jsx_runtime50 = __toESM(require_jsx_runtime(), 1);
+  var import_react63 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/components/Loader/Loader.module.css.mjs
-  var classes3 = { "root": "m_5ae2e3c", "barsLoader": "m_7a2bd4cd", "bar": "m_870bb79", "bars-loader-animation": "m_5d2b3b9d", "dotsLoader": "m_4e3f22d7", "dot": "m_870c4af", "loader-dots-animation": "m_aac34a1", "ovalLoader": "m_b34414df", "oval-loader-animation": "m_f8e89c4b" };
+  var classes4 = { "root": "m_5ae2e3c", "barsLoader": "m_7a2bd4cd", "bar": "m_870bb79", "bars-loader-animation": "m_5d2b3b9d", "dotsLoader": "m_4e3f22d7", "dot": "m_870c4af", "loader-dots-animation": "m_aac34a1", "ovalLoader": "m_b34414df", "oval-loader-animation": "m_f8e89c4b" };
 
   // node_modules/@mantine/core/esm/components/Loader/loaders/Bars.mjs
-  var Bars = (0, import_react46.forwardRef)(({ className, ...others }, ref) => /* @__PURE__ */ (0, import_jsx_runtime37.jsxs)(Box, { component: "span", className: clsx_default(classes3.barsLoader, className), ...others, ref, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime37.jsx)("span", { className: classes3.bar }),
-    /* @__PURE__ */ (0, import_jsx_runtime37.jsx)("span", { className: classes3.bar }),
-    /* @__PURE__ */ (0, import_jsx_runtime37.jsx)("span", { className: classes3.bar })
+  var Bars = (0, import_react63.forwardRef)(({ className, ...others }, ref) => /* @__PURE__ */ (0, import_jsx_runtime50.jsxs)(Box, { component: "span", className: clsx_default(classes4.barsLoader, className), ...others, ref, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: classes4.bar }),
+    /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: classes4.bar }),
+    /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: classes4.bar })
   ] }));
   Bars.displayName = "@mantine/core/Bars";
 
   // node_modules/@mantine/core/esm/components/Loader/loaders/Dots.mjs
-  var import_jsx_runtime38 = __toESM(require_jsx_runtime(), 1);
-  var import_react47 = __toESM(require_react(), 1);
-  var Dots = (0, import_react47.forwardRef)(({ className, ...others }, ref) => /* @__PURE__ */ (0, import_jsx_runtime38.jsxs)(Box, { component: "span", className: clsx_default(classes3.dotsLoader, className), ...others, ref, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime38.jsx)("span", { className: classes3.dot }),
-    /* @__PURE__ */ (0, import_jsx_runtime38.jsx)("span", { className: classes3.dot }),
-    /* @__PURE__ */ (0, import_jsx_runtime38.jsx)("span", { className: classes3.dot })
+  var import_jsx_runtime51 = __toESM(require_jsx_runtime(), 1);
+  var import_react64 = __toESM(require_react(), 1);
+  var Dots = (0, import_react64.forwardRef)(({ className, ...others }, ref) => /* @__PURE__ */ (0, import_jsx_runtime51.jsxs)(Box, { component: "span", className: clsx_default(classes4.dotsLoader, className), ...others, ref, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: classes4.dot }),
+    /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: classes4.dot }),
+    /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: classes4.dot })
   ] }));
   Dots.displayName = "@mantine/core/Dots";
 
   // node_modules/@mantine/core/esm/components/Loader/loaders/Oval.mjs
-  var import_jsx_runtime39 = __toESM(require_jsx_runtime(), 1);
-  var import_react48 = __toESM(require_react(), 1);
-  var Oval = (0, import_react48.forwardRef)(({ className, ...others }, ref) => /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(Box, { component: "span", className: clsx_default(classes3.ovalLoader, className), ...others, ref }));
+  var import_jsx_runtime52 = __toESM(require_jsx_runtime(), 1);
+  var import_react65 = __toESM(require_react(), 1);
+  var Oval = (0, import_react65.forwardRef)(({ className, ...others }, ref) => /* @__PURE__ */ (0, import_jsx_runtime52.jsx)(Box, { component: "span", className: clsx_default(classes4.ovalLoader, className), ...others, ref }));
   Oval.displayName = "@mantine/core/Oval";
 
   // node_modules/@mantine/core/esm/components/Loader/Loader.mjs
@@ -27895,18 +28857,18 @@
     oval: Oval,
     dots: Dots
   };
-  var defaultProps3 = {
+  var defaultProps5 = {
     loaders: defaultLoaders,
     type: "oval"
   };
-  var varsResolver2 = createVarsResolver((theme2, { size, color }) => ({
+  var varsResolver3 = createVarsResolver((theme2, { size, color }) => ({
     root: {
       "--loader-size": getSize(size, "loader-size"),
       "--loader-color": color ? getThemeColor(color, theme2) : void 0
     }
   }));
   var Loader = factory((_props, ref) => {
-    const props = useProps("Loader", defaultProps3, _props);
+    const props = useProps("Loader", defaultProps5, _props);
     const {
       size,
       color,
@@ -27925,19 +28887,19 @@
     const getStyles = useStyles({
       name: "Loader",
       props,
-      classes: classes3,
+      classes: classes4,
       className,
       style,
       classNames,
       styles,
       unstyled,
       vars,
-      varsResolver: varsResolver2
+      varsResolver: varsResolver3
     });
     if (children) {
-      return /* @__PURE__ */ (0, import_jsx_runtime40.jsx)(Box, { ...getStyles("root"), ref, ...others, children });
+      return /* @__PURE__ */ (0, import_jsx_runtime53.jsx)(Box, { ...getStyles("root"), ref, ...others, children });
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime40.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime53.jsx)(
       Box,
       {
         ...getStyles("root"),
@@ -27950,213 +28912,14 @@
     );
   });
   Loader.defaultLoaders = defaultLoaders;
-  Loader.classes = classes3;
+  Loader.classes = classes4;
   Loader.displayName = "@mantine/core/Loader";
 
-  // node_modules/@mantine/core/esm/components/ActionIcon/ActionIconGroup/ActionIconGroup.mjs
-  var import_jsx_runtime41 = __toESM(require_jsx_runtime(), 1);
-  var import_react50 = __toESM(require_react(), 1);
-
-  // node_modules/@mantine/core/esm/components/ActionIcon/ActionIcon.module.css.mjs
-  var classes4 = { "root": "m_8d3f4000", "icon": "m_8d3afb97", "loader": "m_302b9fb1", "group": "m_1a0f1b21", "groupSection": "m_437b6484" };
-
-  // node_modules/@mantine/core/esm/components/ActionIcon/ActionIconGroup/ActionIconGroup.mjs
-  var defaultProps4 = {
-    orientation: "horizontal"
-  };
-  var varsResolver3 = createVarsResolver((_, { borderWidth }) => ({
-    group: { "--ai-border-width": rem(borderWidth) }
-  }));
-  var ActionIconGroup = factory((_props, ref) => {
-    const props = useProps("ActionIconGroup", defaultProps4, _props);
-    const {
-      className,
-      style,
-      classNames,
-      styles,
-      unstyled,
-      orientation,
-      vars,
-      borderWidth,
-      variant,
-      mod,
-      ...others
-    } = useProps("ActionIconGroup", defaultProps4, _props);
-    const getStyles = useStyles({
-      name: "ActionIconGroup",
-      props,
-      classes: classes4,
-      className,
-      style,
-      classNames,
-      styles,
-      unstyled,
-      vars,
-      varsResolver: varsResolver3,
-      rootSelector: "group"
-    });
-    return /* @__PURE__ */ (0, import_jsx_runtime41.jsx)(
-      Box,
-      {
-        ...getStyles("group"),
-        ref,
-        variant,
-        mod: [{ "data-orientation": orientation }, mod],
-        role: "group",
-        ...others
-      }
-    );
-  });
-  ActionIconGroup.classes = classes4;
-  ActionIconGroup.displayName = "@mantine/core/ActionIconGroup";
-
-  // node_modules/@mantine/core/esm/components/ActionIcon/ActionIconGroupSection/ActionIconGroupSection.mjs
-  var import_jsx_runtime42 = __toESM(require_jsx_runtime(), 1);
-  var import_react51 = __toESM(require_react(), 1);
-  var defaultProps5 = {};
-  var varsResolver4 = createVarsResolver(
-    (theme2, { radius, color, gradient, variant, autoContrast, size }) => {
-      const colors = theme2.variantColorResolver({
-        color: color || theme2.primaryColor,
-        theme: theme2,
-        gradient,
-        variant: variant || "filled",
-        autoContrast
-      });
-      return {
-        groupSection: {
-          "--section-height": getSize(size, "section-height"),
-          "--section-padding-x": getSize(size, "section-padding-x"),
-          "--section-fz": getFontSize(size),
-          "--section-radius": radius === void 0 ? void 0 : getRadius(radius),
-          "--section-bg": color || variant ? colors.background : void 0,
-          "--section-color": colors.color,
-          "--section-bd": color || variant ? colors.border : void 0
-        }
-      };
-    }
-  );
-  var ActionIconGroupSection = factory((_props, ref) => {
-    const props = useProps("ActionIconGroupSection", defaultProps5, _props);
-    const {
-      className,
-      style,
-      classNames,
-      styles,
-      unstyled,
-      vars,
-      variant,
-      gradient,
-      radius,
-      autoContrast,
-      ...others
-    } = useProps("ActionIconGroupSection", defaultProps5, _props);
-    const getStyles = useStyles({
-      name: "ActionIconGroupSection",
-      props,
-      classes: classes4,
-      className,
-      style,
-      classNames,
-      styles,
-      unstyled,
-      vars,
-      varsResolver: varsResolver4,
-      rootSelector: "groupSection"
-    });
-    return /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(Box, { ...getStyles("groupSection"), ref, variant, ...others });
-  });
-  ActionIconGroupSection.classes = classes4;
-  ActionIconGroupSection.displayName = "@mantine/core/ActionIconGroupSection";
-
-  // node_modules/@mantine/core/esm/components/ActionIcon/ActionIcon.mjs
-  var defaultProps6 = {};
-  var varsResolver5 = createVarsResolver(
-    (theme2, { size, radius, variant, gradient, color, autoContrast }) => {
-      const colors = theme2.variantColorResolver({
-        color: color || theme2.primaryColor,
-        theme: theme2,
-        gradient,
-        variant: variant || "filled",
-        autoContrast
-      });
-      return {
-        root: {
-          "--ai-size": getSize(size, "ai-size"),
-          "--ai-radius": radius === void 0 ? void 0 : getRadius(radius),
-          "--ai-bg": color || variant ? colors.background : void 0,
-          "--ai-hover": color || variant ? colors.hover : void 0,
-          "--ai-hover-color": color || variant ? colors.hoverColor : void 0,
-          "--ai-color": colors.color,
-          "--ai-bd": color || variant ? colors.border : void 0
-        }
-      };
-    }
-  );
-  var ActionIcon = polymorphicFactory((_props, ref) => {
-    const props = useProps("ActionIcon", defaultProps6, _props);
-    const {
-      className,
-      unstyled,
-      variant,
-      classNames,
-      styles,
-      style,
-      loading,
-      loaderProps,
-      size,
-      color,
-      radius,
-      __staticSelector,
-      gradient,
-      vars,
-      children,
-      disabled,
-      "data-disabled": dataDisabled,
-      autoContrast,
-      mod,
-      ...others
-    } = props;
-    const getStyles = useStyles({
-      name: ["ActionIcon", __staticSelector],
-      props,
-      className,
-      style,
-      classes: classes4,
-      classNames,
-      styles,
-      unstyled,
-      vars,
-      varsResolver: varsResolver5
-    });
-    return /* @__PURE__ */ (0, import_jsx_runtime43.jsxs)(
-      UnstyledButton,
-      {
-        ...getStyles("root", { active: !disabled && !loading && !dataDisabled }),
-        ...others,
-        unstyled,
-        variant,
-        size,
-        disabled: disabled || loading,
-        ref,
-        mod: [{ loading, disabled: disabled || dataDisabled }, mod],
-        children: [
-          /* @__PURE__ */ (0, import_jsx_runtime43.jsx)(Transition, { mounted: !!loading, transition: "slide-down", duration: 150, children: (transitionStyles) => /* @__PURE__ */ (0, import_jsx_runtime43.jsx)(Box, { component: "span", ...getStyles("loader", { style: transitionStyles }), "aria-hidden": true, children: /* @__PURE__ */ (0, import_jsx_runtime43.jsx)(Loader, { color: "var(--ai-color)", size: "calc(var(--ai-size) * 0.55)", ...loaderProps }) }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime43.jsx)(Box, { component: "span", mod: { loading }, ...getStyles("icon"), children })
-        ]
-      }
-    );
-  });
-  ActionIcon.classes = classes4;
-  ActionIcon.displayName = "@mantine/core/ActionIcon";
-  ActionIcon.Group = ActionIconGroup;
-  ActionIcon.GroupSection = ActionIconGroupSection;
-
   // node_modules/@mantine/core/esm/components/CloseButton/CloseIcon.mjs
-  var import_jsx_runtime44 = __toESM(require_jsx_runtime(), 1);
-  var import_react53 = __toESM(require_react(), 1);
-  var CloseIcon = (0, import_react53.forwardRef)(
-    ({ size = "var(--cb-icon-size, 70%)", style, ...others }, ref) => /* @__PURE__ */ (0, import_jsx_runtime44.jsx)(
+  var import_jsx_runtime54 = __toESM(require_jsx_runtime(), 1);
+  var import_react67 = __toESM(require_react(), 1);
+  var CloseIcon = (0, import_react67.forwardRef)(
+    ({ size = "var(--cb-icon-size, 70%)", style, ...others }, ref) => /* @__PURE__ */ (0, import_jsx_runtime54.jsx)(
       "svg",
       {
         viewBox: "0 0 15 15",
@@ -28165,7 +28928,7 @@
         style: { ...style, width: size, height: size },
         ref,
         ...others,
-        children: /* @__PURE__ */ (0, import_jsx_runtime44.jsx)(
+        children: /* @__PURE__ */ (0, import_jsx_runtime54.jsx)(
           "path",
           {
             d: "M11.7816 4.03157C12.0062 3.80702 12.0062 3.44295 11.7816 3.2184C11.5571 2.99385 11.193 2.99385 10.9685 3.2184L7.50005 6.68682L4.03164 3.2184C3.80708 2.99385 3.44301 2.99385 3.21846 3.2184C2.99391 3.44295 2.99391 3.80702 3.21846 4.03157L6.68688 7.49999L3.21846 10.9684C2.99391 11.193 2.99391 11.557 3.21846 11.7816C3.44301 12.0061 3.80708 12.0061 4.03164 11.7816L7.50005 8.31316L10.9685 11.7816C11.193 12.0061 11.5571 12.0061 11.7816 11.7816C12.0062 11.557 12.0062 11.193 11.7816 10.9684L8.31322 7.49999L11.7816 4.03157Z",
@@ -28180,17 +28943,17 @@
   CloseIcon.displayName = "@mantine/core/CloseIcon";
 
   // node_modules/@mantine/core/esm/components/CloseButton/CloseButton.mjs
-  var import_jsx_runtime45 = __toESM(require_jsx_runtime(), 1);
-  var import_react54 = __toESM(require_react(), 1);
+  var import_jsx_runtime55 = __toESM(require_jsx_runtime(), 1);
+  var import_react68 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/components/CloseButton/CloseButton.module.css.mjs
   var classes5 = { "root": "m_86a44da5", "root--subtle": "m_220c80f2" };
 
   // node_modules/@mantine/core/esm/components/CloseButton/CloseButton.mjs
-  var defaultProps7 = {
+  var defaultProps6 = {
     variant: "subtle"
   };
-  var varsResolver6 = createVarsResolver((_, { size, radius, iconSize }) => ({
+  var varsResolver4 = createVarsResolver((_, { size, radius, iconSize }) => ({
     root: {
       "--cb-size": getSize(size, "cb-size"),
       "--cb-radius": radius === void 0 ? void 0 : getRadius(radius),
@@ -28198,7 +28961,7 @@
     }
   }));
   var CloseButton = polymorphicFactory((_props, ref) => {
-    const props = useProps("CloseButton", defaultProps7, _props);
+    const props = useProps("CloseButton", defaultProps6, _props);
     const {
       iconSize,
       children,
@@ -28227,9 +28990,9 @@
       styles,
       unstyled,
       vars,
-      varsResolver: varsResolver6
+      varsResolver: varsResolver4
     });
-    return /* @__PURE__ */ (0, import_jsx_runtime45.jsxs)(
+    return /* @__PURE__ */ (0, import_jsx_runtime55.jsxs)(
       UnstyledButton,
       {
         ref,
@@ -28240,7 +29003,7 @@
         mod: [{ disabled: disabled || dataDisabled }, mod],
         ...getStyles("root", { variant, active: !disabled && !dataDisabled }),
         children: [
-          icon || /* @__PURE__ */ (0, import_jsx_runtime45.jsx)(CloseIcon, {}),
+          icon || /* @__PURE__ */ (0, import_jsx_runtime55.jsx)(CloseIcon, {}),
           children
         ]
       }
@@ -28250,27 +29013,27 @@
   CloseButton.displayName = "@mantine/core/CloseButton";
 
   // node_modules/@mantine/core/esm/components/Group/Group.mjs
-  var import_jsx_runtime46 = __toESM(require_jsx_runtime(), 1);
-  var import_react56 = __toESM(require_react(), 1);
+  var import_jsx_runtime56 = __toESM(require_jsx_runtime(), 1);
+  var import_react70 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/components/Group/filter-falsy-children/filter-falsy-children.mjs
-  var import_react55 = __toESM(require_react(), 1);
+  var import_react69 = __toESM(require_react(), 1);
   function filterFalsyChildren(children) {
-    return import_react55.Children.toArray(children).filter(Boolean);
+    return import_react69.Children.toArray(children).filter(Boolean);
   }
 
   // node_modules/@mantine/core/esm/components/Group/Group.module.css.mjs
   var classes6 = { "root": "m_4081bf90" };
 
   // node_modules/@mantine/core/esm/components/Group/Group.mjs
-  var defaultProps8 = {
+  var defaultProps7 = {
     preventGrowOverflow: true,
     gap: "md",
     align: "center",
     justify: "flex-start",
     wrap: "wrap"
   };
-  var varsResolver7 = createVarsResolver(
+  var varsResolver5 = createVarsResolver(
     (_, { grow, preventGrowOverflow, gap, align, justify, wrap }, { childWidth }) => ({
       root: {
         "--group-child-width": grow && preventGrowOverflow ? childWidth : void 0,
@@ -28282,7 +29045,7 @@
     })
   );
   var Group = factory((_props, ref) => {
-    const props = useProps("Group", defaultProps8, _props);
+    const props = useProps("Group", defaultProps7, _props);
     const {
       classNames,
       className,
@@ -28318,9 +29081,9 @@
       styles,
       unstyled,
       vars,
-      varsResolver: varsResolver7
+      varsResolver: varsResolver5
     });
-    return /* @__PURE__ */ (0, import_jsx_runtime46.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime56.jsx)(
       Box,
       {
         ...getStyles("root"),
@@ -28336,712 +29099,16 @@
   Group.classes = classes6;
   Group.displayName = "@mantine/core/Group";
 
-  // node_modules/@mantine/core/esm/components/Input/Input.mjs
-  var import_jsx_runtime55 = __toESM(require_jsx_runtime(), 1);
-  var import_react65 = __toESM(require_react(), 1);
-
-  // node_modules/@mantine/core/esm/components/Input/Input.context.mjs
-  var import_react57 = __toESM(require_react(), 1);
-  var import_jsx_runtime47 = __toESM(require_jsx_runtime(), 1);
-  var [InputContext, useInputContext] = createOptionalContext({
-    size: "sm"
-  });
-
-  // node_modules/@mantine/core/esm/components/Input/InputClearButton/InputClearButton.mjs
-  var import_jsx_runtime48 = __toESM(require_jsx_runtime(), 1);
-  var import_react58 = __toESM(require_react(), 1);
-  var defaultProps9 = {};
-  var InputClearButton = factory((_props, ref) => {
-    const props = useProps("InputClearButton", defaultProps9, _props);
-    const { size, variant, vars, classNames, styles, ...others } = props;
-    const ctx = useInputContext();
-    const { resolvedClassNames, resolvedStyles } = useResolvedStylesApi({
-      classNames,
-      styles,
-      props
-    });
-    return /* @__PURE__ */ (0, import_jsx_runtime48.jsx)(
-      CloseButton,
-      {
-        variant: variant || "transparent",
-        ref,
-        size: size || ctx?.size || "sm",
-        classNames: resolvedClassNames,
-        styles: resolvedStyles,
-        __staticSelector: "InputClearButton",
-        ...others
-      }
-    );
-  });
-  InputClearButton.displayName = "@mantine/core/InputClearButton";
-
-  // node_modules/@mantine/core/esm/components/Input/InputDescription/InputDescription.mjs
-  var import_jsx_runtime50 = __toESM(require_jsx_runtime(), 1);
-  var import_react60 = __toESM(require_react(), 1);
-
-  // node_modules/@mantine/core/esm/components/Input/InputWrapper.context.mjs
-  var import_react59 = __toESM(require_react(), 1);
-  var import_jsx_runtime49 = __toESM(require_jsx_runtime(), 1);
-  var [InputWrapperProvider, useInputWrapperContext] = createOptionalContext({
-    offsetBottom: false,
-    offsetTop: false,
-    describedBy: void 0,
-    getStyles: null,
-    inputId: void 0,
-    labelId: void 0
-  });
-
-  // node_modules/@mantine/core/esm/components/Input/Input.module.css.mjs
-  var classes7 = { "wrapper": "m_6c018570", "input": "m_8fb7ebe7", "section": "m_82577fc2", "placeholder": "m_88bacfd0", "root": "m_46b77525", "label": "m_8fdc1311", "required": "m_78a94662", "error": "m_8f816625", "description": "m_fe47ce59" };
-
-  // node_modules/@mantine/core/esm/components/Input/InputDescription/InputDescription.mjs
-  var defaultProps10 = {};
-  var varsResolver8 = createVarsResolver((_, { size }) => ({
-    description: {
-      "--input-description-size": size === void 0 ? void 0 : `calc(${getFontSize(size)} - ${rem(2)})`
-    }
-  }));
-  var InputDescription = factory((_props, ref) => {
-    const props = useProps("InputDescription", defaultProps10, _props);
-    const {
-      classNames,
-      className,
-      style,
-      styles,
-      unstyled,
-      vars,
-      size,
-      __staticSelector,
-      __inheritStyles = true,
-      variant,
-      ...others
-    } = useProps("InputDescription", defaultProps10, props);
-    const ctx = useInputWrapperContext();
-    const _getStyles = useStyles({
-      name: ["InputWrapper", __staticSelector],
-      props,
-      classes: classes7,
-      className,
-      style,
-      classNames,
-      styles,
-      unstyled,
-      rootSelector: "description",
-      vars,
-      varsResolver: varsResolver8
-    });
-    const getStyles = __inheritStyles && ctx?.getStyles || _getStyles;
-    return /* @__PURE__ */ (0, import_jsx_runtime50.jsx)(
-      Box,
-      {
-        component: "p",
-        ref,
-        variant,
-        size,
-        ...getStyles("description", ctx?.getStyles ? { className, style } : void 0),
-        ...others
-      }
-    );
-  });
-  InputDescription.classes = classes7;
-  InputDescription.displayName = "@mantine/core/InputDescription";
-
-  // node_modules/@mantine/core/esm/components/Input/InputError/InputError.mjs
-  var import_jsx_runtime51 = __toESM(require_jsx_runtime(), 1);
-  var import_react61 = __toESM(require_react(), 1);
-  var defaultProps11 = {};
-  var varsResolver9 = createVarsResolver((_, { size }) => ({
-    error: {
-      "--input-error-size": size === void 0 ? void 0 : `calc(${getFontSize(size)} - ${rem(2)})`
-    }
-  }));
-  var InputError = factory((_props, ref) => {
-    const props = useProps("InputError", defaultProps11, _props);
-    const {
-      classNames,
-      className,
-      style,
-      styles,
-      unstyled,
-      vars,
-      size,
-      __staticSelector,
-      __inheritStyles = true,
-      variant,
-      ...others
-    } = props;
-    const _getStyles = useStyles({
-      name: ["InputWrapper", __staticSelector],
-      props,
-      classes: classes7,
-      className,
-      style,
-      classNames,
-      styles,
-      unstyled,
-      rootSelector: "error",
-      vars,
-      varsResolver: varsResolver9
-    });
-    const ctx = useInputWrapperContext();
-    const getStyles = __inheritStyles && ctx?.getStyles || _getStyles;
-    return /* @__PURE__ */ (0, import_jsx_runtime51.jsx)(
-      Box,
-      {
-        component: "p",
-        ref,
-        variant,
-        size,
-        ...getStyles("error", ctx?.getStyles ? { className, style } : void 0),
-        ...others
-      }
-    );
-  });
-  InputError.classes = classes7;
-  InputError.displayName = "@mantine/core/InputError";
-
-  // node_modules/@mantine/core/esm/components/Input/InputLabel/InputLabel.mjs
-  var import_jsx_runtime52 = __toESM(require_jsx_runtime(), 1);
-  var import_react62 = __toESM(require_react(), 1);
-  var defaultProps12 = {
-    labelElement: "label"
-  };
-  var varsResolver10 = createVarsResolver((_, { size }) => ({
-    label: {
-      "--input-label-size": getFontSize(size),
-      "--input-asterisk-color": void 0
-    }
-  }));
-  var InputLabel = factory((_props, ref) => {
-    const props = useProps("InputLabel", defaultProps12, _props);
-    const {
-      classNames,
-      className,
-      style,
-      styles,
-      unstyled,
-      vars,
-      labelElement,
-      size,
-      required,
-      htmlFor,
-      onMouseDown,
-      children,
-      __staticSelector,
-      variant,
-      mod,
-      ...others
-    } = useProps("InputLabel", defaultProps12, props);
-    const _getStyles = useStyles({
-      name: ["InputWrapper", __staticSelector],
-      props,
-      classes: classes7,
-      className,
-      style,
-      classNames,
-      styles,
-      unstyled,
-      rootSelector: "label",
-      vars,
-      varsResolver: varsResolver10
-    });
-    const ctx = useInputWrapperContext();
-    const getStyles = ctx?.getStyles || _getStyles;
-    return /* @__PURE__ */ (0, import_jsx_runtime52.jsxs)(
-      Box,
-      {
-        ...getStyles("label", ctx?.getStyles ? { className, style } : void 0),
-        component: labelElement,
-        variant,
-        size,
-        ref,
-        htmlFor: labelElement === "label" ? htmlFor : void 0,
-        mod: [{ required }, mod],
-        onMouseDown: (event) => {
-          onMouseDown?.(event);
-          if (!event.defaultPrevented && event.detail > 1) {
-            event.preventDefault();
-          }
-        },
-        ...others,
-        children: [
-          children,
-          required && /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { ...getStyles("required"), "aria-hidden": true, children: " *" })
-        ]
-      }
-    );
-  });
-  InputLabel.classes = classes7;
-  InputLabel.displayName = "@mantine/core/InputLabel";
-
-  // node_modules/@mantine/core/esm/components/Input/InputPlaceholder/InputPlaceholder.mjs
-  var import_jsx_runtime53 = __toESM(require_jsx_runtime(), 1);
-  var import_react63 = __toESM(require_react(), 1);
-  var defaultProps13 = {};
-  var InputPlaceholder = factory((_props, ref) => {
-    const props = useProps("InputPlaceholder", defaultProps13, _props);
-    const {
-      classNames,
-      className,
-      style,
-      styles,
-      unstyled,
-      vars,
-      __staticSelector,
-      variant,
-      error,
-      mod,
-      ...others
-    } = useProps("InputPlaceholder", defaultProps13, props);
-    const getStyles = useStyles({
-      name: ["InputPlaceholder", __staticSelector],
-      props,
-      classes: classes7,
-      className,
-      style,
-      classNames,
-      styles,
-      unstyled,
-      rootSelector: "placeholder"
-    });
-    return /* @__PURE__ */ (0, import_jsx_runtime53.jsx)(
-      Box,
-      {
-        ...getStyles("placeholder"),
-        mod: [{ error: !!error }, mod],
-        component: "span",
-        variant,
-        ref,
-        ...others
-      }
-    );
-  });
-  InputPlaceholder.classes = classes7;
-  InputPlaceholder.displayName = "@mantine/core/InputPlaceholder";
-
-  // node_modules/@mantine/core/esm/components/Input/InputWrapper/InputWrapper.mjs
-  var import_jsx_runtime54 = __toESM(require_jsx_runtime(), 1);
-  var import_react64 = __toESM(require_react(), 1);
-
-  // node_modules/@mantine/core/esm/components/Input/InputWrapper/get-input-offsets/get-input-offsets.mjs
-  function getInputOffsets(inputWrapperOrder, { hasDescription, hasError }) {
-    const inputIndex = inputWrapperOrder.findIndex((part) => part === "input");
-    const aboveInput = inputWrapperOrder.slice(0, inputIndex);
-    const belowInput = inputWrapperOrder.slice(inputIndex + 1);
-    const offsetTop = hasDescription && aboveInput.includes("description") || hasError && aboveInput.includes("error");
-    const offsetBottom = hasDescription && belowInput.includes("description") || hasError && belowInput.includes("error");
-    return { offsetBottom, offsetTop };
-  }
-
-  // node_modules/@mantine/core/esm/components/Input/InputWrapper/InputWrapper.mjs
-  var defaultProps14 = {
-    labelElement: "label",
-    inputContainer: (children) => children,
-    inputWrapperOrder: ["label", "description", "input", "error"]
-  };
-  var varsResolver11 = createVarsResolver((_, { size }) => ({
-    label: {
-      "--input-label-size": getFontSize(size),
-      "--input-asterisk-color": void 0
-    },
-    error: {
-      "--input-error-size": size === void 0 ? void 0 : `calc(${getFontSize(size)} - ${rem(2)})`
-    },
-    description: {
-      "--input-description-size": size === void 0 ? void 0 : `calc(${getFontSize(size)} - ${rem(2)})`
-    }
-  }));
-  var InputWrapper = factory((_props, ref) => {
-    const props = useProps("InputWrapper", defaultProps14, _props);
-    const {
-      classNames,
-      className,
-      style,
-      styles,
-      unstyled,
-      vars,
-      size,
-      variant,
-      __staticSelector,
-      inputContainer,
-      inputWrapperOrder,
-      label,
-      error,
-      description,
-      labelProps,
-      descriptionProps,
-      errorProps,
-      labelElement,
-      children,
-      withAsterisk,
-      id,
-      required,
-      __stylesApiProps,
-      mod,
-      ...others
-    } = props;
-    const getStyles = useStyles({
-      name: ["InputWrapper", __staticSelector],
-      props: __stylesApiProps || props,
-      classes: classes7,
-      className,
-      style,
-      classNames,
-      styles,
-      unstyled,
-      vars,
-      varsResolver: varsResolver11
-    });
-    const sharedProps = {
-      size,
-      variant,
-      __staticSelector
-    };
-    const idBase = useId(id);
-    const isRequired = typeof withAsterisk === "boolean" ? withAsterisk : required;
-    const errorId = errorProps?.id || `${idBase}-error`;
-    const descriptionId = descriptionProps?.id || `${idBase}-description`;
-    const inputId = idBase;
-    const hasError = !!error && typeof error !== "boolean";
-    const hasDescription = !!description;
-    const _describedBy = `${hasError ? errorId : ""} ${hasDescription ? descriptionId : ""}`;
-    const describedBy = _describedBy.trim().length > 0 ? _describedBy.trim() : void 0;
-    const labelId = labelProps?.id || `${idBase}-label`;
-    const _label = label && /* @__PURE__ */ (0, import_jsx_runtime54.jsx)(
-      InputLabel,
-      {
-        labelElement,
-        id: labelId,
-        htmlFor: inputId,
-        required: isRequired,
-        ...sharedProps,
-        ...labelProps,
-        children: label
-      },
-      "label"
-    );
-    const _description = hasDescription && /* @__PURE__ */ (0, import_jsx_runtime54.jsx)(
-      InputDescription,
-      {
-        ...descriptionProps,
-        ...sharedProps,
-        size: descriptionProps?.size || sharedProps.size,
-        id: descriptionProps?.id || descriptionId,
-        children: description
-      },
-      "description"
-    );
-    const _input = /* @__PURE__ */ (0, import_jsx_runtime54.jsx)(import_react64.Fragment, { children: inputContainer(children) }, "input");
-    const _error = hasError && /* @__PURE__ */ (0, import_react64.createElement)(
-      InputError,
-      {
-        ...errorProps,
-        ...sharedProps,
-        size: errorProps?.size || sharedProps.size,
-        key: "error",
-        id: errorProps?.id || errorId
-      },
-      error
-    );
-    const content = inputWrapperOrder.map((part) => {
-      switch (part) {
-        case "label":
-          return _label;
-        case "input":
-          return _input;
-        case "description":
-          return _description;
-        case "error":
-          return _error;
-        default:
-          return null;
-      }
-    });
-    return /* @__PURE__ */ (0, import_jsx_runtime54.jsx)(
-      InputWrapperProvider,
-      {
-        value: {
-          getStyles,
-          describedBy,
-          inputId,
-          labelId,
-          ...getInputOffsets(inputWrapperOrder, { hasDescription, hasError })
-        },
-        children: /* @__PURE__ */ (0, import_jsx_runtime54.jsx)(
-          Box,
-          {
-            ref,
-            variant,
-            size,
-            mod: [{ error: !!error }, mod],
-            ...getStyles("root"),
-            ...others,
-            children: content
-          }
-        )
-      }
-    );
-  });
-  InputWrapper.classes = classes7;
-  InputWrapper.displayName = "@mantine/core/InputWrapper";
-
-  // node_modules/@mantine/core/esm/components/Input/Input.mjs
-  var defaultProps15 = {
-    variant: "default",
-    leftSectionPointerEvents: "none",
-    rightSectionPointerEvents: "none",
-    withAria: true,
-    withErrorStyles: true
-  };
-  var varsResolver12 = createVarsResolver((_, props, ctx) => ({
-    wrapper: {
-      "--input-margin-top": ctx.offsetTop ? "calc(var(--mantine-spacing-xs) / 2)" : void 0,
-      "--input-margin-bottom": ctx.offsetBottom ? "calc(var(--mantine-spacing-xs) / 2)" : void 0,
-      "--input-height": getSize(props.size, "input-height"),
-      "--input-fz": getFontSize(props.size),
-      "--input-radius": props.radius === void 0 ? void 0 : getRadius(props.radius),
-      "--input-left-section-width": props.leftSectionWidth !== void 0 ? rem(props.leftSectionWidth) : void 0,
-      "--input-right-section-width": props.rightSectionWidth !== void 0 ? rem(props.rightSectionWidth) : void 0,
-      "--input-padding-y": props.multiline ? getSize(props.size, "input-padding-y") : void 0,
-      "--input-left-section-pointer-events": props.leftSectionPointerEvents,
-      "--input-right-section-pointer-events": props.rightSectionPointerEvents
-    }
-  }));
-  var Input = polymorphicFactory((_props, ref) => {
-    const props = useProps("Input", defaultProps15, _props);
-    const {
-      classNames,
-      className,
-      style,
-      styles,
-      unstyled,
-      required,
-      __staticSelector,
-      __stylesApiProps,
-      size,
-      wrapperProps,
-      error,
-      disabled,
-      leftSection,
-      leftSectionProps,
-      leftSectionWidth,
-      rightSection,
-      rightSectionProps,
-      rightSectionWidth,
-      rightSectionPointerEvents,
-      leftSectionPointerEvents,
-      variant,
-      vars,
-      pointer,
-      multiline,
-      radius,
-      id,
-      withAria,
-      withErrorStyles,
-      mod,
-      inputSize,
-      __clearSection,
-      __clearable,
-      __defaultRightSection,
-      ...others
-    } = props;
-    const { styleProps, rest } = extractStyleProps(others);
-    const ctx = useInputWrapperContext();
-    const stylesCtx = { offsetBottom: ctx?.offsetBottom, offsetTop: ctx?.offsetTop };
-    const getStyles = useStyles({
-      name: ["Input", __staticSelector],
-      props: __stylesApiProps || props,
-      classes: classes7,
-      className,
-      style,
-      classNames,
-      styles,
-      unstyled,
-      stylesCtx,
-      rootSelector: "wrapper",
-      vars,
-      varsResolver: varsResolver12
-    });
-    const ariaAttributes = withAria ? {
-      required,
-      disabled,
-      "aria-invalid": !!error,
-      "aria-describedby": ctx?.describedBy,
-      id: ctx?.inputId || id
-    } : {};
-    const _rightSection = rightSection || __clearable && __clearSection || __defaultRightSection;
-    return /* @__PURE__ */ (0, import_jsx_runtime55.jsx)(InputContext, { value: { size: size || "sm" }, children: /* @__PURE__ */ (0, import_jsx_runtime55.jsxs)(
-      Box,
-      {
-        ...getStyles("wrapper"),
-        ...styleProps,
-        ...wrapperProps,
-        mod: [
-          {
-            error: !!error && withErrorStyles,
-            pointer,
-            disabled,
-            multiline,
-            "data-with-right-section": !!_rightSection,
-            "data-with-left-section": !!leftSection
-          },
-          mod
-        ],
-        variant,
-        size,
-        children: [
-          leftSection && /* @__PURE__ */ (0, import_jsx_runtime55.jsx)(
-            "div",
-            {
-              ...leftSectionProps,
-              "data-position": "left",
-              ...getStyles("section", {
-                className: leftSectionProps?.className,
-                style: leftSectionProps?.style
-              }),
-              children: leftSection
-            }
-          ),
-          /* @__PURE__ */ (0, import_jsx_runtime55.jsx)(
-            Box,
-            {
-              component: "input",
-              ...rest,
-              ...ariaAttributes,
-              ref,
-              required,
-              mod: { disabled, error: !!error && withErrorStyles },
-              variant,
-              __size: inputSize,
-              ...getStyles("input")
-            }
-          ),
-          _rightSection && /* @__PURE__ */ (0, import_jsx_runtime55.jsx)(
-            "div",
-            {
-              ...rightSectionProps,
-              "data-position": "right",
-              ...getStyles("section", {
-                className: rightSectionProps?.className,
-                style: rightSectionProps?.style
-              }),
-              children: _rightSection
-            }
-          )
-        ]
-      }
-    ) });
-  });
-  Input.classes = classes7;
-  Input.Wrapper = InputWrapper;
-  Input.Label = InputLabel;
-  Input.Error = InputError;
-  Input.Description = InputDescription;
-  Input.Placeholder = InputPlaceholder;
-  Input.ClearButton = InputClearButton;
-  Input.displayName = "@mantine/core/Input";
-
-  // node_modules/@mantine/core/esm/components/Input/use-input-props.mjs
-  var import_react66 = __toESM(require_react(), 1);
-  var import_jsx_runtime56 = __toESM(require_jsx_runtime(), 1);
-  function useInputProps(component, defaultProps39, _props) {
-    const props = useProps(component, defaultProps39, _props);
-    const {
-      label,
-      description,
-      error,
-      required,
-      classNames,
-      styles,
-      className,
-      unstyled,
-      __staticSelector,
-      __stylesApiProps,
-      errorProps,
-      labelProps,
-      descriptionProps,
-      wrapperProps: _wrapperProps,
-      id,
-      size,
-      style,
-      inputContainer,
-      inputWrapperOrder,
-      withAsterisk,
-      variant,
-      vars,
-      mod,
-      ...others
-    } = props;
-    const { styleProps, rest } = extractStyleProps(others);
-    const wrapperProps = {
-      label,
-      description,
-      error,
-      required,
-      classNames,
-      className,
-      __staticSelector,
-      __stylesApiProps: __stylesApiProps || props,
-      errorProps,
-      labelProps,
-      descriptionProps,
-      unstyled,
-      styles,
-      size,
-      style,
-      inputContainer,
-      inputWrapperOrder,
-      withAsterisk,
-      variant,
-      id,
-      mod,
-      ..._wrapperProps
-    };
-    return {
-      ...rest,
-      classNames,
-      styles,
-      unstyled,
-      wrapperProps: { ...wrapperProps, ...styleProps },
-      inputProps: {
-        required,
-        classNames,
-        styles,
-        unstyled,
-        size,
-        __staticSelector,
-        __stylesApiProps: __stylesApiProps || props,
-        error,
-        variant,
-        id
-      }
-    };
-  }
-
-  // node_modules/@mantine/core/esm/components/InputBase/InputBase.mjs
-  var import_jsx_runtime57 = __toESM(require_jsx_runtime(), 1);
-  var import_react67 = __toESM(require_react(), 1);
-  var defaultProps16 = {
-    __staticSelector: "InputBase",
-    withAria: true
-  };
-  var InputBase = polymorphicFactory((props, ref) => {
-    const { inputProps, wrapperProps, ...others } = useInputProps("InputBase", defaultProps16, props);
-    return /* @__PURE__ */ (0, import_jsx_runtime57.jsx)(Input.Wrapper, { ...wrapperProps, children: /* @__PURE__ */ (0, import_jsx_runtime57.jsx)(Input, { ...inputProps, ...others, ref }) });
-  });
-  InputBase.classes = { ...Input.classes, ...Input.Wrapper.classes };
-  InputBase.displayName = "@mantine/core/InputBase";
-
   // node_modules/@mantine/core/esm/components/Alert/Alert.mjs
-  var import_jsx_runtime58 = __toESM(require_jsx_runtime(), 1);
-  var import_react68 = __toESM(require_react(), 1);
+  var import_jsx_runtime57 = __toESM(require_jsx_runtime(), 1);
+  var import_react71 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/components/Alert/Alert.module.css.mjs
-  var classes8 = { "root": "m_66836ed3", "wrapper": "m_a5d60502", "body": "m_667c2793", "title": "m_6a03f287", "label": "m_698f4f23", "icon": "m_667f2a6a", "message": "m_7fa78076", "closeButton": "m_87f54839" };
+  var classes7 = { "root": "m_66836ed3", "wrapper": "m_a5d60502", "body": "m_667c2793", "title": "m_6a03f287", "label": "m_698f4f23", "icon": "m_667f2a6a", "message": "m_7fa78076", "closeButton": "m_87f54839" };
 
   // node_modules/@mantine/core/esm/components/Alert/Alert.mjs
-  var defaultProps17 = {};
-  var varsResolver13 = createVarsResolver(
+  var defaultProps8 = {};
+  var varsResolver6 = createVarsResolver(
     (theme2, { radius, color, variant, autoContrast }) => {
       const colors = theme2.variantColorResolver({
         color: color || theme2.primaryColor,
@@ -29060,7 +29127,7 @@
     }
   );
   var Alert = factory((_props, ref) => {
-    const props = useProps("Alert", defaultProps17, _props);
+    const props = useProps("Alert", defaultProps8, _props);
     const {
       classNames,
       className,
@@ -29083,7 +29150,7 @@
     } = props;
     const getStyles = useStyles({
       name: "Alert",
-      classes: classes8,
+      classes: classes7,
       props,
       className,
       style,
@@ -29091,12 +29158,12 @@
       styles,
       unstyled,
       vars,
-      varsResolver: varsResolver13
+      varsResolver: varsResolver6
     });
     const rootId = useId(id);
     const titleId = title && `${rootId}-title` || void 0;
     const bodyId = `${rootId}-body`;
-    return /* @__PURE__ */ (0, import_jsx_runtime58.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime57.jsx)(
       Box,
       {
         id: rootId,
@@ -29107,13 +29174,13 @@
         role: "alert",
         "aria-describedby": bodyId,
         "aria-labelledby": titleId,
-        children: /* @__PURE__ */ (0, import_jsx_runtime58.jsxs)("div", { ...getStyles("wrapper"), children: [
-          icon && /* @__PURE__ */ (0, import_jsx_runtime58.jsx)("div", { ...getStyles("icon"), children: icon }),
-          /* @__PURE__ */ (0, import_jsx_runtime58.jsxs)("div", { ...getStyles("body"), children: [
-            title && /* @__PURE__ */ (0, import_jsx_runtime58.jsx)("div", { ...getStyles("title"), "data-with-close-button": withCloseButton || void 0, children: /* @__PURE__ */ (0, import_jsx_runtime58.jsx)("span", { id: titleId, ...getStyles("label"), children: title }) }),
-            children && /* @__PURE__ */ (0, import_jsx_runtime58.jsx)("div", { id: bodyId, ...getStyles("message"), "data-variant": variant, children })
+        children: /* @__PURE__ */ (0, import_jsx_runtime57.jsxs)("div", { ...getStyles("wrapper"), children: [
+          icon && /* @__PURE__ */ (0, import_jsx_runtime57.jsx)("div", { ...getStyles("icon"), children: icon }),
+          /* @__PURE__ */ (0, import_jsx_runtime57.jsxs)("div", { ...getStyles("body"), children: [
+            title && /* @__PURE__ */ (0, import_jsx_runtime57.jsx)("div", { ...getStyles("title"), "data-with-close-button": withCloseButton || void 0, children: /* @__PURE__ */ (0, import_jsx_runtime57.jsx)("span", { id: titleId, ...getStyles("label"), children: title }) }),
+            children && /* @__PURE__ */ (0, import_jsx_runtime57.jsx)("div", { id: bodyId, ...getStyles("message"), "data-variant": variant, children })
           ] }),
-          withCloseButton && /* @__PURE__ */ (0, import_jsx_runtime58.jsx)(
+          withCloseButton && /* @__PURE__ */ (0, import_jsx_runtime57.jsx)(
             CloseButton,
             {
               ...getStyles("closeButton"),
@@ -29129,15 +29196,15 @@
       }
     );
   });
-  Alert.classes = classes8;
+  Alert.classes = classes7;
   Alert.displayName = "@mantine/core/Alert";
 
   // node_modules/@mantine/core/esm/components/Text/Text.mjs
-  var import_jsx_runtime59 = __toESM(require_jsx_runtime(), 1);
-  var import_react69 = __toESM(require_react(), 1);
+  var import_jsx_runtime58 = __toESM(require_jsx_runtime(), 1);
+  var import_react72 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/components/Text/Text.module.css.mjs
-  var classes9 = { "root": "m_b6d8b162" };
+  var classes8 = { "root": "m_b6d8b162" };
 
   // node_modules/@mantine/core/esm/components/Text/Text.mjs
   function getTextTruncate(truncate) {
@@ -29149,10 +29216,10 @@
     }
     return void 0;
   }
-  var defaultProps18 = {
+  var defaultProps9 = {
     inherit: false
   };
-  var varsResolver14 = createVarsResolver(
+  var varsResolver7 = createVarsResolver(
     (theme2, { variant, lineClamp, gradient, size, color }) => ({
       root: {
         "--text-fz": getFontSize(size),
@@ -29164,7 +29231,7 @@
     })
   );
   var Text = polymorphicFactory((_props, ref) => {
-    const props = useProps("Text", defaultProps18, _props);
+    const props = useProps("Text", defaultProps9, _props);
     const {
       lineClamp,
       truncate,
@@ -29187,16 +29254,16 @@
     const getStyles = useStyles({
       name: ["Text", __staticSelector],
       props,
-      classes: classes9,
+      classes: classes8,
       className,
       style,
       classNames,
       styles,
       unstyled,
       vars,
-      varsResolver: varsResolver14
+      varsResolver: varsResolver7
     });
-    return /* @__PURE__ */ (0, import_jsx_runtime59.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime58.jsx)(
       Box,
       {
         ...getStyles("root", { focusable: true }),
@@ -29217,117 +29284,19 @@
       }
     );
   });
-  Text.classes = classes9;
+  Text.classes = classes8;
   Text.displayName = "@mantine/core/Text";
 
-  // node_modules/@mantine/core/esm/components/InlineInput/InlineInput.mjs
-  var import_jsx_runtime60 = __toESM(require_jsx_runtime(), 1);
-  var import_react70 = __toESM(require_react(), 1);
-
-  // node_modules/@mantine/core/esm/components/InlineInput/InlineInput.module.css.mjs
-  var classes10 = { "root": "m_5f75b09e", "body": "m_5f6e695e", "labelWrapper": "m_d3ea56bb", "label": "m_8ee546b8", "description": "m_328f68c0", "error": "m_8e8a99cc" };
-
-  // node_modules/@mantine/core/esm/components/InlineInput/InlineInput.mjs
-  var InlineInputClasses = classes10;
-  var InlineInput = (0, import_react70.forwardRef)(
-    ({
-      __staticSelector,
-      __stylesApiProps,
-      className,
-      classNames,
-      styles,
-      unstyled,
-      children,
-      label,
-      description,
-      id,
-      disabled,
-      error,
-      size,
-      labelPosition = "left",
-      bodyElement = "div",
-      labelElement = "label",
-      variant,
-      style,
-      vars,
-      mod,
-      ...others
-    }, ref) => {
-      const getStyles = useStyles({
-        name: __staticSelector,
-        props: __stylesApiProps,
-        className,
-        style,
-        classes: classes10,
-        classNames,
-        styles,
-        unstyled
-      });
-      return /* @__PURE__ */ (0, import_jsx_runtime60.jsx)(
-        Box,
-        {
-          ...getStyles("root"),
-          ref,
-          __vars: {
-            "--label-fz": getFontSize(size),
-            "--label-lh": getSize(size, "label-lh")
-          },
-          mod: [{ "label-position": labelPosition }, mod],
-          variant,
-          size,
-          ...others,
-          children: /* @__PURE__ */ (0, import_jsx_runtime60.jsxs)(
-            Box,
-            {
-              component: bodyElement,
-              htmlFor: bodyElement === "label" ? id : void 0,
-              ...getStyles("body"),
-              children: [
-                children,
-                /* @__PURE__ */ (0, import_jsx_runtime60.jsxs)("div", { ...getStyles("labelWrapper"), "data-disabled": disabled || void 0, children: [
-                  label && /* @__PURE__ */ (0, import_jsx_runtime60.jsx)(
-                    Box,
-                    {
-                      component: labelElement,
-                      htmlFor: labelElement === "label" ? id : void 0,
-                      ...getStyles("label"),
-                      "data-disabled": disabled || void 0,
-                      children: label
-                    }
-                  ),
-                  description && /* @__PURE__ */ (0, import_jsx_runtime60.jsx)(Input.Description, { size, __inheritStyles: false, ...getStyles("description"), children: description }),
-                  error && typeof error !== "boolean" && /* @__PURE__ */ (0, import_jsx_runtime60.jsx)(Input.Error, { size, __inheritStyles: false, ...getStyles("error"), children: error })
-                ] })
-              ]
-            }
-          )
-        }
-      );
-    }
-  );
-  InlineInput.displayName = "@mantine/core/InlineInput";
-
-  // node_modules/@mantine/core/esm/components/InputsGroupFieldset/InputsGroupFieldset.mjs
-  var import_jsx_runtime61 = __toESM(require_jsx_runtime(), 1);
-  var import_react71 = __toESM(require_react(), 1);
-  function InputsGroupFieldset({ children, role }) {
-    const ctx = useInputWrapperContext();
-    if (!ctx) {
-      return /* @__PURE__ */ (0, import_jsx_runtime61.jsx)(import_jsx_runtime61.Fragment, { children });
-    }
-    return /* @__PURE__ */ (0, import_jsx_runtime61.jsx)("div", { role, "aria-labelledby": ctx.labelId, "aria-describedby": ctx.describedBy, children });
-  }
-
   // node_modules/@mantine/core/esm/components/Badge/Badge.mjs
-  var import_jsx_runtime62 = __toESM(require_jsx_runtime(), 1);
-  var import_react72 = __toESM(require_react(), 1);
+  var import_jsx_runtime59 = __toESM(require_jsx_runtime(), 1);
+  var import_react73 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/components/Badge/Badge.module.css.mjs
-  var classes11 = { "root": "m_347db0ec", "root--dot": "m_fbd81e3d", "label": "m_5add502a", "section": "m_91fdda9b" };
+  var classes9 = { "root": "m_347db0ec", "root--dot": "m_fbd81e3d", "label": "m_5add502a", "section": "m_91fdda9b" };
 
   // node_modules/@mantine/core/esm/components/Badge/Badge.mjs
-  var defaultProps19 = {};
-  var varsResolver15 = createVarsResolver(
+  var defaultProps10 = {};
+  var varsResolver8 = createVarsResolver(
     (theme2, { radius, color, gradient, variant, size, autoContrast }) => {
       const colors = theme2.variantColorResolver({
         color: color || theme2.primaryColor,
@@ -29351,7 +29320,7 @@
     }
   );
   var Badge = polymorphicFactory((_props, ref) => {
-    const props = useProps("Badge", defaultProps19, _props);
+    const props = useProps("Badge", defaultProps10, _props);
     const {
       classNames,
       className,
@@ -29375,16 +29344,16 @@
     const getStyles = useStyles({
       name: "Badge",
       props,
-      classes: classes11,
+      classes: classes9,
       className,
       style,
       classNames,
       styles,
       unstyled,
       vars,
-      varsResolver: varsResolver15
+      varsResolver: varsResolver8
     });
-    return /* @__PURE__ */ (0, import_jsx_runtime62.jsxs)(
+    return /* @__PURE__ */ (0, import_jsx_runtime59.jsxs)(
       Box,
       {
         variant,
@@ -29401,36 +29370,36 @@
         ref,
         ...others,
         children: [
-          leftSection && /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("span", { ...getStyles("section"), "data-position": "left", children: leftSection }),
-          /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("span", { ...getStyles("label"), children }),
-          rightSection && /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("span", { ...getStyles("section"), "data-position": "right", children: rightSection })
+          leftSection && /* @__PURE__ */ (0, import_jsx_runtime59.jsx)("span", { ...getStyles("section"), "data-position": "left", children: leftSection }),
+          /* @__PURE__ */ (0, import_jsx_runtime59.jsx)("span", { ...getStyles("label"), children }),
+          rightSection && /* @__PURE__ */ (0, import_jsx_runtime59.jsx)("span", { ...getStyles("section"), "data-position": "right", children: rightSection })
         ]
       }
     );
   });
-  Badge.classes = classes11;
+  Badge.classes = classes9;
   Badge.displayName = "@mantine/core/Badge";
 
   // node_modules/@mantine/core/esm/components/Button/Button.mjs
-  var import_jsx_runtime65 = __toESM(require_jsx_runtime(), 1);
-  var import_react75 = __toESM(require_react(), 1);
+  var import_jsx_runtime62 = __toESM(require_jsx_runtime(), 1);
+  var import_react76 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/components/Button/ButtonGroup/ButtonGroup.mjs
-  var import_jsx_runtime63 = __toESM(require_jsx_runtime(), 1);
-  var import_react73 = __toESM(require_react(), 1);
+  var import_jsx_runtime60 = __toESM(require_jsx_runtime(), 1);
+  var import_react74 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/components/Button/Button.module.css.mjs
-  var classes12 = { "root": "m_77c9d27d", "inner": "m_80f1301b", "label": "m_811560b9", "section": "m_a74036a", "loader": "m_a25b86ee", "group": "m_80d6d844", "groupSection": "m_70be2a01" };
+  var classes10 = { "root": "m_77c9d27d", "inner": "m_80f1301b", "label": "m_811560b9", "section": "m_a74036a", "loader": "m_a25b86ee", "group": "m_80d6d844", "groupSection": "m_70be2a01" };
 
   // node_modules/@mantine/core/esm/components/Button/ButtonGroup/ButtonGroup.mjs
-  var defaultProps20 = {
+  var defaultProps11 = {
     orientation: "horizontal"
   };
-  var varsResolver16 = createVarsResolver((_, { borderWidth }) => ({
+  var varsResolver9 = createVarsResolver((_, { borderWidth }) => ({
     group: { "--button-border-width": rem(borderWidth) }
   }));
   var ButtonGroup = factory((_props, ref) => {
-    const props = useProps("ButtonGroup", defaultProps20, _props);
+    const props = useProps("ButtonGroup", defaultProps11, _props);
     const {
       className,
       style,
@@ -29443,21 +29412,21 @@
       variant,
       mod,
       ...others
-    } = useProps("ButtonGroup", defaultProps20, _props);
+    } = useProps("ButtonGroup", defaultProps11, _props);
     const getStyles = useStyles({
       name: "ButtonGroup",
       props,
-      classes: classes12,
+      classes: classes10,
       className,
       style,
       classNames,
       styles,
       unstyled,
       vars,
-      varsResolver: varsResolver16,
+      varsResolver: varsResolver9,
       rootSelector: "group"
     });
-    return /* @__PURE__ */ (0, import_jsx_runtime63.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime60.jsx)(
       Box,
       {
         ...getStyles("group"),
@@ -29469,14 +29438,14 @@
       }
     );
   });
-  ButtonGroup.classes = classes12;
+  ButtonGroup.classes = classes10;
   ButtonGroup.displayName = "@mantine/core/ButtonGroup";
 
   // node_modules/@mantine/core/esm/components/Button/ButtonGroupSection/ButtonGroupSection.mjs
-  var import_jsx_runtime64 = __toESM(require_jsx_runtime(), 1);
-  var import_react74 = __toESM(require_react(), 1);
-  var defaultProps21 = {};
-  var varsResolver17 = createVarsResolver(
+  var import_jsx_runtime61 = __toESM(require_jsx_runtime(), 1);
+  var import_react75 = __toESM(require_react(), 1);
+  var defaultProps12 = {};
+  var varsResolver10 = createVarsResolver(
     (theme2, { radius, color, gradient, variant, autoContrast, size }) => {
       const colors = theme2.variantColorResolver({
         color: color || theme2.primaryColor,
@@ -29499,7 +29468,7 @@
     }
   );
   var ButtonGroupSection = factory((_props, ref) => {
-    const props = useProps("ButtonGroupSection", defaultProps21, _props);
+    const props = useProps("ButtonGroupSection", defaultProps12, _props);
     const {
       className,
       style,
@@ -29512,23 +29481,23 @@
       radius,
       autoContrast,
       ...others
-    } = useProps("ButtonGroupSection", defaultProps21, _props);
+    } = useProps("ButtonGroupSection", defaultProps12, _props);
     const getStyles = useStyles({
       name: "ButtonGroupSection",
       props,
-      classes: classes12,
+      classes: classes10,
       className,
       style,
       classNames,
       styles,
       unstyled,
       vars,
-      varsResolver: varsResolver17,
+      varsResolver: varsResolver10,
       rootSelector: "groupSection"
     });
-    return /* @__PURE__ */ (0, import_jsx_runtime64.jsx)(Box, { ...getStyles("groupSection"), ref, variant, ...others });
+    return /* @__PURE__ */ (0, import_jsx_runtime61.jsx)(Box, { ...getStyles("groupSection"), ref, variant, ...others });
   });
-  ButtonGroupSection.classes = classes12;
+  ButtonGroupSection.classes = classes10;
   ButtonGroupSection.displayName = "@mantine/core/ButtonGroupSection";
 
   // node_modules/@mantine/core/esm/components/Button/Button.mjs
@@ -29538,8 +29507,8 @@
     common: { transformOrigin: "center" },
     transitionProperty: "transform, opacity"
   };
-  var defaultProps22 = {};
-  var varsResolver18 = createVarsResolver(
+  var defaultProps13 = {};
+  var varsResolver11 = createVarsResolver(
     (theme2, { radius, color, gradient, variant, size, justify, autoContrast }) => {
       const colors = theme2.variantColorResolver({
         color: color || theme2.primaryColor,
@@ -29565,7 +29534,7 @@
     }
   );
   var Button = polymorphicFactory((_props, ref) => {
-    const props = useProps("Button", defaultProps22, _props);
+    const props = useProps("Button", defaultProps13, _props);
     const {
       style,
       vars,
@@ -29592,18 +29561,18 @@
     const getStyles = useStyles({
       name: "Button",
       props,
-      classes: classes12,
+      classes: classes10,
       className,
       style,
       classNames,
       styles,
       unstyled,
       vars,
-      varsResolver: varsResolver18
+      varsResolver: varsResolver11
     });
     const hasLeftSection = !!leftSection;
     const hasRightSection = !!rightSection;
-    return /* @__PURE__ */ (0, import_jsx_runtime65.jsxs)(
+    return /* @__PURE__ */ (0, import_jsx_runtime62.jsxs)(
       UnstyledButton,
       {
         ref,
@@ -29623,7 +29592,7 @@
         ],
         ...others,
         children: [
-          /* @__PURE__ */ (0, import_jsx_runtime65.jsx)(Transition, { mounted: !!loading, transition: loaderTransition, duration: 150, children: (transitionStyles) => /* @__PURE__ */ (0, import_jsx_runtime65.jsx)(Box, { component: "span", ...getStyles("loader", { style: transitionStyles }), "aria-hidden": true, children: /* @__PURE__ */ (0, import_jsx_runtime65.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime62.jsx)(Transition, { mounted: !!loading, transition: loaderTransition, duration: 150, children: (transitionStyles) => /* @__PURE__ */ (0, import_jsx_runtime62.jsx)(Box, { component: "span", ...getStyles("loader", { style: transitionStyles }), "aria-hidden": true, children: /* @__PURE__ */ (0, import_jsx_runtime62.jsx)(
             Loader,
             {
               color: "var(--button-color)",
@@ -29631,45 +29600,45 @@
               ...loaderProps
             }
           ) }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime65.jsxs)("span", { ...getStyles("inner"), children: [
-            leftSection && /* @__PURE__ */ (0, import_jsx_runtime65.jsx)(Box, { component: "span", ...getStyles("section"), mod: { position: "left" }, children: leftSection }),
-            /* @__PURE__ */ (0, import_jsx_runtime65.jsx)(Box, { component: "span", mod: { loading }, ...getStyles("label"), children }),
-            rightSection && /* @__PURE__ */ (0, import_jsx_runtime65.jsx)(Box, { component: "span", ...getStyles("section"), mod: { position: "right" }, children: rightSection })
+          /* @__PURE__ */ (0, import_jsx_runtime62.jsxs)("span", { ...getStyles("inner"), children: [
+            leftSection && /* @__PURE__ */ (0, import_jsx_runtime62.jsx)(Box, { component: "span", ...getStyles("section"), mod: { position: "left" }, children: leftSection }),
+            /* @__PURE__ */ (0, import_jsx_runtime62.jsx)(Box, { component: "span", mod: { loading }, ...getStyles("label"), children }),
+            rightSection && /* @__PURE__ */ (0, import_jsx_runtime62.jsx)(Box, { component: "span", ...getStyles("section"), mod: { position: "right" }, children: rightSection })
           ] })
         ]
       }
     );
   });
-  Button.classes = classes12;
+  Button.classes = classes10;
   Button.displayName = "@mantine/core/Button";
   Button.Group = ButtonGroup;
   Button.GroupSection = ButtonGroupSection;
 
   // node_modules/@mantine/core/esm/components/Card/Card.mjs
-  var import_jsx_runtime68 = __toESM(require_jsx_runtime(), 1);
-  var import_react78 = __toESM(require_react(), 1);
+  var import_jsx_runtime65 = __toESM(require_jsx_runtime(), 1);
+  var import_react79 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/components/Card/Card.context.mjs
-  var import_react76 = __toESM(require_react(), 1);
-  var import_jsx_runtime66 = __toESM(require_jsx_runtime(), 1);
+  var import_react77 = __toESM(require_react(), 1);
+  var import_jsx_runtime63 = __toESM(require_jsx_runtime(), 1);
   var [CardProvider, useCardContext] = createSafeContext(
     "Card component was not found in tree"
   );
 
   // node_modules/@mantine/core/esm/components/Card/CardSection/CardSection.mjs
-  var import_jsx_runtime67 = __toESM(require_jsx_runtime(), 1);
-  var import_react77 = __toESM(require_react(), 1);
+  var import_jsx_runtime64 = __toESM(require_jsx_runtime(), 1);
+  var import_react78 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/components/Card/Card.module.css.mjs
-  var classes13 = { "root": "m_e615b15f", "section": "m_599a2148" };
+  var classes11 = { "root": "m_e615b15f", "section": "m_599a2148" };
 
   // node_modules/@mantine/core/esm/components/Card/CardSection/CardSection.mjs
-  var defaultProps23 = {};
+  var defaultProps14 = {};
   var CardSection = polymorphicFactory((_props, ref) => {
-    const props = useProps("CardSection", defaultProps23, _props);
+    const props = useProps("CardSection", defaultProps14, _props);
     const { classNames, className, style, styles, vars, withBorder, inheritPadding, mod, ...others } = props;
     const ctx = useCardContext();
-    return /* @__PURE__ */ (0, import_jsx_runtime67.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime64.jsx)(
       Box,
       {
         ref,
@@ -29679,63 +29648,63 @@
       }
     );
   });
-  CardSection.classes = classes13;
+  CardSection.classes = classes11;
   CardSection.displayName = "@mantine/core/CardSection";
 
   // node_modules/@mantine/core/esm/components/Card/Card.mjs
-  var defaultProps24 = {};
-  var varsResolver19 = createVarsResolver((_, { padding }) => ({
+  var defaultProps15 = {};
+  var varsResolver12 = createVarsResolver((_, { padding }) => ({
     root: {
       "--card-padding": getSpacing(padding)
     }
   }));
   var Card = polymorphicFactory((_props, ref) => {
-    const props = useProps("Card", defaultProps24, _props);
+    const props = useProps("Card", defaultProps15, _props);
     const { classNames, className, style, styles, unstyled, vars, children, padding, ...others } = props;
     const getStyles = useStyles({
       name: "Card",
       props,
-      classes: classes13,
+      classes: classes11,
       className,
       style,
       classNames,
       styles,
       unstyled,
       vars,
-      varsResolver: varsResolver19
+      varsResolver: varsResolver12
     });
-    const _children = import_react78.Children.toArray(children);
+    const _children = import_react79.Children.toArray(children);
     const content = _children.map((child, index) => {
       if (typeof child === "object" && child && "type" in child && child.type === CardSection) {
-        return (0, import_react78.cloneElement)(child, {
+        return (0, import_react79.cloneElement)(child, {
           "data-first-section": index === 0 || void 0,
           "data-last-section": index === _children.length - 1 || void 0
         });
       }
       return child;
     });
-    return /* @__PURE__ */ (0, import_jsx_runtime68.jsx)(CardProvider, { value: { getStyles }, children: /* @__PURE__ */ (0, import_jsx_runtime68.jsx)(Paper, { ref, unstyled, ...getStyles("root"), ...others, children: content }) });
+    return /* @__PURE__ */ (0, import_jsx_runtime65.jsx)(CardProvider, { value: { getStyles }, children: /* @__PURE__ */ (0, import_jsx_runtime65.jsx)(Paper, { ref, unstyled, ...getStyles("root"), ...others, children: content }) });
   });
-  Card.classes = classes13;
+  Card.classes = classes11;
   Card.displayName = "@mantine/core/Card";
   Card.Section = CardSection;
 
   // node_modules/@mantine/core/esm/components/Center/Center.mjs
-  var import_jsx_runtime69 = __toESM(require_jsx_runtime(), 1);
-  var import_react79 = __toESM(require_react(), 1);
+  var import_jsx_runtime66 = __toESM(require_jsx_runtime(), 1);
+  var import_react80 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/components/Center/Center.module.css.mjs
-  var classes14 = { "root": "m_4451eb3a" };
+  var classes12 = { "root": "m_4451eb3a" };
 
   // node_modules/@mantine/core/esm/components/Center/Center.mjs
-  var defaultProps25 = {};
+  var defaultProps16 = {};
   var Center = polymorphicFactory((_props, ref) => {
-    const props = useProps("Center", defaultProps25, _props);
+    const props = useProps("Center", defaultProps16, _props);
     const { classNames, className, style, styles, unstyled, vars, inline, mod, ...others } = props;
     const getStyles = useStyles({
       name: "Center",
       props,
-      classes: classes14,
+      classes: classes12,
       className,
       style,
       classNames,
@@ -29743,31 +29712,31 @@
       unstyled,
       vars
     });
-    return /* @__PURE__ */ (0, import_jsx_runtime69.jsx)(Box, { ref, mod: [{ inline }, mod], ...getStyles("root"), ...others });
+    return /* @__PURE__ */ (0, import_jsx_runtime66.jsx)(Box, { ref, mod: [{ inline }, mod], ...getStyles("root"), ...others });
   });
-  Center.classes = classes14;
+  Center.classes = classes12;
   Center.displayName = "@mantine/core/Center";
 
   // node_modules/@mantine/core/esm/components/Container/Container.mjs
-  var import_jsx_runtime70 = __toESM(require_jsx_runtime(), 1);
-  var import_react80 = __toESM(require_react(), 1);
+  var import_jsx_runtime67 = __toESM(require_jsx_runtime(), 1);
+  var import_react81 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/components/Container/Container.module.css.mjs
-  var classes15 = { "root": "m_7485cace" };
+  var classes13 = { "root": "m_7485cace" };
 
   // node_modules/@mantine/core/esm/components/Container/Container.mjs
-  var defaultProps26 = {};
-  var varsResolver20 = createVarsResolver((_, { size, fluid }) => ({
+  var defaultProps17 = {};
+  var varsResolver13 = createVarsResolver((_, { size, fluid }) => ({
     root: {
       "--container-size": fluid ? void 0 : getSize(size, "container-size")
     }
   }));
   var Container = factory((_props, ref) => {
-    const props = useProps("Container", defaultProps26, _props);
+    const props = useProps("Container", defaultProps17, _props);
     const { classNames, className, style, styles, unstyled, vars, fluid, mod, ...others } = props;
     const getStyles = useStyles({
       name: "Container",
-      classes: classes15,
+      classes: classes13,
       props,
       className,
       style,
@@ -29775,1881 +29744,119 @@
       styles,
       unstyled,
       vars,
-      varsResolver: varsResolver20
+      varsResolver: varsResolver13
     });
-    return /* @__PURE__ */ (0, import_jsx_runtime70.jsx)(Box, { ref, mod: [{ fluid }, mod], ...getStyles("root"), ...others });
+    return /* @__PURE__ */ (0, import_jsx_runtime67.jsx)(Box, { ref, mod: [{ fluid }, mod], ...getStyles("root"), ...others });
   });
-  Container.classes = classes15;
+  Container.classes = classes13;
   Container.displayName = "@mantine/core/Container";
 
-  // node_modules/react-number-format/dist/react-number-format.es.js
-  var import_react81 = __toESM(require_react());
-  function __rest(s, e) {
-    var t = {};
-    for (var p in s) {
-      if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0) {
-        t[p] = s[p];
-      }
-    }
-    if (s != null && typeof Object.getOwnPropertySymbols === "function") {
-      for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-        if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i])) {
-          t[p[i]] = s[p[i]];
-        }
-      }
-    }
-    return t;
-  }
-  var SourceType;
-  (function(SourceType2) {
-    SourceType2["event"] = "event";
-    SourceType2["props"] = "prop";
-  })(SourceType || (SourceType = {}));
-  function noop2() {
-  }
-  function memoizeOnce(cb) {
-    var lastArgs;
-    var lastValue = void 0;
-    return function() {
-      var args = [], len = arguments.length;
-      while (len--) args[len] = arguments[len];
-      if (lastArgs && args.length === lastArgs.length && args.every(function(value, index) {
-        return value === lastArgs[index];
-      })) {
-        return lastValue;
-      }
-      lastArgs = args;
-      lastValue = cb.apply(void 0, args);
-      return lastValue;
-    };
-  }
-  function charIsNumber(char) {
-    return !!(char || "").match(/\d/);
-  }
-  function isNil(val) {
-    return val === null || val === void 0;
-  }
-  function isNanValue(val) {
-    return typeof val === "number" && isNaN(val);
-  }
-  function isNotValidValue(val) {
-    return isNil(val) || isNanValue(val) || typeof val === "number" && !isFinite(val);
-  }
-  function escapeRegExp(str) {
-    return str.replace(/[-[\]/{}()*+?.\\^$|]/g, "\\$&");
-  }
-  function getThousandsGroupRegex(thousandsGroupStyle) {
-    switch (thousandsGroupStyle) {
-      case "lakh":
-        return /(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/g;
-      case "wan":
-        return /(\d)(?=(\d{4})+(?!\d))/g;
-      case "thousand":
-      default:
-        return /(\d)(?=(\d{3})+(?!\d))/g;
-    }
-  }
-  function applyThousandSeparator(str, thousandSeparator, thousandsGroupStyle) {
-    var thousandsGroupRegex = getThousandsGroupRegex(thousandsGroupStyle);
-    var index = str.search(/[1-9]/);
-    index = index === -1 ? str.length : index;
-    return str.substring(0, index) + str.substring(index, str.length).replace(thousandsGroupRegex, "$1" + thousandSeparator);
-  }
-  function usePersistentCallback(cb) {
-    var callbackRef = (0, import_react81.useRef)(cb);
-    callbackRef.current = cb;
-    var persistentCbRef = (0, import_react81.useRef)(function() {
-      var args = [], len = arguments.length;
-      while (len--) args[len] = arguments[len];
-      return callbackRef.current.apply(callbackRef, args);
-    });
-    return persistentCbRef.current;
-  }
-  function splitDecimal(numStr, allowNegative) {
-    if (allowNegative === void 0) allowNegative = true;
-    var hasNegation = numStr[0] === "-";
-    var addNegation = hasNegation && allowNegative;
-    numStr = numStr.replace("-", "");
-    var parts = numStr.split(".");
-    var beforeDecimal = parts[0];
-    var afterDecimal = parts[1] || "";
-    return {
-      beforeDecimal,
-      afterDecimal,
-      hasNegation,
-      addNegation
-    };
-  }
-  function fixLeadingZero(numStr) {
-    if (!numStr) {
-      return numStr;
-    }
-    var isNegative = numStr[0] === "-";
-    if (isNegative) {
-      numStr = numStr.substring(1, numStr.length);
-    }
-    var parts = numStr.split(".");
-    var beforeDecimal = parts[0].replace(/^0+/, "") || "0";
-    var afterDecimal = parts[1] || "";
-    return (isNegative ? "-" : "") + beforeDecimal + (afterDecimal ? "." + afterDecimal : "");
-  }
-  function limitToScale(numStr, scale, fixedDecimalScale) {
-    var str = "";
-    var filler = fixedDecimalScale ? "0" : "";
-    for (var i = 0; i <= scale - 1; i++) {
-      str += numStr[i] || filler;
-    }
-    return str;
-  }
-  function repeat(str, count) {
-    return Array(count + 1).join(str);
-  }
-  function toNumericString(num) {
-    var _num = num + "";
-    var sign = _num[0] === "-" ? "-" : "";
-    if (sign) {
-      _num = _num.substring(1);
-    }
-    var ref = _num.split(/[eE]/g);
-    var coefficient = ref[0];
-    var exponent = ref[1];
-    exponent = Number(exponent);
-    if (!exponent) {
-      return sign + coefficient;
-    }
-    coefficient = coefficient.replace(".", "");
-    var decimalIndex = 1 + exponent;
-    var coffiecientLn = coefficient.length;
-    if (decimalIndex < 0) {
-      coefficient = "0." + repeat("0", Math.abs(decimalIndex)) + coefficient;
-    } else if (decimalIndex >= coffiecientLn) {
-      coefficient = coefficient + repeat("0", decimalIndex - coffiecientLn);
-    } else {
-      coefficient = (coefficient.substring(0, decimalIndex) || "0") + "." + coefficient.substring(decimalIndex);
-    }
-    return sign + coefficient;
-  }
-  function roundToPrecision(numStr, scale, fixedDecimalScale) {
-    if (["", "-"].indexOf(numStr) !== -1) {
-      return numStr;
-    }
-    var shouldHaveDecimalSeparator = (numStr.indexOf(".") !== -1 || fixedDecimalScale) && scale;
-    var ref = splitDecimal(numStr);
-    var beforeDecimal = ref.beforeDecimal;
-    var afterDecimal = ref.afterDecimal;
-    var hasNegation = ref.hasNegation;
-    var floatValue = parseFloat("0." + (afterDecimal || "0"));
-    var floatValueStr = afterDecimal.length <= scale ? "0." + afterDecimal : floatValue.toFixed(scale);
-    var roundedDecimalParts = floatValueStr.split(".");
-    var intPart = beforeDecimal;
-    if (beforeDecimal && Number(roundedDecimalParts[0])) {
-      intPart = beforeDecimal.split("").reverse().reduce(function(roundedStr, current, idx) {
-        if (roundedStr.length > idx) {
-          return (Number(roundedStr[0]) + Number(current)).toString() + roundedStr.substring(1, roundedStr.length);
-        }
-        return current + roundedStr;
-      }, roundedDecimalParts[0]);
-    }
-    var decimalPart = limitToScale(roundedDecimalParts[1] || "", scale, fixedDecimalScale);
-    var negation = hasNegation ? "-" : "";
-    var decimalSeparator = shouldHaveDecimalSeparator ? "." : "";
-    return "" + negation + intPart + decimalSeparator + decimalPart;
-  }
-  function setCaretPosition(el, caretPos) {
-    el.value = el.value;
-    if (el !== null) {
-      if (el.createTextRange) {
-        var range = el.createTextRange();
-        range.move("character", caretPos);
-        range.select();
-        return true;
-      }
-      if (el.selectionStart || el.selectionStart === 0) {
-        el.focus();
-        el.setSelectionRange(caretPos, caretPos);
-        return true;
-      }
-      el.focus();
-      return false;
-    }
-  }
-  var findChangeRange = memoizeOnce(function(prevValue, newValue) {
-    var i = 0, j = 0;
-    var prevLength = prevValue.length;
-    var newLength = newValue.length;
-    while (prevValue[i] === newValue[i] && i < prevLength) {
-      i++;
-    }
-    while (prevValue[prevLength - 1 - j] === newValue[newLength - 1 - j] && newLength - j > i && prevLength - j > i) {
-      j++;
-    }
-    return {
-      from: { start: i, end: prevLength - j },
-      to: { start: i, end: newLength - j }
-    };
-  });
-  var findChangedRangeFromCaretPositions = function(lastCaretPositions, currentCaretPosition) {
-    var startPosition = Math.min(lastCaretPositions.selectionStart, currentCaretPosition);
-    return {
-      from: { start: startPosition, end: lastCaretPositions.selectionEnd },
-      to: { start: startPosition, end: currentCaretPosition }
-    };
-  };
-  function clamp2(num, min, max) {
-    return Math.min(Math.max(num, min), max);
-  }
-  function geInputCaretPosition(el) {
-    return Math.max(el.selectionStart, el.selectionEnd);
-  }
-  function addInputMode() {
-    return typeof navigator !== "undefined" && !(navigator.platform && /iPhone|iPod/.test(navigator.platform));
-  }
-  function getDefaultChangeMeta(value) {
-    return {
-      from: {
-        start: 0,
-        end: 0
-      },
-      to: {
-        start: 0,
-        end: value.length
-      },
-      lastValue: ""
-    };
-  }
-  function defaultIsCharacterSame(ref) {
-    var currentValue = ref.currentValue;
-    var formattedValue = ref.formattedValue;
-    var currentValueIndex = ref.currentValueIndex;
-    var formattedValueIndex = ref.formattedValueIndex;
-    return currentValue[currentValueIndex] === formattedValue[formattedValueIndex];
-  }
-  function getCaretPosition(newFormattedValue, lastFormattedValue, curValue, curCaretPos, boundary, isValidInputCharacter, isCharacterSame) {
-    if (isCharacterSame === void 0) isCharacterSame = defaultIsCharacterSame;
-    var firstAllowedPosition = boundary.findIndex(function(b) {
-      return b;
-    });
-    var prefixFormat = newFormattedValue.slice(0, firstAllowedPosition);
-    if (!lastFormattedValue && !curValue.startsWith(prefixFormat)) {
-      lastFormattedValue = prefixFormat;
-      curValue = prefixFormat + curValue;
-      curCaretPos = curCaretPos + prefixFormat.length;
-    }
-    var curValLn = curValue.length;
-    var formattedValueLn = newFormattedValue.length;
-    var addedIndexMap = {};
-    var indexMap = new Array(curValLn);
-    for (var i = 0; i < curValLn; i++) {
-      indexMap[i] = -1;
-      for (var j = 0, jLn = formattedValueLn; j < jLn; j++) {
-        var isCharSame = isCharacterSame({
-          currentValue: curValue,
-          lastValue: lastFormattedValue,
-          formattedValue: newFormattedValue,
-          currentValueIndex: i,
-          formattedValueIndex: j
-        });
-        if (isCharSame && addedIndexMap[j] !== true) {
-          indexMap[i] = j;
-          addedIndexMap[j] = true;
-          break;
-        }
-      }
-    }
-    var pos = curCaretPos;
-    while (pos < curValLn && (indexMap[pos] === -1 || !isValidInputCharacter(curValue[pos]))) {
-      pos++;
-    }
-    var endIndex = pos === curValLn || indexMap[pos] === -1 ? formattedValueLn : indexMap[pos];
-    pos = curCaretPos - 1;
-    while (pos > 0 && indexMap[pos] === -1) {
-      pos--;
-    }
-    var startIndex = pos === -1 || indexMap[pos] === -1 ? 0 : indexMap[pos] + 1;
-    if (startIndex > endIndex) {
-      return endIndex;
-    }
-    return curCaretPos - startIndex < endIndex - curCaretPos ? startIndex : endIndex;
-  }
-  function getCaretPosInBoundary(value, caretPos, boundary, direction) {
-    var valLn = value.length;
-    caretPos = clamp2(caretPos, 0, valLn);
-    if (direction === "left") {
-      while (caretPos >= 0 && !boundary[caretPos]) {
-        caretPos--;
-      }
-      if (caretPos === -1) {
-        caretPos = boundary.indexOf(true);
-      }
-    } else {
-      while (caretPos <= valLn && !boundary[caretPos]) {
-        caretPos++;
-      }
-      if (caretPos > valLn) {
-        caretPos = boundary.lastIndexOf(true);
-      }
-    }
-    if (caretPos === -1) {
-      caretPos = valLn;
-    }
-    return caretPos;
-  }
-  function caretUnknownFormatBoundary(formattedValue) {
-    var boundaryAry = Array.from({ length: formattedValue.length + 1 }).map(function() {
-      return true;
-    });
-    for (var i = 0, ln = boundaryAry.length; i < ln; i++) {
-      boundaryAry[i] = Boolean(charIsNumber(formattedValue[i]) || charIsNumber(formattedValue[i - 1]));
-    }
-    return boundaryAry;
-  }
-  function useInternalValues(value, defaultValue, valueIsNumericString, format2, removeFormatting2, onValueChange) {
-    if (onValueChange === void 0) onValueChange = noop2;
-    var getValues = usePersistentCallback(function(value2, valueIsNumericString2) {
-      var formattedValue, numAsString;
-      if (isNotValidValue(value2)) {
-        numAsString = "";
-        formattedValue = "";
-      } else if (typeof value2 === "number" || valueIsNumericString2) {
-        numAsString = typeof value2 === "number" ? toNumericString(value2) : value2;
-        formattedValue = format2(numAsString);
-      } else {
-        numAsString = removeFormatting2(value2, void 0);
-        formattedValue = format2(numAsString);
-      }
-      return { formattedValue, numAsString };
-    });
-    var ref = (0, import_react81.useState)(function() {
-      return getValues(isNil(value) ? defaultValue : value, valueIsNumericString);
-    });
-    var values2 = ref[0];
-    var setValues = ref[1];
-    var _onValueChange = function(newValues2, sourceInfo) {
-      if (newValues2.formattedValue !== values2.formattedValue) {
-        setValues({
-          formattedValue: newValues2.formattedValue,
-          numAsString: newValues2.value
-        });
-      }
-      onValueChange(newValues2, sourceInfo);
-    };
-    var _value = value;
-    var _valueIsNumericString = valueIsNumericString;
-    if (isNil(value)) {
-      _value = values2.numAsString;
-      _valueIsNumericString = true;
-    }
-    var newValues = getValues(_value, _valueIsNumericString);
-    (0, import_react81.useMemo)(function() {
-      setValues(newValues);
-    }, [newValues.formattedValue]);
-    return [values2, _onValueChange];
-  }
-  function defaultRemoveFormatting(value) {
-    return value.replace(/[^0-9]/g, "");
-  }
-  function defaultFormat(value) {
-    return value;
-  }
-  function NumberFormatBase(props) {
-    var type = props.type;
-    if (type === void 0) type = "text";
-    var displayType = props.displayType;
-    if (displayType === void 0) displayType = "input";
-    var customInput = props.customInput;
-    var renderText = props.renderText;
-    var getInputRef = props.getInputRef;
-    var format2 = props.format;
-    if (format2 === void 0) format2 = defaultFormat;
-    var removeFormatting2 = props.removeFormatting;
-    if (removeFormatting2 === void 0) removeFormatting2 = defaultRemoveFormatting;
-    var defaultValue = props.defaultValue;
-    var valueIsNumericString = props.valueIsNumericString;
-    var onValueChange = props.onValueChange;
-    var isAllowed = props.isAllowed;
-    var onChange = props.onChange;
-    if (onChange === void 0) onChange = noop2;
-    var onKeyDown = props.onKeyDown;
-    if (onKeyDown === void 0) onKeyDown = noop2;
-    var onMouseUp = props.onMouseUp;
-    if (onMouseUp === void 0) onMouseUp = noop2;
-    var onFocus = props.onFocus;
-    if (onFocus === void 0) onFocus = noop2;
-    var onBlur = props.onBlur;
-    if (onBlur === void 0) onBlur = noop2;
-    var propValue = props.value;
-    var getCaretBoundary2 = props.getCaretBoundary;
-    if (getCaretBoundary2 === void 0) getCaretBoundary2 = caretUnknownFormatBoundary;
-    var isValidInputCharacter = props.isValidInputCharacter;
-    if (isValidInputCharacter === void 0) isValidInputCharacter = charIsNumber;
-    var isCharacterSame = props.isCharacterSame;
-    var otherProps = __rest(props, ["type", "displayType", "customInput", "renderText", "getInputRef", "format", "removeFormatting", "defaultValue", "valueIsNumericString", "onValueChange", "isAllowed", "onChange", "onKeyDown", "onMouseUp", "onFocus", "onBlur", "value", "getCaretBoundary", "isValidInputCharacter", "isCharacterSame"]);
-    var ref = useInternalValues(propValue, defaultValue, Boolean(valueIsNumericString), format2, removeFormatting2, onValueChange);
-    var ref_0 = ref[0];
-    var formattedValue = ref_0.formattedValue;
-    var numAsString = ref_0.numAsString;
-    var onFormattedValueChange = ref[1];
-    var caretPositionBeforeChange = (0, import_react81.useRef)();
-    var lastUpdatedValue = (0, import_react81.useRef)({ formattedValue, numAsString });
-    var _onValueChange = function(values2, source) {
-      lastUpdatedValue.current = { formattedValue: values2.formattedValue, numAsString: values2.value };
-      onFormattedValueChange(values2, source);
-    };
-    var ref$1 = (0, import_react81.useState)(false);
-    var mounted = ref$1[0];
-    var setMounted = ref$1[1];
-    var focusedElm = (0, import_react81.useRef)(null);
-    var timeout = (0, import_react81.useRef)({
-      setCaretTimeout: null,
-      focusTimeout: null
-    });
-    (0, import_react81.useEffect)(function() {
-      setMounted(true);
-      return function() {
-        clearTimeout(timeout.current.setCaretTimeout);
-        clearTimeout(timeout.current.focusTimeout);
-      };
-    }, []);
-    var _format = format2;
-    var getValueObject = function(formattedValue2, numAsString2) {
-      var floatValue = parseFloat(numAsString2);
-      return {
-        formattedValue: formattedValue2,
-        value: numAsString2,
-        floatValue: isNaN(floatValue) ? void 0 : floatValue
-      };
-    };
-    var setPatchedCaretPosition = function(el, caretPos, currentValue) {
-      if (el.selectionStart === 0 && el.selectionEnd === el.value.length) {
-        return;
-      }
-      setCaretPosition(el, caretPos);
-      timeout.current.setCaretTimeout = setTimeout(function() {
-        if (el.value === currentValue && el.selectionStart !== caretPos) {
-          setCaretPosition(el, caretPos);
-        }
-      }, 0);
-    };
-    var correctCaretPosition = function(value, caretPos, direction) {
-      return getCaretPosInBoundary(value, caretPos, getCaretBoundary2(value), direction);
-    };
-    var getNewCaretPosition = function(inputValue, newFormattedValue, caretPos) {
-      var caretBoundary = getCaretBoundary2(newFormattedValue);
-      var updatedCaretPos = getCaretPosition(newFormattedValue, formattedValue, inputValue, caretPos, caretBoundary, isValidInputCharacter, isCharacterSame);
-      updatedCaretPos = getCaretPosInBoundary(newFormattedValue, updatedCaretPos, caretBoundary);
-      return updatedCaretPos;
-    };
-    var updateValueAndCaretPosition = function(params) {
-      var newFormattedValue = params.formattedValue;
-      if (newFormattedValue === void 0) newFormattedValue = "";
-      var input = params.input;
-      var source = params.source;
-      var event = params.event;
-      var numAsString2 = params.numAsString;
-      var caretPos;
-      if (input) {
-        var inputValue = params.inputValue || input.value;
-        var currentCaretPosition2 = geInputCaretPosition(input);
-        input.value = newFormattedValue;
-        caretPos = getNewCaretPosition(inputValue, newFormattedValue, currentCaretPosition2);
-        if (caretPos !== void 0) {
-          setPatchedCaretPosition(input, caretPos, newFormattedValue);
-        }
-      }
-      if (newFormattedValue !== formattedValue) {
-        _onValueChange(getValueObject(newFormattedValue, numAsString2), { event, source });
-      }
-    };
-    (0, import_react81.useEffect)(function() {
-      var ref2 = lastUpdatedValue.current;
-      var lastFormattedValue = ref2.formattedValue;
-      var lastNumAsString = ref2.numAsString;
-      if (formattedValue !== lastFormattedValue || numAsString !== lastNumAsString) {
-        _onValueChange(getValueObject(formattedValue, numAsString), {
-          event: void 0,
-          source: SourceType.props
-        });
-      }
-    }, [formattedValue, numAsString]);
-    var currentCaretPosition = focusedElm.current ? geInputCaretPosition(focusedElm.current) : void 0;
-    var useIsomorphicLayoutEffect = typeof window !== "undefined" ? import_react81.useLayoutEffect : import_react81.useEffect;
-    useIsomorphicLayoutEffect(function() {
-      var input = focusedElm.current;
-      if (formattedValue !== lastUpdatedValue.current.formattedValue && input) {
-        var caretPos = getNewCaretPosition(lastUpdatedValue.current.formattedValue, formattedValue, currentCaretPosition);
-        input.value = formattedValue;
-        setPatchedCaretPosition(input, caretPos, formattedValue);
-      }
-    }, [formattedValue]);
-    var formatInputValue = function(inputValue, event, source) {
-      var input = event.target;
-      var changeRange = caretPositionBeforeChange.current ? findChangedRangeFromCaretPositions(caretPositionBeforeChange.current, input.selectionEnd) : findChangeRange(formattedValue, inputValue);
-      var changeMeta = Object.assign(Object.assign({}, changeRange), { lastValue: formattedValue });
-      var _numAsString = removeFormatting2(inputValue, changeMeta);
-      var _formattedValue = _format(_numAsString);
-      _numAsString = removeFormatting2(_formattedValue, void 0);
-      if (isAllowed && !isAllowed(getValueObject(_formattedValue, _numAsString))) {
-        var input$1 = event.target;
-        var currentCaretPosition2 = geInputCaretPosition(input$1);
-        var caretPos = getNewCaretPosition(inputValue, formattedValue, currentCaretPosition2);
-        input$1.value = formattedValue;
-        setPatchedCaretPosition(input$1, caretPos, formattedValue);
-        return false;
-      }
-      updateValueAndCaretPosition({
-        formattedValue: _formattedValue,
-        numAsString: _numAsString,
-        inputValue,
-        event,
-        source,
-        input: event.target
-      });
-      return true;
-    };
-    var setCaretPositionInfoBeforeChange = function(el, endOffset) {
-      if (endOffset === void 0) endOffset = 0;
-      var selectionStart = el.selectionStart;
-      var selectionEnd = el.selectionEnd;
-      caretPositionBeforeChange.current = { selectionStart, selectionEnd: selectionEnd + endOffset };
-    };
-    var _onChange = function(e) {
-      var el = e.target;
-      var inputValue = el.value;
-      var changed = formatInputValue(inputValue, e, SourceType.event);
-      if (changed) {
-        onChange(e);
-      }
-      caretPositionBeforeChange.current = void 0;
-    };
-    var _onKeyDown = function(e) {
-      var el = e.target;
-      var key = e.key;
-      var selectionStart = el.selectionStart;
-      var selectionEnd = el.selectionEnd;
-      var value = el.value;
-      if (value === void 0) value = "";
-      var expectedCaretPosition;
-      if (key === "ArrowLeft" || key === "Backspace") {
-        expectedCaretPosition = Math.max(selectionStart - 1, 0);
-      } else if (key === "ArrowRight") {
-        expectedCaretPosition = Math.min(selectionStart + 1, value.length);
-      } else if (key === "Delete") {
-        expectedCaretPosition = selectionStart;
-      }
-      var endOffset = 0;
-      if (key === "Delete" && selectionStart === selectionEnd) {
-        endOffset = 1;
-      }
-      var isArrowKey = key === "ArrowLeft" || key === "ArrowRight";
-      if (expectedCaretPosition === void 0 || selectionStart !== selectionEnd && !isArrowKey) {
-        onKeyDown(e);
-        setCaretPositionInfoBeforeChange(el, endOffset);
-        return;
-      }
-      var newCaretPosition = expectedCaretPosition;
-      if (isArrowKey) {
-        var direction = key === "ArrowLeft" ? "left" : "right";
-        newCaretPosition = correctCaretPosition(value, expectedCaretPosition, direction);
-        if (newCaretPosition !== expectedCaretPosition) {
-          e.preventDefault();
-        }
-      } else if (key === "Delete" && !isValidInputCharacter(value[expectedCaretPosition])) {
-        newCaretPosition = correctCaretPosition(value, expectedCaretPosition, "right");
-      } else if (key === "Backspace" && !isValidInputCharacter(value[expectedCaretPosition])) {
-        newCaretPosition = correctCaretPosition(value, expectedCaretPosition, "left");
-      }
-      if (newCaretPosition !== expectedCaretPosition) {
-        setPatchedCaretPosition(el, newCaretPosition, value);
-      }
-      onKeyDown(e);
-      setCaretPositionInfoBeforeChange(el, endOffset);
-    };
-    var _onMouseUp = function(e) {
-      var el = e.target;
-      var correctCaretPositionIfRequired = function() {
-        var selectionStart = el.selectionStart;
-        var selectionEnd = el.selectionEnd;
-        var value = el.value;
-        if (value === void 0) value = "";
-        if (selectionStart === selectionEnd) {
-          var caretPosition = correctCaretPosition(value, selectionStart);
-          if (caretPosition !== selectionStart) {
-            setPatchedCaretPosition(el, caretPosition, value);
-          }
-        }
-      };
-      correctCaretPositionIfRequired();
-      requestAnimationFrame(function() {
-        correctCaretPositionIfRequired();
-      });
-      onMouseUp(e);
-      setCaretPositionInfoBeforeChange(el);
-    };
-    var _onFocus = function(e) {
-      if (e.persist) {
-        e.persist();
-      }
-      var el = e.target;
-      var currentTarget = e.currentTarget;
-      focusedElm.current = el;
-      timeout.current.focusTimeout = setTimeout(function() {
-        var selectionStart = el.selectionStart;
-        var selectionEnd = el.selectionEnd;
-        var value = el.value;
-        if (value === void 0) value = "";
-        var caretPosition = correctCaretPosition(value, selectionStart);
-        if (caretPosition !== selectionStart && !(selectionStart === 0 && selectionEnd === value.length)) {
-          setPatchedCaretPosition(el, caretPosition, value);
-        }
-        onFocus(Object.assign(Object.assign({}, e), { currentTarget }));
-      }, 0);
-    };
-    var _onBlur = function(e) {
-      focusedElm.current = null;
-      clearTimeout(timeout.current.focusTimeout);
-      clearTimeout(timeout.current.setCaretTimeout);
-      onBlur(e);
-    };
-    var inputMode = mounted && addInputMode() ? "numeric" : void 0;
-    var inputProps = Object.assign({ inputMode }, otherProps, {
-      type,
-      value: formattedValue,
-      onChange: _onChange,
-      onKeyDown: _onKeyDown,
-      onMouseUp: _onMouseUp,
-      onFocus: _onFocus,
-      onBlur: _onBlur
-    });
-    if (displayType === "text") {
-      return renderText ? import_react81.default.createElement(import_react81.default.Fragment, null, renderText(formattedValue, otherProps) || null) : import_react81.default.createElement("span", Object.assign({}, otherProps, { ref: getInputRef }), formattedValue);
-    } else if (customInput) {
-      var CustomInput = customInput;
-      return import_react81.default.createElement(CustomInput, Object.assign({}, inputProps, { ref: getInputRef }));
-    }
-    return import_react81.default.createElement("input", Object.assign({}, inputProps, { ref: getInputRef }));
-  }
-  function format(numStr, props) {
-    var decimalScale = props.decimalScale;
-    var fixedDecimalScale = props.fixedDecimalScale;
-    var prefix = props.prefix;
-    if (prefix === void 0) prefix = "";
-    var suffix = props.suffix;
-    if (suffix === void 0) suffix = "";
-    var allowNegative = props.allowNegative;
-    var thousandsGroupStyle = props.thousandsGroupStyle;
-    if (thousandsGroupStyle === void 0) thousandsGroupStyle = "thousand";
-    if (numStr === "" || numStr === "-") {
-      return numStr;
-    }
-    var ref = getSeparators(props);
-    var thousandSeparator = ref.thousandSeparator;
-    var decimalSeparator = ref.decimalSeparator;
-    var hasDecimalSeparator = decimalScale !== 0 && numStr.indexOf(".") !== -1 || decimalScale && fixedDecimalScale;
-    var ref$1 = splitDecimal(numStr, allowNegative);
-    var beforeDecimal = ref$1.beforeDecimal;
-    var afterDecimal = ref$1.afterDecimal;
-    var addNegation = ref$1.addNegation;
-    if (decimalScale !== void 0) {
-      afterDecimal = limitToScale(afterDecimal, decimalScale, !!fixedDecimalScale);
-    }
-    if (thousandSeparator) {
-      beforeDecimal = applyThousandSeparator(beforeDecimal, thousandSeparator, thousandsGroupStyle);
-    }
-    if (prefix) {
-      beforeDecimal = prefix + beforeDecimal;
-    }
-    if (suffix) {
-      afterDecimal = afterDecimal + suffix;
-    }
-    if (addNegation) {
-      beforeDecimal = "-" + beforeDecimal;
-    }
-    numStr = beforeDecimal + (hasDecimalSeparator && decimalSeparator || "") + afterDecimal;
-    return numStr;
-  }
-  function getSeparators(props) {
-    var decimalSeparator = props.decimalSeparator;
-    if (decimalSeparator === void 0) decimalSeparator = ".";
-    var thousandSeparator = props.thousandSeparator;
-    var allowedDecimalSeparators = props.allowedDecimalSeparators;
-    if (thousandSeparator === true) {
-      thousandSeparator = ",";
-    }
-    if (!allowedDecimalSeparators) {
-      allowedDecimalSeparators = [decimalSeparator, "."];
-    }
-    return {
-      decimalSeparator,
-      thousandSeparator,
-      allowedDecimalSeparators
-    };
-  }
-  function handleNegation(value, allowNegative) {
-    if (value === void 0) value = "";
-    var negationRegex = new RegExp("(-)");
-    var doubleNegationRegex = new RegExp("(-)(.)*(-)");
-    var hasNegation = negationRegex.test(value);
-    var removeNegation = doubleNegationRegex.test(value);
-    value = value.replace(/-/g, "");
-    if (hasNegation && !removeNegation && allowNegative) {
-      value = "-" + value;
-    }
-    return value;
-  }
-  function getNumberRegex(decimalSeparator, global) {
-    return new RegExp("(^-)|[0-9]|" + escapeRegExp(decimalSeparator), global ? "g" : void 0);
-  }
-  function isNumericString(val, prefix, suffix) {
-    if (val === "") {
-      return true;
-    }
-    return !(prefix === null || prefix === void 0 ? void 0 : prefix.match(/\d/)) && !(suffix === null || suffix === void 0 ? void 0 : suffix.match(/\d/)) && typeof val === "string" && !isNaN(Number(val));
-  }
-  function removeFormatting(value, changeMeta, props) {
-    var assign;
-    if (changeMeta === void 0) changeMeta = getDefaultChangeMeta(value);
-    var allowNegative = props.allowNegative;
-    var prefix = props.prefix;
-    if (prefix === void 0) prefix = "";
-    var suffix = props.suffix;
-    if (suffix === void 0) suffix = "";
-    var decimalScale = props.decimalScale;
-    var from = changeMeta.from;
-    var to = changeMeta.to;
-    var start = to.start;
-    var end = to.end;
-    var ref = getSeparators(props);
-    var allowedDecimalSeparators = ref.allowedDecimalSeparators;
-    var decimalSeparator = ref.decimalSeparator;
-    var isBeforeDecimalSeparator = value[end] === decimalSeparator;
-    if (charIsNumber(value) && (value === prefix || value === suffix) && changeMeta.lastValue === "") {
-      return value;
-    }
-    if (end - start === 1 && allowedDecimalSeparators.indexOf(value[start]) !== -1) {
-      var separator = decimalScale === 0 ? "" : decimalSeparator;
-      value = value.substring(0, start) + separator + value.substring(start + 1, value.length);
-    }
-    var stripNegation = function(value2, start2, end2) {
-      var hasNegation2 = false;
-      var hasDoubleNegation = false;
-      if (prefix.startsWith("-")) {
-        hasNegation2 = false;
-      } else if (value2.startsWith("--")) {
-        hasNegation2 = false;
-        hasDoubleNegation = true;
-      } else if (suffix.startsWith("-") && value2.length === suffix.length) {
-        hasNegation2 = false;
-      } else if (value2[0] === "-") {
-        hasNegation2 = true;
-      }
-      var charsToRemove = hasNegation2 ? 1 : 0;
-      if (hasDoubleNegation) {
-        charsToRemove = 2;
-      }
-      if (charsToRemove) {
-        value2 = value2.substring(charsToRemove);
-        start2 -= charsToRemove;
-        end2 -= charsToRemove;
-      }
-      return { value: value2, start: start2, end: end2, hasNegation: hasNegation2 };
-    };
-    var toMetadata = stripNegation(value, start, end);
-    var hasNegation = toMetadata.hasNegation;
-    assign = toMetadata, value = assign.value, start = assign.start, end = assign.end;
-    var ref$1 = stripNegation(changeMeta.lastValue, from.start, from.end);
-    var fromStart = ref$1.start;
-    var fromEnd = ref$1.end;
-    var lastValue = ref$1.value;
-    var updatedSuffixPart = value.substring(start, end);
-    if (value.length && lastValue.length && (fromStart > lastValue.length - suffix.length || fromEnd < prefix.length) && !(updatedSuffixPart && suffix.startsWith(updatedSuffixPart))) {
-      value = lastValue;
-    }
-    var startIndex = 0;
-    if (value.startsWith(prefix)) {
-      startIndex += prefix.length;
-    } else if (start < prefix.length) {
-      startIndex = start;
-    }
-    value = value.substring(startIndex);
-    end -= startIndex;
-    var endIndex = value.length;
-    var suffixStartIndex = value.length - suffix.length;
-    if (value.endsWith(suffix)) {
-      endIndex = suffixStartIndex;
-    } else if (end > suffixStartIndex) {
-      endIndex = end;
-    } else if (end > value.length - suffix.length) {
-      endIndex = end;
-    }
-    value = value.substring(0, endIndex);
-    value = handleNegation(hasNegation ? "-" + value : value, allowNegative);
-    value = (value.match(getNumberRegex(decimalSeparator, true)) || []).join("");
-    var firstIndex = value.indexOf(decimalSeparator);
-    value = value.replace(new RegExp(escapeRegExp(decimalSeparator), "g"), function(match, index) {
-      return index === firstIndex ? "." : "";
-    });
-    var ref$2 = splitDecimal(value, allowNegative);
-    var beforeDecimal = ref$2.beforeDecimal;
-    var afterDecimal = ref$2.afterDecimal;
-    var addNegation = ref$2.addNegation;
-    if (to.end - to.start < from.end - from.start && beforeDecimal === "" && isBeforeDecimalSeparator && !parseFloat(afterDecimal)) {
-      value = addNegation ? "-" : "";
-    }
-    return value;
-  }
-  function getCaretBoundary(formattedValue, props) {
-    var prefix = props.prefix;
-    if (prefix === void 0) prefix = "";
-    var suffix = props.suffix;
-    if (suffix === void 0) suffix = "";
-    var boundaryAry = Array.from({ length: formattedValue.length + 1 }).map(function() {
-      return true;
-    });
-    var hasNegation = formattedValue[0] === "-";
-    boundaryAry.fill(false, 0, prefix.length + (hasNegation ? 1 : 0));
-    var valLn = formattedValue.length;
-    boundaryAry.fill(false, valLn - suffix.length + 1, valLn + 1);
-    return boundaryAry;
-  }
-  function validateAndUpdateProps(props) {
-    var ref = getSeparators(props);
-    var thousandSeparator = ref.thousandSeparator;
-    var decimalSeparator = ref.decimalSeparator;
-    var prefix = props.prefix;
-    if (prefix === void 0) prefix = "";
-    var allowNegative = props.allowNegative;
-    if (allowNegative === void 0) allowNegative = true;
-    if (thousandSeparator === decimalSeparator) {
-      throw new Error("\n        Decimal separator can't be same as thousand separator.\n        thousandSeparator: " + thousandSeparator + ' (thousandSeparator = {true} is same as thousandSeparator = ",")\n        decimalSeparator: ' + decimalSeparator + " (default value for decimalSeparator is .)\n     ");
-    }
-    if (prefix.startsWith("-") && allowNegative) {
-      console.error("\n      Prefix can't start with '-' when allowNegative is true.\n      prefix: " + prefix + "\n      allowNegative: " + allowNegative + "\n    ");
-      allowNegative = false;
-    }
-    return Object.assign(Object.assign({}, props), { allowNegative });
-  }
-  function useNumericFormat(props) {
-    props = validateAndUpdateProps(props);
-    var _decimalSeparator = props.decimalSeparator;
-    var _allowedDecimalSeparators = props.allowedDecimalSeparators;
-    var thousandsGroupStyle = props.thousandsGroupStyle;
-    var suffix = props.suffix;
-    var allowNegative = props.allowNegative;
-    var allowLeadingZeros = props.allowLeadingZeros;
-    var onKeyDown = props.onKeyDown;
-    if (onKeyDown === void 0) onKeyDown = noop2;
-    var onBlur = props.onBlur;
-    if (onBlur === void 0) onBlur = noop2;
-    var thousandSeparator = props.thousandSeparator;
-    var decimalScale = props.decimalScale;
-    var fixedDecimalScale = props.fixedDecimalScale;
-    var prefix = props.prefix;
-    if (prefix === void 0) prefix = "";
-    var defaultValue = props.defaultValue;
-    var value = props.value;
-    var valueIsNumericString = props.valueIsNumericString;
-    var onValueChange = props.onValueChange;
-    var restProps = __rest(props, ["decimalSeparator", "allowedDecimalSeparators", "thousandsGroupStyle", "suffix", "allowNegative", "allowLeadingZeros", "onKeyDown", "onBlur", "thousandSeparator", "decimalScale", "fixedDecimalScale", "prefix", "defaultValue", "value", "valueIsNumericString", "onValueChange"]);
-    var ref = getSeparators(props);
-    var decimalSeparator = ref.decimalSeparator;
-    var allowedDecimalSeparators = ref.allowedDecimalSeparators;
-    var _format = function(numStr) {
-      return format(numStr, props);
-    };
-    var _removeFormatting = function(inputValue, changeMeta) {
-      return removeFormatting(inputValue, changeMeta, props);
-    };
-    var _value = isNil(value) ? defaultValue : value;
-    var _valueIsNumericString = valueIsNumericString !== null && valueIsNumericString !== void 0 ? valueIsNumericString : isNumericString(_value, prefix, suffix);
-    if (!isNil(value)) {
-      _valueIsNumericString = _valueIsNumericString || typeof value === "number";
-    } else if (!isNil(defaultValue)) {
-      _valueIsNumericString = _valueIsNumericString || typeof defaultValue === "number";
-    }
-    var roundIncomingValueToPrecision = function(value2) {
-      if (isNotValidValue(value2)) {
-        return value2;
-      }
-      if (typeof value2 === "number") {
-        value2 = toNumericString(value2);
-      }
-      if (_valueIsNumericString && typeof decimalScale === "number") {
-        return roundToPrecision(value2, decimalScale, Boolean(fixedDecimalScale));
-      }
-      return value2;
-    };
-    var ref$1 = useInternalValues(roundIncomingValueToPrecision(value), roundIncomingValueToPrecision(defaultValue), Boolean(_valueIsNumericString), _format, _removeFormatting, onValueChange);
-    var ref$1_0 = ref$1[0];
-    var numAsString = ref$1_0.numAsString;
-    var formattedValue = ref$1_0.formattedValue;
-    var _onValueChange = ref$1[1];
-    var _onKeyDown = function(e) {
-      var el = e.target;
-      var key = e.key;
-      var selectionStart = el.selectionStart;
-      var selectionEnd = el.selectionEnd;
-      var value2 = el.value;
-      if (value2 === void 0) value2 = "";
-      if ((key === "Backspace" || key === "Delete") && selectionEnd < prefix.length) {
-        e.preventDefault();
-        return;
-      }
-      if (selectionStart !== selectionEnd) {
-        onKeyDown(e);
-        return;
-      }
-      if (key === "Backspace" && value2[0] === "-" && selectionStart === prefix.length + 1 && allowNegative) {
-        setCaretPosition(el, 1);
-      }
-      if (decimalScale && fixedDecimalScale) {
-        if (key === "Backspace" && value2[selectionStart - 1] === decimalSeparator) {
-          setCaretPosition(el, selectionStart - 1);
-          e.preventDefault();
-        } else if (key === "Delete" && value2[selectionStart] === decimalSeparator) {
-          e.preventDefault();
-        }
-      }
-      if ((allowedDecimalSeparators === null || allowedDecimalSeparators === void 0 ? void 0 : allowedDecimalSeparators.includes(key)) && value2[selectionStart] === decimalSeparator) {
-        setCaretPosition(el, selectionStart + 1);
-      }
-      var _thousandSeparator = thousandSeparator === true ? "," : thousandSeparator;
-      if (key === "Backspace" && value2[selectionStart - 1] === _thousandSeparator) {
-        setCaretPosition(el, selectionStart - 1);
-      }
-      if (key === "Delete" && value2[selectionStart] === _thousandSeparator) {
-        setCaretPosition(el, selectionStart + 1);
-      }
-      onKeyDown(e);
-    };
-    var _onBlur = function(e) {
-      var _value2 = numAsString;
-      if (!_value2.match(/\d/g)) {
-        _value2 = "";
-      }
-      if (!allowLeadingZeros) {
-        _value2 = fixLeadingZero(_value2);
-      }
-      if (fixedDecimalScale && decimalScale) {
-        _value2 = roundToPrecision(_value2, decimalScale, fixedDecimalScale);
-      }
-      if (_value2 !== numAsString) {
-        var formattedValue2 = format(_value2, props);
-        _onValueChange({
-          formattedValue: formattedValue2,
-          value: _value2,
-          floatValue: parseFloat(_value2)
-        }, {
-          event: e,
-          source: SourceType.event
-        });
-      }
-      onBlur(e);
-    };
-    var isValidInputCharacter = function(inputChar) {
-      if (inputChar === decimalSeparator) {
-        return true;
-      }
-      return charIsNumber(inputChar);
-    };
-    var isCharacterSame = function(ref2) {
-      var currentValue = ref2.currentValue;
-      var lastValue = ref2.lastValue;
-      var formattedValue2 = ref2.formattedValue;
-      var currentValueIndex = ref2.currentValueIndex;
-      var formattedValueIndex = ref2.formattedValueIndex;
-      var curChar = currentValue[currentValueIndex];
-      var newChar = formattedValue2[formattedValueIndex];
-      var typedRange = findChangeRange(lastValue, currentValue);
-      var to = typedRange.to;
-      var getDecimalSeparatorIndex = function(value2) {
-        return _removeFormatting(value2).indexOf(".") + prefix.length;
-      };
-      if (value === 0 && fixedDecimalScale && decimalScale && currentValue[to.start] === decimalSeparator && getDecimalSeparatorIndex(currentValue) < currentValueIndex && getDecimalSeparatorIndex(formattedValue2) > formattedValueIndex) {
-        return false;
-      }
-      if (currentValueIndex >= to.start && currentValueIndex < to.end && allowedDecimalSeparators && allowedDecimalSeparators.includes(curChar) && newChar === decimalSeparator) {
-        return true;
-      }
-      return curChar === newChar;
-    };
-    return Object.assign(Object.assign({}, restProps), {
-      value: formattedValue,
-      valueIsNumericString: false,
-      isValidInputCharacter,
-      isCharacterSame,
-      onValueChange: _onValueChange,
-      format: _format,
-      removeFormatting: _removeFormatting,
-      getCaretBoundary: function(formattedValue2) {
-        return getCaretBoundary(formattedValue2, props);
-      },
-      onKeyDown: _onKeyDown,
-      onBlur: _onBlur
-    });
-  }
-  function NumericFormat(props) {
-    var numericFormatProps = useNumericFormat(props);
-    return import_react81.default.createElement(NumberFormatBase, Object.assign({}, numericFormatProps));
-  }
-
-  // node_modules/@mantine/core/esm/components/NumberInput/NumberInput.mjs
+  // node_modules/@mantine/core/esm/components/Table/Table.mjs
   var import_jsx_runtime72 = __toESM(require_jsx_runtime(), 1);
-  var import_react82 = __toESM(require_react(), 1);
-
-  // node_modules/@mantine/core/esm/components/NumberInput/NumberInputChevron.mjs
-  var import_jsx_runtime71 = __toESM(require_jsx_runtime(), 1);
-  function NumberInputChevron({ direction, style, ...others }) {
-    return /* @__PURE__ */ (0, import_jsx_runtime71.jsx)(
-      "svg",
-      {
-        style: {
-          width: "var(--ni-chevron-size)",
-          height: "var(--ni-chevron-size)",
-          transform: direction === "up" ? "rotate(180deg)" : void 0,
-          ...style
-        },
-        viewBox: "0 0 15 15",
-        fill: "none",
-        xmlns: "http://www.w3.org/2000/svg",
-        ...others,
-        children: /* @__PURE__ */ (0, import_jsx_runtime71.jsx)(
-          "path",
-          {
-            d: "M3.13523 6.15803C3.3241 5.95657 3.64052 5.94637 3.84197 6.13523L7.5 9.56464L11.158 6.13523C11.3595 5.94637 11.6759 5.95657 11.8648 6.15803C12.0536 6.35949 12.0434 6.67591 11.842 6.86477L7.84197 10.6148C7.64964 10.7951 7.35036 10.7951 7.15803 10.6148L3.15803 6.86477C2.95657 6.67591 2.94637 6.35949 3.13523 6.15803Z",
-            fill: "currentColor",
-            fillRule: "evenodd",
-            clipRule: "evenodd"
-          }
-        )
-      }
-    );
-  }
-
-  // node_modules/@mantine/core/esm/components/NumberInput/NumberInput.module.css.mjs
-  var classes16 = { "root": "m_e2f5cd4e", "controls": "m_95e17d22", "control": "m_80b4b171" };
-
-  // node_modules/@mantine/core/esm/components/NumberInput/NumberInput.mjs
-  var leadingDecimalZeroPattern = /^(0\.0*|-0(\.0*)?)$/;
-  var leadingZerosPattern = /^-?0\d+(\.\d+)?\.?$/;
-  function isNumberString(value) {
-    return typeof value === "string" && value !== "" && !Number.isNaN(Number(value));
-  }
-  function canIncrement(value) {
-    if (typeof value === "number") {
-      return value < Number.MAX_SAFE_INTEGER;
-    }
-    return value === "" || isNumberString(value) && Number(value) < Number.MAX_SAFE_INTEGER;
-  }
-  function getDecimalPlaces(inputValue) {
-    return inputValue.toString().replace(".", "").length;
-  }
-  function isValidNumber(floatValue, value) {
-    return (typeof floatValue === "number" ? floatValue < Number.MAX_SAFE_INTEGER : !Number.isNaN(Number(floatValue))) && !Number.isNaN(floatValue) && getDecimalPlaces(value) < 14 && value !== "";
-  }
-  function isInRange(value, min, max) {
-    if (value === void 0) {
-      return true;
-    }
-    const minValid = min === void 0 || value >= min;
-    const maxValid = max === void 0 || value <= max;
-    return minValid && maxValid;
-  }
-  var defaultProps27 = {
-    step: 1,
-    clampBehavior: "blur",
-    allowDecimal: true,
-    allowNegative: true,
-    withKeyboardEvents: true,
-    allowLeadingZeros: true,
-    trimLeadingZeroesOnBlur: true,
-    startValue: 0
-  };
-  var varsResolver21 = createVarsResolver((_, { size }) => ({
-    controls: {
-      "--ni-chevron-size": getSize(size, "ni-chevron-size")
-    }
-  }));
-  function clampAndSanitizeInput(sanitizedValue, max, min) {
-    const replaced = sanitizedValue.toString().replace(/^0+/, "");
-    const parsedValue = parseFloat(replaced);
-    if (Number.isNaN(parsedValue)) {
-      return replaced;
-    } else if (parsedValue > Number.MAX_SAFE_INTEGER) {
-      return max !== void 0 ? String(max) : replaced;
-    }
-    return clamp(parsedValue, min, max);
-  }
-  var NumberInput = factory((_props, ref) => {
-    const props = useProps("NumberInput", defaultProps27, _props);
-    const {
-      className,
-      classNames,
-      styles,
-      unstyled,
-      vars,
-      onChange,
-      onValueChange,
-      value,
-      defaultValue,
-      max,
-      min,
-      step,
-      hideControls,
-      rightSection,
-      isAllowed,
-      clampBehavior,
-      onBlur,
-      allowDecimal,
-      decimalScale,
-      onKeyDown,
-      onKeyDownCapture,
-      handlersRef,
-      startValue,
-      disabled,
-      rightSectionPointerEvents,
-      allowNegative,
-      readOnly,
-      size,
-      rightSectionWidth,
-      stepHoldInterval,
-      stepHoldDelay,
-      allowLeadingZeros,
-      withKeyboardEvents,
-      trimLeadingZeroesOnBlur,
-      ...others
-    } = props;
-    const getStyles = useStyles({
-      name: "NumberInput",
-      classes: classes16,
-      props,
-      classNames,
-      styles,
-      unstyled,
-      vars,
-      varsResolver: varsResolver21
-    });
-    const { resolvedClassNames, resolvedStyles } = useResolvedStylesApi({
-      classNames,
-      styles,
-      props
-    });
-    const [_value, setValue] = useUncontrolled({
-      value,
-      defaultValue,
-      finalValue: "",
-      onChange
-    });
-    const shouldUseStepInterval = stepHoldDelay !== void 0 && stepHoldInterval !== void 0;
-    const inputRef = (0, import_react82.useRef)(null);
-    const onStepTimeoutRef = (0, import_react82.useRef)(null);
-    const stepCountRef = (0, import_react82.useRef)(0);
-    const handleValueChange = (payload, event) => {
-      if (event.source === "event") {
-        setValue(
-          isValidNumber(payload.floatValue, payload.value) && !leadingDecimalZeroPattern.test(payload.value) && !(allowLeadingZeros ? leadingZerosPattern.test(payload.value) : false) ? payload.floatValue : payload.value
-        );
-      }
-      onValueChange?.(payload, event);
-    };
-    const getDecimalPlaces2 = (inputValue) => {
-      const match = String(inputValue).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
-      if (!match) {
-        return 0;
-      }
-      return Math.max(0, (match[1] ? match[1].length : 0) - (match[2] ? +match[2] : 0));
-    };
-    const adjustCursor = (position) => {
-      if (inputRef.current && typeof position !== "undefined") {
-        inputRef.current.setSelectionRange(position, position);
-      }
-    };
-    const incrementRef = (0, import_react82.useRef)(noop);
-    incrementRef.current = () => {
-      if (!canIncrement(_value)) {
-        return;
-      }
-      let val;
-      const currentValuePrecision = getDecimalPlaces2(_value);
-      const stepPrecision = getDecimalPlaces2(step);
-      const maxPrecision = Math.max(currentValuePrecision, stepPrecision);
-      const factor = 10 ** maxPrecision;
-      if (!isNumberString(_value) && (typeof _value !== "number" || Number.isNaN(_value))) {
-        val = clamp(startValue, min, max);
-      } else if (max !== void 0) {
-        const incrementedValue = (Math.round(Number(_value) * factor) + Math.round(step * factor)) / factor;
-        val = incrementedValue <= max ? incrementedValue : max;
-      } else {
-        val = (Math.round(Number(_value) * factor) + Math.round(step * factor)) / factor;
-      }
-      const formattedValue = val.toFixed(maxPrecision);
-      setValue(parseFloat(formattedValue));
-      onValueChange?.(
-        { floatValue: parseFloat(formattedValue), formattedValue, value: formattedValue },
-        { source: "increment" }
-      );
-      setTimeout(() => adjustCursor(inputRef.current?.value.length), 0);
-    };
-    const decrementRef = (0, import_react82.useRef)(noop);
-    decrementRef.current = () => {
-      if (!canIncrement(_value)) {
-        return;
-      }
-      let val;
-      const minValue = min !== void 0 ? min : !allowNegative ? 0 : Number.MIN_SAFE_INTEGER;
-      const currentValuePrecision = getDecimalPlaces2(_value);
-      const stepPrecision = getDecimalPlaces2(step);
-      const maxPrecision = Math.max(currentValuePrecision, stepPrecision);
-      const factor = 10 ** maxPrecision;
-      if (!isNumberString(_value) && typeof _value !== "number" || Number.isNaN(_value)) {
-        val = clamp(startValue, minValue, max);
-      } else {
-        const decrementedValue = (Math.round(Number(_value) * factor) - Math.round(step * factor)) / factor;
-        val = minValue !== void 0 && decrementedValue < minValue ? minValue : decrementedValue;
-      }
-      const formattedValue = val.toFixed(maxPrecision);
-      setValue(parseFloat(formattedValue));
-      onValueChange?.(
-        { floatValue: parseFloat(formattedValue), formattedValue, value: formattedValue },
-        { source: "decrement" }
-      );
-      setTimeout(() => adjustCursor(inputRef.current?.value.length), 0);
-    };
-    const handleKeyDown = (event) => {
-      onKeyDown?.(event);
-      if (readOnly || !withKeyboardEvents) {
-        return;
-      }
-      if (event.key === "ArrowUp") {
-        event.preventDefault();
-        incrementRef.current();
-      }
-      if (event.key === "ArrowDown") {
-        event.preventDefault();
-        decrementRef.current();
-      }
-    };
-    const handleKeyDownCapture = (event) => {
-      onKeyDownCapture?.(event);
-      if (event.key === "Backspace") {
-        const input = inputRef.current;
-        if (input.selectionStart === 0 && input.selectionStart === input.selectionEnd) {
-          event.preventDefault();
-          window.setTimeout(() => adjustCursor(0), 0);
-        }
-      }
-    };
-    const handleBlur = (event) => {
-      let sanitizedValue = _value;
-      if (clampBehavior === "blur" && typeof sanitizedValue === "number") {
-        sanitizedValue = clamp(sanitizedValue, min, max);
-      }
-      if (trimLeadingZeroesOnBlur && typeof sanitizedValue === "string" && getDecimalPlaces2(sanitizedValue) < 15) {
-        sanitizedValue = clampAndSanitizeInput(sanitizedValue, max, min);
-      }
-      if (_value !== sanitizedValue) {
-        setValue(sanitizedValue);
-      }
-      onBlur?.(event);
-    };
-    assignRef(handlersRef, { increment: incrementRef.current, decrement: decrementRef.current });
-    const onStepHandleChange = (isIncrement) => {
-      if (isIncrement) {
-        incrementRef.current();
-      } else {
-        decrementRef.current();
-      }
-      stepCountRef.current += 1;
-    };
-    const onStepLoop = (isIncrement) => {
-      onStepHandleChange(isIncrement);
-      if (shouldUseStepInterval) {
-        const interval = typeof stepHoldInterval === "number" ? stepHoldInterval : stepHoldInterval(stepCountRef.current);
-        onStepTimeoutRef.current = window.setTimeout(() => onStepLoop(isIncrement), interval);
-      }
-    };
-    const onStep = (event, isIncrement) => {
-      event.preventDefault();
-      inputRef.current?.focus();
-      onStepHandleChange(isIncrement);
-      if (shouldUseStepInterval) {
-        onStepTimeoutRef.current = window.setTimeout(() => onStepLoop(isIncrement), stepHoldDelay);
-      }
-    };
-    const onStepDone = () => {
-      if (onStepTimeoutRef.current) {
-        window.clearTimeout(onStepTimeoutRef.current);
-      }
-      onStepTimeoutRef.current = null;
-      stepCountRef.current = 0;
-    };
-    const controls = /* @__PURE__ */ (0, import_jsx_runtime72.jsxs)("div", { ...getStyles("controls"), children: [
-      /* @__PURE__ */ (0, import_jsx_runtime72.jsx)(
-        UnstyledButton,
-        {
-          ...getStyles("control"),
-          tabIndex: -1,
-          "aria-hidden": true,
-          disabled: disabled || typeof _value === "number" && max !== void 0 && _value >= max,
-          mod: { direction: "up" },
-          onMouseDown: (event) => event.preventDefault(),
-          onPointerDown: (event) => {
-            onStep(event, true);
-          },
-          onPointerUp: onStepDone,
-          onPointerLeave: onStepDone,
-          children: /* @__PURE__ */ (0, import_jsx_runtime72.jsx)(NumberInputChevron, { direction: "up" })
-        }
-      ),
-      /* @__PURE__ */ (0, import_jsx_runtime72.jsx)(
-        UnstyledButton,
-        {
-          ...getStyles("control"),
-          tabIndex: -1,
-          "aria-hidden": true,
-          disabled: disabled || typeof _value === "number" && min !== void 0 && _value <= min,
-          mod: { direction: "down" },
-          onMouseDown: (event) => event.preventDefault(),
-          onPointerDown: (event) => {
-            onStep(event, false);
-          },
-          onPointerUp: onStepDone,
-          onPointerLeave: onStepDone,
-          children: /* @__PURE__ */ (0, import_jsx_runtime72.jsx)(NumberInputChevron, { direction: "down" })
-        }
-      )
-    ] });
-    return /* @__PURE__ */ (0, import_jsx_runtime72.jsx)(
-      InputBase,
-      {
-        component: NumericFormat,
-        allowNegative,
-        className: clsx_default(classes16.root, className),
-        size,
-        ...others,
-        readOnly,
-        disabled,
-        value: _value,
-        getInputRef: useMergedRef(ref, inputRef),
-        onValueChange: handleValueChange,
-        rightSection: hideControls || readOnly || !canIncrement(_value) ? rightSection : rightSection || controls,
-        classNames: resolvedClassNames,
-        styles: resolvedStyles,
-        unstyled,
-        __staticSelector: "NumberInput",
-        decimalScale: allowDecimal ? decimalScale : 0,
-        onKeyDown: handleKeyDown,
-        onKeyDownCapture: handleKeyDownCapture,
-        rightSectionPointerEvents: rightSectionPointerEvents ?? (disabled ? "none" : void 0),
-        rightSectionWidth: rightSectionWidth ?? `var(--ni-right-section-width-${size || "sm"})`,
-        allowLeadingZeros,
-        onBlur: handleBlur,
-        isAllowed: (val) => {
-          if (clampBehavior === "strict") {
-            if (isAllowed) {
-              return isAllowed(val) && isInRange(val.floatValue, min, max);
-            }
-            return isInRange(val.floatValue, min, max);
-          }
-          return isAllowed ? isAllowed(val) : true;
-        }
-      }
-    );
-  });
-  NumberInput.classes = { ...InputBase.classes, ...classes16 };
-  NumberInput.displayName = "@mantine/core/NumberInput";
-
-  // node_modules/@mantine/core/esm/components/PasswordInput/PasswordInput.mjs
-  var import_jsx_runtime74 = __toESM(require_jsx_runtime(), 1);
-  var import_react83 = __toESM(require_react(), 1);
-
-  // node_modules/@mantine/core/esm/components/PasswordInput/PasswordToggleIcon.mjs
-  var import_jsx_runtime73 = __toESM(require_jsx_runtime(), 1);
-  var PasswordToggleIcon = ({
-    reveal
-  }) => /* @__PURE__ */ (0, import_jsx_runtime73.jsx)(
-    "svg",
-    {
-      viewBox: "0 0 15 15",
-      fill: "none",
-      xmlns: "http://www.w3.org/2000/svg",
-      style: { width: "var(--psi-icon-size)", height: "var(--psi-icon-size)" },
-      children: /* @__PURE__ */ (0, import_jsx_runtime73.jsx)(
-        "path",
-        {
-          d: reveal ? "M13.3536 2.35355C13.5488 2.15829 13.5488 1.84171 13.3536 1.64645C13.1583 1.45118 12.8417 1.45118 12.6464 1.64645L10.6828 3.61012C9.70652 3.21671 8.63759 3 7.5 3C4.30786 3 1.65639 4.70638 0.0760002 7.23501C-0.0253338 7.39715 -0.0253334 7.60288 0.0760014 7.76501C0.902945 9.08812 2.02314 10.1861 3.36061 10.9323L1.64645 12.6464C1.45118 12.8417 1.45118 13.1583 1.64645 13.3536C1.84171 13.5488 2.15829 13.5488 2.35355 13.3536L4.31723 11.3899C5.29348 11.7833 6.36241 12 7.5 12C10.6921 12 13.3436 10.2936 14.924 7.76501C15.0253 7.60288 15.0253 7.39715 14.924 7.23501C14.0971 5.9119 12.9769 4.81391 11.6394 4.06771L13.3536 2.35355ZM9.90428 4.38861C9.15332 4.1361 8.34759 4 7.5 4C4.80285 4 2.52952 5.37816 1.09622 7.50001C1.87284 8.6497 2.89609 9.58106 4.09974 10.1931L9.90428 4.38861ZM5.09572 10.6114L10.9003 4.80685C12.1039 5.41894 13.1272 6.35031 13.9038 7.50001C12.4705 9.62183 10.1971 11 7.5 11C6.65241 11 5.84668 10.8639 5.09572 10.6114Z" : "M7.5 11C4.80285 11 2.52952 9.62184 1.09622 7.50001C2.52952 5.37816 4.80285 4 7.5 4C10.1971 4 12.4705 5.37816 13.9038 7.50001C12.4705 9.62183 10.1971 11 7.5 11ZM7.5 3C4.30786 3 1.65639 4.70638 0.0760002 7.23501C-0.0253338 7.39715 -0.0253334 7.60288 0.0760014 7.76501C1.65639 10.2936 4.30786 12 7.5 12C10.6921 12 13.3436 10.2936 14.924 7.76501C15.0253 7.60288 15.0253 7.39715 14.924 7.23501C13.3436 4.70638 10.6921 3 7.5 3ZM7.5 9.5C8.60457 9.5 9.5 8.60457 9.5 7.5C9.5 6.39543 8.60457 5.5 7.5 5.5C6.39543 5.5 5.5 6.39543 5.5 7.5C5.5 8.60457 6.39543 9.5 7.5 9.5Z",
-          fill: "currentColor",
-          fillRule: "evenodd",
-          clipRule: "evenodd"
-        }
-      )
-    }
-  );
-
-  // node_modules/@mantine/core/esm/components/PasswordInput/PasswordInput.module.css.mjs
-  var classes17 = { "root": "m_f61ca620", "input": "m_ccf8da4c", "innerInput": "m_f2d85dd2", "visibilityToggle": "m_b1072d44" };
-
-  // node_modules/@mantine/core/esm/components/PasswordInput/PasswordInput.mjs
-  var defaultProps28 = {
-    visibilityToggleIcon: PasswordToggleIcon
-  };
-  var varsResolver22 = createVarsResolver((_, { size }) => ({
-    root: {
-      "--psi-icon-size": getSize(size, "psi-icon-size"),
-      "--psi-button-size": getSize(size, "psi-button-size")
-    }
-  }));
-  var PasswordInput = factory((_props, ref) => {
-    const props = useProps("PasswordInput", defaultProps28, _props);
-    const {
-      classNames,
-      className,
-      style,
-      styles,
-      unstyled,
-      vars,
-      required,
-      error,
-      leftSection,
-      disabled,
-      id,
-      variant,
-      inputContainer,
-      description,
-      label,
-      size,
-      errorProps,
-      descriptionProps,
-      labelProps,
-      withAsterisk,
-      inputWrapperOrder,
-      wrapperProps,
-      radius,
-      rightSection,
-      rightSectionWidth,
-      rightSectionPointerEvents,
-      leftSectionWidth,
-      visible,
-      defaultVisible,
-      onVisibilityChange,
-      visibilityToggleIcon,
-      visibilityToggleButtonProps,
-      rightSectionProps,
-      leftSectionProps,
-      leftSectionPointerEvents,
-      withErrorStyles,
-      mod,
-      ...others
-    } = props;
-    const uuid = useId(id);
-    const [_visible, setVisibility] = useUncontrolled({
-      value: visible,
-      defaultValue: defaultVisible,
-      finalValue: false,
-      onChange: onVisibilityChange
-    });
-    const toggleVisibility = () => setVisibility(!_visible);
-    const getStyles = useStyles({
-      name: "PasswordInput",
-      classes: classes17,
-      props,
-      className,
-      style,
-      classNames,
-      styles,
-      unstyled,
-      vars,
-      varsResolver: varsResolver22
-    });
-    const { resolvedClassNames, resolvedStyles } = useResolvedStylesApi({
-      classNames,
-      styles,
-      props
-    });
-    const { styleProps, rest } = extractStyleProps(others);
-    const VisibilityToggleIcon = visibilityToggleIcon;
-    const errorId = errorProps?.id || `${uuid}-error`;
-    const descriptionId = descriptionProps?.id || `${uuid}-description`;
-    const hasError = !!error && typeof error !== "boolean";
-    const hasDescription = !!description;
-    const _describedBy = `${hasError ? errorId : ""} ${hasDescription ? descriptionId : ""}`;
-    const describedBy = _describedBy.trim().length > 0 ? _describedBy.trim() : void 0;
-    const visibilityToggleButton = /* @__PURE__ */ (0, import_jsx_runtime74.jsx)(
-      ActionIcon,
-      {
-        ...getStyles("visibilityToggle"),
-        disabled,
-        radius,
-        "aria-hidden": !visibilityToggleButtonProps,
-        tabIndex: -1,
-        ...visibilityToggleButtonProps,
-        variant: visibilityToggleButtonProps?.variant ?? "subtle",
-        color: "gray",
-        unstyled,
-        onTouchEnd: (event) => {
-          event.preventDefault();
-          visibilityToggleButtonProps?.onTouchEnd?.(event);
-          toggleVisibility();
-        },
-        onMouseDown: (event) => {
-          event.preventDefault();
-          visibilityToggleButtonProps?.onMouseDown?.(event);
-          toggleVisibility();
-        },
-        onKeyDown: (event) => {
-          visibilityToggleButtonProps?.onKeyDown?.(event);
-          if (event.key === " ") {
-            event.preventDefault();
-            toggleVisibility();
-          }
-        },
-        children: /* @__PURE__ */ (0, import_jsx_runtime74.jsx)(VisibilityToggleIcon, { reveal: _visible })
-      }
-    );
-    return /* @__PURE__ */ (0, import_jsx_runtime74.jsx)(
-      Input.Wrapper,
-      {
-        required,
-        id: uuid,
-        label,
-        error,
-        description,
-        size,
-        classNames: resolvedClassNames,
-        styles: resolvedStyles,
-        __staticSelector: "PasswordInput",
-        unstyled,
-        withAsterisk,
-        inputWrapperOrder,
-        inputContainer,
-        variant,
-        labelProps: { ...labelProps, htmlFor: uuid },
-        descriptionProps: { ...descriptionProps, id: descriptionId },
-        errorProps: { ...errorProps, id: errorId },
-        mod,
-        ...getStyles("root"),
-        ...styleProps,
-        ...wrapperProps,
-        children: /* @__PURE__ */ (0, import_jsx_runtime74.jsx)(
-          Input,
-          {
-            component: "div",
-            error,
-            leftSection,
-            size,
-            classNames: { ...resolvedClassNames, input: clsx_default(classes17.input, resolvedClassNames.input) },
-            styles: resolvedStyles,
-            radius,
-            disabled,
-            __staticSelector: "PasswordInput",
-            rightSectionWidth,
-            rightSection: rightSection ?? visibilityToggleButton,
-            variant,
-            unstyled,
-            leftSectionWidth,
-            rightSectionPointerEvents: rightSectionPointerEvents || "all",
-            rightSectionProps,
-            leftSectionProps,
-            leftSectionPointerEvents,
-            withAria: false,
-            withErrorStyles,
-            children: /* @__PURE__ */ (0, import_jsx_runtime74.jsx)(
-              "input",
-              {
-                required,
-                "data-invalid": !!error || void 0,
-                "data-with-left-section": !!leftSection || void 0,
-                ...getStyles("innerInput"),
-                disabled,
-                id: uuid,
-                ref,
-                ...rest,
-                "aria-describedby": describedBy,
-                autoComplete: rest.autoComplete || "off",
-                type: _visible ? "text" : "password"
-              }
-            )
-          }
-        )
-      }
-    );
-  });
-  PasswordInput.classes = { ...InputBase.classes, ...classes17 };
-  PasswordInput.displayName = "@mantine/core/PasswordInput";
-
-  // node_modules/@mantine/core/esm/components/SimpleGrid/SimpleGrid.mjs
-  var import_jsx_runtime76 = __toESM(require_jsx_runtime(), 1);
   var import_react85 = __toESM(require_react(), 1);
 
-  // node_modules/@mantine/core/esm/components/SimpleGrid/SimpleGridVariables.mjs
-  var import_jsx_runtime75 = __toESM(require_jsx_runtime(), 1);
-  var import_react84 = __toESM(require_react(), 1);
-  function SimpleGridMediaVariables({
-    spacing,
-    verticalSpacing,
-    cols,
-    selector
-  }) {
-    const theme2 = useMantineTheme();
-    const _verticalSpacing = verticalSpacing === void 0 ? spacing : verticalSpacing;
-    const baseStyles = filterProps({
-      "--sg-spacing-x": getSpacing(getBaseValue(spacing)),
-      "--sg-spacing-y": getSpacing(getBaseValue(_verticalSpacing)),
-      "--sg-cols": getBaseValue(cols)?.toString()
-    });
-    const queries = keys(theme2.breakpoints).reduce(
-      (acc, breakpoint) => {
-        if (!acc[breakpoint]) {
-          acc[breakpoint] = {};
-        }
-        if (typeof spacing === "object" && spacing[breakpoint] !== void 0) {
-          acc[breakpoint]["--sg-spacing-x"] = getSpacing(spacing[breakpoint]);
-        }
-        if (typeof _verticalSpacing === "object" && _verticalSpacing[breakpoint] !== void 0) {
-          acc[breakpoint]["--sg-spacing-y"] = getSpacing(_verticalSpacing[breakpoint]);
-        }
-        if (typeof cols === "object" && cols[breakpoint] !== void 0) {
-          acc[breakpoint]["--sg-cols"] = cols[breakpoint];
-        }
-        return acc;
-      },
-      {}
-    );
-    const sortedBreakpoints = getSortedBreakpoints(keys(queries), theme2.breakpoints).filter(
-      (breakpoint) => keys(queries[breakpoint.value]).length > 0
-    );
-    const media = sortedBreakpoints.map((breakpoint) => ({
-      query: `(min-width: ${theme2.breakpoints[breakpoint.value]})`,
-      styles: queries[breakpoint.value]
-    }));
-    return /* @__PURE__ */ (0, import_jsx_runtime75.jsx)(InlineStyles, { styles: baseStyles, media, selector });
-  }
-  function getBreakpoints(values2) {
-    if (typeof values2 === "object" && values2 !== null) {
-      return keys(values2);
+  // node_modules/@mantine/core/esm/components/Table/Table.components.mjs
+  var import_jsx_runtime69 = __toESM(require_jsx_runtime(), 1);
+  var import_react83 = __toESM(require_react(), 1);
+
+  // node_modules/@mantine/core/esm/components/Table/Table.context.mjs
+  var import_react82 = __toESM(require_react(), 1);
+  var import_jsx_runtime68 = __toESM(require_jsx_runtime(), 1);
+  var [TableProvider, useTableContext] = createSafeContext(
+    "Table component was not found in the tree"
+  );
+
+  // node_modules/@mantine/core/esm/components/Table/Table.module.css.mjs
+  var classes14 = { "table": "m_b23fa0ef", "th": "m_4e7aa4f3", "tr": "m_4e7aa4fd", "td": "m_4e7aa4ef", "tbody": "m_b2404537", "thead": "m_b242d975", "caption": "m_9e5a3ac7", "scrollContainer": "m_a100c15", "scrollContainerInner": "m_62259741" };
+
+  // node_modules/@mantine/core/esm/components/Table/Table.components.mjs
+  function getDataAttributes(ctx, options) {
+    if (!options) {
+      return void 0;
     }
-    return [];
-  }
-  function sortBreakpoints(breakpoints) {
-    return breakpoints.sort((a, b) => px(a) - px(b));
-  }
-  function getUniqueBreakpoints({
-    spacing,
-    verticalSpacing,
-    cols
-  }) {
-    const breakpoints = Array.from(
-      /* @__PURE__ */ new Set([
-        ...getBreakpoints(spacing),
-        ...getBreakpoints(verticalSpacing),
-        ...getBreakpoints(cols)
-      ])
-    );
-    return sortBreakpoints(breakpoints);
-  }
-  function SimpleGridContainerVariables({
-    spacing,
-    verticalSpacing,
-    cols,
-    selector
-  }) {
-    const _verticalSpacing = verticalSpacing === void 0 ? spacing : verticalSpacing;
-    const baseStyles = filterProps({
-      "--sg-spacing-x": getSpacing(getBaseValue(spacing)),
-      "--sg-spacing-y": getSpacing(getBaseValue(_verticalSpacing)),
-      "--sg-cols": getBaseValue(cols)?.toString()
-    });
-    const uniqueBreakpoints = getUniqueBreakpoints({ spacing, verticalSpacing, cols });
-    const queries = uniqueBreakpoints.reduce(
-      (acc, breakpoint) => {
-        if (!acc[breakpoint]) {
-          acc[breakpoint] = {};
-        }
-        if (typeof spacing === "object" && spacing[breakpoint] !== void 0) {
-          acc[breakpoint]["--sg-spacing-x"] = getSpacing(spacing[breakpoint]);
-        }
-        if (typeof _verticalSpacing === "object" && _verticalSpacing[breakpoint] !== void 0) {
-          acc[breakpoint]["--sg-spacing-y"] = getSpacing(_verticalSpacing[breakpoint]);
-        }
-        if (typeof cols === "object" && cols[breakpoint] !== void 0) {
-          acc[breakpoint]["--sg-cols"] = cols[breakpoint];
-        }
-        return acc;
-      },
-      {}
-    );
-    const media = uniqueBreakpoints.map((breakpoint) => ({
-      query: `simple-grid (min-width: ${breakpoint})`,
-      styles: queries[breakpoint]
-    }));
-    return /* @__PURE__ */ (0, import_jsx_runtime75.jsx)(InlineStyles, { styles: baseStyles, container: media, selector });
-  }
-
-  // node_modules/@mantine/core/esm/components/SimpleGrid/SimpleGrid.module.css.mjs
-  var classes18 = { "container": "m_925c2d2c", "root": "m_2415a157" };
-
-  // node_modules/@mantine/core/esm/components/SimpleGrid/SimpleGrid.mjs
-  var defaultProps29 = {
-    cols: 1,
-    spacing: "md",
-    type: "media"
-  };
-  var SimpleGrid = factory((_props, ref) => {
-    const props = useProps("SimpleGrid", defaultProps29, _props);
-    const {
-      classNames,
-      className,
-      style,
-      styles,
-      unstyled,
-      vars,
-      cols,
-      verticalSpacing,
-      spacing,
-      type,
-      ...others
-    } = props;
-    const getStyles = useStyles({
-      name: "SimpleGrid",
-      classes: classes18,
-      props,
-      className,
-      style,
-      classNames,
-      styles,
-      unstyled,
-      vars
-    });
-    const responsiveClassName = useRandomClassName();
-    if (type === "container") {
-      return /* @__PURE__ */ (0, import_jsx_runtime76.jsxs)(import_jsx_runtime76.Fragment, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime76.jsx)(SimpleGridContainerVariables, { ...props, selector: `.${responsiveClassName}` }),
-        /* @__PURE__ */ (0, import_jsx_runtime76.jsx)("div", { ...getStyles("container"), children: /* @__PURE__ */ (0, import_jsx_runtime76.jsx)(Box, { ref, ...getStyles("root", { className: responsiveClassName }), ...others }) })
-      ] });
+    const data = {};
+    if (options.columnBorder && ctx.withColumnBorders) {
+      data["data-with-column-border"] = true;
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime76.jsxs)(import_jsx_runtime76.Fragment, { children: [
-      /* @__PURE__ */ (0, import_jsx_runtime76.jsx)(SimpleGridMediaVariables, { ...props, selector: `.${responsiveClassName}` }),
-      /* @__PURE__ */ (0, import_jsx_runtime76.jsx)(Box, { ref, ...getStyles("root", { className: responsiveClassName }), ...others })
-    ] });
-  });
-  SimpleGrid.classes = classes18;
-  SimpleGrid.displayName = "@mantine/core/SimpleGrid";
-
-  // node_modules/@mantine/core/esm/components/Stack/Stack.mjs
-  var import_jsx_runtime77 = __toESM(require_jsx_runtime(), 1);
-  var import_react86 = __toESM(require_react(), 1);
-
-  // node_modules/@mantine/core/esm/components/Stack/Stack.module.css.mjs
-  var classes19 = { "root": "m_6d731127" };
-
-  // node_modules/@mantine/core/esm/components/Stack/Stack.mjs
-  var defaultProps30 = {
-    gap: "md",
-    align: "stretch",
-    justify: "flex-start"
-  };
-  var varsResolver23 = createVarsResolver((_, { gap, align, justify }) => ({
-    root: {
-      "--stack-gap": getSpacing(gap),
-      "--stack-align": align,
-      "--stack-justify": justify
+    if (options.rowBorder && ctx.withRowBorders) {
+      data["data-with-row-border"] = true;
     }
-  }));
-  var Stack = factory((_props, ref) => {
-    const props = useProps("Stack", defaultProps30, _props);
-    const {
-      classNames,
-      className,
-      style,
-      styles,
-      unstyled,
-      vars,
-      align,
-      justify,
-      gap,
-      variant,
-      ...others
-    } = props;
-    const getStyles = useStyles({
-      name: "Stack",
-      props,
-      classes: classes19,
-      className,
-      style,
-      classNames,
-      styles,
-      unstyled,
-      vars,
-      varsResolver: varsResolver23
-    });
-    return /* @__PURE__ */ (0, import_jsx_runtime77.jsx)(Box, { ref, ...getStyles("root"), variant, ...others });
-  });
-  Stack.classes = classes19;
-  Stack.displayName = "@mantine/core/Stack";
-
-  // node_modules/@mantine/core/esm/components/Switch/Switch.mjs
-  var import_jsx_runtime79 = __toESM(require_jsx_runtime(), 1);
-  var import_react89 = __toESM(require_react(), 1);
-
-  // node_modules/@mantine/core/esm/components/Switch/SwitchGroup.context.mjs
-  var import_react87 = __toESM(require_react(), 1);
-  var SwitchGroupContext = (0, import_react87.createContext)(null);
-  var SwitchGroupProvider = SwitchGroupContext.Provider;
-  var useSwitchGroupContext = () => (0, import_react87.useContext)(SwitchGroupContext);
-
-  // node_modules/@mantine/core/esm/components/Switch/SwitchGroup/SwitchGroup.mjs
-  var import_jsx_runtime78 = __toESM(require_jsx_runtime(), 1);
-  var import_react88 = __toESM(require_react(), 1);
-  var defaultProps31 = {};
-  var SwitchGroup = factory((props, ref) => {
-    const { value, defaultValue, onChange, size, wrapperProps, children, readOnly, ...others } = useProps("SwitchGroup", defaultProps31, props);
-    const [_value, setValue] = useUncontrolled({
-      value,
-      defaultValue,
-      finalValue: [],
-      onChange
-    });
-    const handleChange = (event) => {
-      const itemValue = event.currentTarget.value;
-      !readOnly && setValue(
-        _value.includes(itemValue) ? _value.filter((item) => item !== itemValue) : [..._value, itemValue]
+    if (options.striped && ctx.striped) {
+      data["data-striped"] = ctx.striped;
+    }
+    if (options.highlightOnHover && ctx.highlightOnHover) {
+      data["data-hover"] = true;
+    }
+    if (options.captionSide && ctx.captionSide) {
+      data["data-side"] = ctx.captionSide;
+    }
+    if (options.stickyHeader && ctx.stickyHeader) {
+      data["data-sticky"] = true;
+    }
+    return data;
+  }
+  function tableElement(element, options) {
+    const name = `Table${element.charAt(0).toUpperCase()}${element.slice(1)}`;
+    const Component = factory((_props, ref) => {
+      const props = useProps(name, {}, _props);
+      const { classNames, className, style, styles, ...others } = props;
+      const ctx = useTableContext();
+      return /* @__PURE__ */ (0, import_jsx_runtime69.jsx)(
+        Box,
+        {
+          component: element,
+          ref,
+          ...getDataAttributes(ctx, options),
+          ...ctx.getStyles(element, { className, classNames, style, styles, props }),
+          ...others
+        }
       );
-    };
-    return /* @__PURE__ */ (0, import_jsx_runtime78.jsx)(SwitchGroupProvider, { value: { value: _value, onChange: handleChange, size }, children: /* @__PURE__ */ (0, import_jsx_runtime78.jsx)(
-      Input.Wrapper,
-      {
-        size,
-        ref,
-        ...wrapperProps,
-        ...others,
-        labelElement: "div",
-        __staticSelector: "SwitchGroup",
-        children: /* @__PURE__ */ (0, import_jsx_runtime78.jsx)(InputsGroupFieldset, { role: "group", children })
-      }
-    ) });
+    });
+    Component.displayName = `@mantine/core/${name}`;
+    Component.classes = classes14;
+    return Component;
+  }
+  var TableTh = tableElement("th", { columnBorder: true });
+  var TableTd = tableElement("td", { columnBorder: true });
+  var TableTr = tableElement("tr", {
+    rowBorder: true,
+    striped: true,
+    highlightOnHover: true
   });
-  SwitchGroup.classes = Input.Wrapper.classes;
-  SwitchGroup.displayName = "@mantine/core/SwitchGroup";
+  var TableThead = tableElement("thead", { stickyHeader: true });
+  var TableTbody = tableElement("tbody");
+  var TableTfoot = tableElement("tfoot");
+  var TableCaption = tableElement("caption", { captionSide: true });
 
-  // node_modules/@mantine/core/esm/components/Switch/Switch.module.css.mjs
-  var classes20 = { "root": "m_5f93f3bb", "input": "m_926b4011", "track": "m_9307d992", "thumb": "m_93039a1d", "trackLabel": "m_8277e082" };
+  // node_modules/@mantine/core/esm/components/Table/TableDataRenderer.mjs
+  var import_jsx_runtime70 = __toESM(require_jsx_runtime(), 1);
+  function TableDataRenderer({ data }) {
+    return /* @__PURE__ */ (0, import_jsx_runtime70.jsxs)(import_jsx_runtime70.Fragment, { children: [
+      data.caption && /* @__PURE__ */ (0, import_jsx_runtime70.jsx)(TableCaption, { children: data.caption }),
+      data.head && /* @__PURE__ */ (0, import_jsx_runtime70.jsx)(TableThead, { children: /* @__PURE__ */ (0, import_jsx_runtime70.jsx)(TableTr, { children: data.head.map((item, index) => /* @__PURE__ */ (0, import_jsx_runtime70.jsx)(TableTh, { children: item }, index)) }) }),
+      data.body && /* @__PURE__ */ (0, import_jsx_runtime70.jsx)(TableTbody, { children: data.body.map((row, rowIndex) => /* @__PURE__ */ (0, import_jsx_runtime70.jsx)(TableTr, { children: row.map((item, index) => /* @__PURE__ */ (0, import_jsx_runtime70.jsx)(TableTd, { children: item }, index)) }, rowIndex)) }),
+      data.foot && /* @__PURE__ */ (0, import_jsx_runtime70.jsx)(TableTfoot, { children: /* @__PURE__ */ (0, import_jsx_runtime70.jsx)(TableTr, { children: data.foot.map((item, index) => /* @__PURE__ */ (0, import_jsx_runtime70.jsx)(TableTh, { children: item }, index)) }) })
+    ] });
+  }
+  TableDataRenderer.displayName = "@mantine/core/TableDataRenderer";
 
-  // node_modules/@mantine/core/esm/components/Switch/Switch.mjs
-  var defaultProps32 = {
-    labelPosition: "right"
+  // node_modules/@mantine/core/esm/components/Table/TableScrollContainer.mjs
+  var import_jsx_runtime71 = __toESM(require_jsx_runtime(), 1);
+  var import_react84 = __toESM(require_react(), 1);
+  var defaultProps18 = {
+    type: "scrollarea"
   };
-  var varsResolver24 = createVarsResolver((theme2, { radius, color, size }) => ({
-    root: {
-      "--switch-radius": radius === void 0 ? void 0 : getRadius(radius),
-      "--switch-height": getSize(size, "switch-height"),
-      "--switch-width": getSize(size, "switch-width"),
-      "--switch-thumb-size": getSize(size, "switch-thumb-size"),
-      "--switch-label-font-size": getSize(size, "switch-label-font-size"),
-      "--switch-track-label-padding": getSize(size, "switch-track-label-padding"),
-      "--switch-color": color ? getThemeColor(color, theme2) : void 0
-    }
-  }));
-  var Switch = factory((_props, ref) => {
-    const props = useProps("Switch", defaultProps32, _props);
+  var varsResolver14 = createVarsResolver(
+    (_, { minWidth, maxHeight, type }) => ({
+      scrollContainer: {
+        "--table-min-width": rem(minWidth),
+        "--table-max-height": rem(maxHeight),
+        "--table-overflow": type === "native" ? "auto" : void 0
+      }
+    })
+  );
+  var TableScrollContainer = factory((_props, ref) => {
+    const props = useProps("TableScrollContainer", defaultProps18, _props);
     const {
       classNames,
       className,
@@ -31657,141 +29864,179 @@
       styles,
       unstyled,
       vars,
-      color,
-      label,
-      offLabel,
-      onLabel,
-      id,
-      size,
-      radius,
-      wrapperProps,
-      thumbIcon,
-      checked,
-      defaultChecked,
-      onChange,
-      labelPosition,
-      description,
-      error,
-      disabled,
-      variant,
-      rootRef,
-      mod,
+      children,
+      minWidth,
+      maxHeight,
+      type,
+      scrollAreaProps,
       ...others
     } = props;
-    const ctx = useSwitchGroupContext();
-    const _size = size || ctx?.size;
     const getStyles = useStyles({
-      name: "Switch",
+      name: "TableScrollContainer",
+      classes: classes14,
       props,
-      classes: classes20,
       className,
       style,
       classNames,
       styles,
       unstyled,
       vars,
-      varsResolver: varsResolver24
+      varsResolver: varsResolver14,
+      rootSelector: "scrollContainer"
     });
-    const { styleProps, rest } = extractStyleProps(others);
-    const uuid = useId(id);
-    const contextProps = ctx ? {
-      checked: ctx.value.includes(rest.value),
-      onChange: ctx.onChange
-    } : {};
-    const [_checked, handleChange] = useUncontrolled({
-      value: contextProps.checked ?? checked,
-      defaultValue: defaultChecked,
-      finalValue: false
-    });
-    return /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)(
-      InlineInput,
+    return /* @__PURE__ */ (0, import_jsx_runtime71.jsx)(
+      Box,
       {
-        ...getStyles("root"),
-        __staticSelector: "Switch",
-        __stylesApiProps: props,
-        id: uuid,
-        size: _size,
-        labelPosition,
-        label,
-        description,
-        error,
-        disabled,
-        bodyElement: "label",
-        labelElement: "span",
-        classNames,
-        styles,
-        unstyled,
-        "data-checked": contextProps.checked || checked || void 0,
-        variant,
-        ref: rootRef,
-        mod,
-        ...styleProps,
-        ...wrapperProps,
-        children: [
-          /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(
-            "input",
-            {
-              ...rest,
-              disabled,
-              checked: _checked,
-              "data-checked": contextProps.checked || checked || void 0,
-              onChange: (event) => {
-                ctx ? contextProps.onChange?.(event) : onChange?.(event);
-                handleChange(event.currentTarget.checked);
-              },
-              id: uuid,
-              ref,
-              type: "checkbox",
-              role: "switch",
-              ...getStyles("input")
-            }
-          ),
-          /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)(
-            Box,
-            {
-              "aria-hidden": "true",
-              component: "span",
-              mod: { error, "label-position": labelPosition, "without-labels": !onLabel && !offLabel },
-              ...getStyles("track"),
-              children: [
-                /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(Box, { component: "span", mod: "reduce-motion", ...getStyles("thumb"), children: thumbIcon }),
-                /* @__PURE__ */ (0, import_jsx_runtime79.jsx)("span", { ...getStyles("trackLabel"), children: _checked ? onLabel : offLabel })
-              ]
-            }
-          )
-        ]
+        component: type === "scrollarea" ? ScrollArea : "div",
+        ...type === "scrollarea" ? maxHeight ? { offsetScrollbars: "xy", ...scrollAreaProps } : { offsetScrollbars: "x", ...scrollAreaProps } : {},
+        ref,
+        ...getStyles("scrollContainer"),
+        ...others,
+        children: /* @__PURE__ */ (0, import_jsx_runtime71.jsx)("div", { ...getStyles("scrollContainerInner"), children })
       }
     );
   });
-  Switch.classes = { ...classes20, ...InlineInputClasses };
-  Switch.displayName = "@mantine/core/Switch";
-  Switch.Group = SwitchGroup;
+  TableScrollContainer.classes = classes14;
+  TableScrollContainer.displayName = "@mantine/core/TableScrollContainer";
+
+  // node_modules/@mantine/core/esm/components/Table/Table.mjs
+  var defaultProps19 = {
+    withRowBorders: true,
+    verticalSpacing: 7
+  };
+  var varsResolver15 = createVarsResolver(
+    (theme2, {
+      layout,
+      captionSide,
+      horizontalSpacing,
+      verticalSpacing,
+      borderColor,
+      stripedColor,
+      highlightOnHoverColor,
+      striped,
+      highlightOnHover,
+      stickyHeaderOffset,
+      stickyHeader
+    }) => ({
+      table: {
+        "--table-layout": layout,
+        "--table-caption-side": captionSide,
+        "--table-horizontal-spacing": getSpacing(horizontalSpacing),
+        "--table-vertical-spacing": getSpacing(verticalSpacing),
+        "--table-border-color": borderColor ? getThemeColor(borderColor, theme2) : void 0,
+        "--table-striped-color": striped && stripedColor ? getThemeColor(stripedColor, theme2) : void 0,
+        "--table-highlight-on-hover-color": highlightOnHover && highlightOnHoverColor ? getThemeColor(highlightOnHoverColor, theme2) : void 0,
+        "--table-sticky-header-offset": stickyHeader ? rem(stickyHeaderOffset) : void 0
+      }
+    })
+  );
+  var Table = factory((_props, ref) => {
+    const props = useProps("Table", defaultProps19, _props);
+    const {
+      classNames,
+      className,
+      style,
+      styles,
+      unstyled,
+      vars,
+      horizontalSpacing,
+      verticalSpacing,
+      captionSide,
+      stripedColor,
+      highlightOnHoverColor,
+      striped,
+      highlightOnHover,
+      withColumnBorders,
+      withRowBorders,
+      withTableBorder,
+      borderColor,
+      layout,
+      variant,
+      data,
+      children,
+      stickyHeader,
+      stickyHeaderOffset,
+      mod,
+      tabularNums,
+      ...others
+    } = props;
+    const getStyles = useStyles({
+      name: "Table",
+      props,
+      className,
+      style,
+      classes: classes14,
+      classNames,
+      styles,
+      unstyled,
+      rootSelector: "table",
+      vars,
+      varsResolver: varsResolver15
+    });
+    return /* @__PURE__ */ (0, import_jsx_runtime72.jsx)(
+      TableProvider,
+      {
+        value: {
+          getStyles,
+          stickyHeader,
+          striped: striped === true ? "odd" : striped || void 0,
+          highlightOnHover,
+          withColumnBorders,
+          withRowBorders,
+          captionSide: captionSide || "bottom"
+        },
+        children: /* @__PURE__ */ (0, import_jsx_runtime72.jsx)(
+          Box,
+          {
+            component: "table",
+            variant,
+            ref,
+            mod: [{ "data-with-table-border": withTableBorder, "data-tabular-nums": tabularNums }, mod],
+            ...getStyles("table"),
+            ...others,
+            children: children || !!data && /* @__PURE__ */ (0, import_jsx_runtime72.jsx)(TableDataRenderer, { data })
+          }
+        )
+      }
+    );
+  });
+  Table.classes = classes14;
+  Table.displayName = "@mantine/core/Table";
+  Table.Td = TableTd;
+  Table.Th = TableTh;
+  Table.Tr = TableTr;
+  Table.Thead = TableThead;
+  Table.Tbody = TableTbody;
+  Table.Tfoot = TableTfoot;
+  Table.Caption = TableCaption;
+  Table.ScrollContainer = TableScrollContainer;
+  Table.DataRenderer = TableDataRenderer;
 
   // node_modules/@mantine/core/esm/components/Tabs/Tabs.mjs
-  var import_jsx_runtime84 = __toESM(require_jsx_runtime(), 1);
-  var import_react94 = __toESM(require_react(), 1);
+  var import_jsx_runtime77 = __toESM(require_jsx_runtime(), 1);
+  var import_react90 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/components/Tabs/Tabs.context.mjs
-  var import_react90 = __toESM(require_react(), 1);
-  var import_jsx_runtime80 = __toESM(require_jsx_runtime(), 1);
+  var import_react86 = __toESM(require_react(), 1);
+  var import_jsx_runtime73 = __toESM(require_jsx_runtime(), 1);
   var [TabsProvider, useTabsContext] = createSafeContext(
     "Tabs component was not found in the tree"
   );
 
   // node_modules/@mantine/core/esm/components/Tabs/TabsList/TabsList.mjs
-  var import_jsx_runtime81 = __toESM(require_jsx_runtime(), 1);
-  var import_react91 = __toESM(require_react(), 1);
+  var import_jsx_runtime74 = __toESM(require_jsx_runtime(), 1);
+  var import_react87 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/components/Tabs/Tabs.module.css.mjs
-  var classes21 = { "root": "m_89d60db1", "list--default": "m_576c9d4", "list": "m_89d33d6d", "panel": "m_b0c91715", "tab": "m_4ec4dce6", "tabSection": "m_fc420b1f", "tab--default": "m_539e827b", "list--outline": "m_6772fbd5", "tab--outline": "m_b59ab47c", "tab--pills": "m_c3381914" };
+  var classes15 = { "root": "m_89d60db1", "list--default": "m_576c9d4", "list": "m_89d33d6d", "panel": "m_b0c91715", "tab": "m_4ec4dce6", "tabSection": "m_fc420b1f", "tab--default": "m_539e827b", "list--outline": "m_6772fbd5", "tab--outline": "m_b59ab47c", "tab--pills": "m_c3381914" };
 
   // node_modules/@mantine/core/esm/components/Tabs/TabsList/TabsList.mjs
-  var defaultProps33 = {};
+  var defaultProps20 = {};
   var TabsList = factory((_props, ref) => {
-    const props = useProps("TabsList", defaultProps33, _props);
+    const props = useProps("TabsList", defaultProps20, _props);
     const { children, className, grow, justify, classNames, styles, style, mod, ...others } = props;
     const ctx = useTabsContext();
-    return /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime74.jsx)(
       Box,
       {
         ...others,
@@ -31821,20 +30066,20 @@
       }
     );
   });
-  TabsList.classes = classes21;
+  TabsList.classes = classes15;
   TabsList.displayName = "@mantine/core/TabsList";
 
   // node_modules/@mantine/core/esm/components/Tabs/TabsPanel/TabsPanel.mjs
-  var import_jsx_runtime82 = __toESM(require_jsx_runtime(), 1);
-  var import_react92 = __toESM(require_react(), 1);
-  var defaultProps34 = {};
+  var import_jsx_runtime75 = __toESM(require_jsx_runtime(), 1);
+  var import_react88 = __toESM(require_react(), 1);
+  var defaultProps21 = {};
   var TabsPanel = factory((_props, ref) => {
-    const props = useProps("TabsPanel", defaultProps34, _props);
+    const props = useProps("TabsPanel", defaultProps21, _props);
     const { children, className, value, classNames, styles, style, mod, keepMounted, ...others } = props;
     const ctx = useTabsContext();
     const active = ctx.value === value;
     const content = ctx.keepMounted || keepMounted ? children : active ? children : null;
-    return /* @__PURE__ */ (0, import_jsx_runtime82.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime75.jsx)(
       Box,
       {
         ...others,
@@ -31854,15 +30099,15 @@
       }
     );
   });
-  TabsPanel.classes = classes21;
+  TabsPanel.classes = classes15;
   TabsPanel.displayName = "@mantine/core/TabsPanel";
 
   // node_modules/@mantine/core/esm/components/Tabs/TabsTab/TabsTab.mjs
-  var import_jsx_runtime83 = __toESM(require_jsx_runtime(), 1);
-  var import_react93 = __toESM(require_react(), 1);
-  var defaultProps35 = {};
+  var import_jsx_runtime76 = __toESM(require_jsx_runtime(), 1);
+  var import_react89 = __toESM(require_react(), 1);
+  var defaultProps22 = {};
   var TabsTab = factory((_props, ref) => {
-    const props = useProps("TabsTab", defaultProps35, _props);
+    const props = useProps("TabsTab", defaultProps22, _props);
     const {
       className,
       children,
@@ -31890,7 +30135,7 @@
       onClick?.(event);
     };
     const stylesApiProps = { classNames, styles, props };
-    return /* @__PURE__ */ (0, import_jsx_runtime83.jsxs)(
+    return /* @__PURE__ */ (0, import_jsx_runtime76.jsxs)(
       UnstyledButton,
       {
         ...others,
@@ -31926,19 +30171,19 @@
           onKeyDown
         }),
         children: [
-          leftSection && /* @__PURE__ */ (0, import_jsx_runtime83.jsx)("span", { ...ctx.getStyles("tabSection", stylesApiProps), "data-position": "left", children: leftSection }),
-          children && /* @__PURE__ */ (0, import_jsx_runtime83.jsx)("span", { ...ctx.getStyles("tabLabel", stylesApiProps), children }),
-          rightSection && /* @__PURE__ */ (0, import_jsx_runtime83.jsx)("span", { ...ctx.getStyles("tabSection", stylesApiProps), "data-position": "right", children: rightSection })
+          leftSection && /* @__PURE__ */ (0, import_jsx_runtime76.jsx)("span", { ...ctx.getStyles("tabSection", stylesApiProps), "data-position": "left", children: leftSection }),
+          children && /* @__PURE__ */ (0, import_jsx_runtime76.jsx)("span", { ...ctx.getStyles("tabLabel", stylesApiProps), children }),
+          rightSection && /* @__PURE__ */ (0, import_jsx_runtime76.jsx)("span", { ...ctx.getStyles("tabSection", stylesApiProps), "data-position": "right", children: rightSection })
         ]
       }
     );
   });
-  TabsTab.classes = classes21;
+  TabsTab.classes = classes15;
   TabsTab.displayName = "@mantine/core/TabsTab";
 
   // node_modules/@mantine/core/esm/components/Tabs/Tabs.mjs
   var VALUE_ERROR = "Tabs.Tab or Tabs.Panel component was rendered with invalid value or without value";
-  var defaultProps36 = {
+  var defaultProps23 = {
     keepMounted: true,
     orientation: "horizontal",
     loop: true,
@@ -31949,7 +30194,7 @@
     variant: "default",
     placement: "left"
   };
-  var varsResolver25 = createVarsResolver((theme2, { radius, color, autoContrast }) => ({
+  var varsResolver16 = createVarsResolver((theme2, { radius, color, autoContrast }) => ({
     root: {
       "--tabs-radius": getRadius(radius),
       "--tabs-color": getThemeColor(color, theme2),
@@ -31957,7 +30202,7 @@
     }
   }));
   var Tabs = factory((_props, ref) => {
-    const props = useProps("Tabs", defaultProps36, _props);
+    const props = useProps("Tabs", defaultProps23, _props);
     const {
       defaultValue,
       value,
@@ -31994,16 +30239,16 @@
     const getStyles = useStyles({
       name: "Tabs",
       props,
-      classes: classes21,
+      classes: classes15,
       className,
       style,
       classNames,
       styles,
       unstyled,
       vars,
-      varsResolver: varsResolver25
+      varsResolver: varsResolver16
     });
-    return /* @__PURE__ */ (0, import_jsx_runtime84.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime77.jsx)(
       TabsProvider,
       {
         value: {
@@ -32025,7 +30270,7 @@
           unstyled,
           getStyles
         },
-        children: /* @__PURE__ */ (0, import_jsx_runtime84.jsx)(
+        children: /* @__PURE__ */ (0, import_jsx_runtime77.jsx)(
           Box,
           {
             ref,
@@ -32047,30 +30292,19 @@
       }
     );
   });
-  Tabs.classes = classes21;
+  Tabs.classes = classes15;
   Tabs.displayName = "@mantine/core/Tabs";
   Tabs.Tab = TabsTab;
   Tabs.Panel = TabsPanel;
   Tabs.List = TabsList;
 
-  // node_modules/@mantine/core/esm/components/TextInput/TextInput.mjs
-  var import_jsx_runtime85 = __toESM(require_jsx_runtime(), 1);
-  var import_react95 = __toESM(require_react(), 1);
-  var defaultProps37 = {};
-  var TextInput = factory((props, ref) => {
-    const _props = useProps("TextInput", defaultProps37, props);
-    return /* @__PURE__ */ (0, import_jsx_runtime85.jsx)(InputBase, { component: "input", ref, ..._props, __staticSelector: "TextInput" });
-  });
-  TextInput.classes = InputBase.classes;
-  TextInput.displayName = "@mantine/core/TextInput";
-
   // node_modules/@mantine/core/esm/components/Title/Title.mjs
-  var import_jsx_runtime87 = __toESM(require_jsx_runtime(), 1);
-  var import_react97 = __toESM(require_react(), 1);
+  var import_jsx_runtime79 = __toESM(require_jsx_runtime(), 1);
+  var import_react92 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/components/Title/get-title-size.mjs
-  var import_react96 = __toESM(require_react(), 1);
-  var import_jsx_runtime86 = __toESM(require_jsx_runtime(), 1);
+  var import_react91 = __toESM(require_react(), 1);
+  var import_jsx_runtime78 = __toESM(require_jsx_runtime(), 1);
   var headings3 = ["h1", "h2", "h3", "h4", "h5", "h6"];
   var sizes = ["xs", "sm", "md", "lg", "xl"];
   function getTitleSize(order, size) {
@@ -32096,13 +30330,13 @@
   }
 
   // node_modules/@mantine/core/esm/components/Title/Title.module.css.mjs
-  var classes22 = { "root": "m_8a5d1357" };
+  var classes16 = { "root": "m_8a5d1357" };
 
   // node_modules/@mantine/core/esm/components/Title/Title.mjs
-  var defaultProps38 = {
+  var defaultProps24 = {
     order: 1
   };
-  var varsResolver26 = createVarsResolver((_, { order, size, lineClamp, textWrap }) => {
+  var varsResolver17 = createVarsResolver((_, { order, size, lineClamp, textWrap }) => {
     const sizeVariables = getTitleSize(order, size);
     return {
       root: {
@@ -32115,7 +30349,7 @@
     };
   });
   var Title = factory((_props, ref) => {
-    const props = useProps("Title", defaultProps38, _props);
+    const props = useProps("Title", defaultProps24, _props);
     const {
       classNames,
       className,
@@ -32134,19 +30368,19 @@
     const getStyles = useStyles({
       name: "Title",
       props,
-      classes: classes22,
+      classes: classes16,
       className,
       style,
       classNames,
       styles,
       unstyled,
       vars,
-      varsResolver: varsResolver26
+      varsResolver: varsResolver17
     });
     if (![1, 2, 3, 4, 5, 6].includes(order)) {
       return null;
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime87.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(
       Box,
       {
         ...getStyles("root"),
@@ -32159,545 +30393,175 @@
       }
     );
   });
-  Title.classes = classes22;
+  Title.classes = classes16;
   Title.displayName = "@mantine/core/Title";
 
-  // src/frontend/app.tsx
-  var import_jsx_runtime88 = __toESM(require_jsx_runtime(), 1);
+  // src/frontend/investments.tsx
+  var import_jsx_runtime80 = __toESM(require_jsx_runtime(), 1);
   var BASE = window.INGRESS_PATH || "";
-  async function fetchStatus() {
-    const res = await fetch(`${BASE}/api/status`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.json();
+  var TYPE_COLORS = {
+    BUY: "green",
+    SELL: "red",
+    DIVIDEND: "blue",
+    TAX: "orange",
+    FEE: "yellow",
+    TRANSFER: "gray",
+    INTEREST: "cyan"
+  };
+  function formatNum(n, decimals = 2) {
+    return n.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
   }
-  async function fetchConfig() {
-    const res = await fetch(`${BASE}/api/config`);
-    return res.json();
+  function SortHeader({ label, field, sortField, sortDir, onSort }) {
+    const active = sortField === field;
+    return /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(UnstyledButton, { onClick: () => onSort(field), style: { fontWeight: 600 }, children: [
+      label,
+      " ",
+      active ? sortDir === "asc" ? "\u25B2" : "\u25BC" : ""
+    ] });
   }
-  async function saveConfig(config) {
-    const res = await fetch(`${BASE}/api/config`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(config)
-    });
-    const result = await res.json();
-    return result.success;
-  }
-  async function fetchBookings() {
-    const res = await fetch(`${BASE}/api/bookings`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.json();
-  }
-  async function resumeProviders() {
-    const res = await fetch(`${BASE}/api/resume`, { method: "POST" });
-    const result = await res.json();
-    return result.success;
-  }
-  function formatDate(dateStr) {
-    const d = /* @__PURE__ */ new Date(dateStr + "T00:00:00");
-    return d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
-  }
-  function DatePicker({ selected, onChange }) {
-    const days = [];
-    const now = /* @__PURE__ */ new Date();
-    for (let i = 1; i <= 14; i++) {
-      const d = new Date(now);
-      d.setDate(d.getDate() + i);
-      const iso = d.toISOString().slice(0, 10);
-      days.push({
-        date: iso,
-        label: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-        weekday: d.toLocaleDateString("en-US", { weekday: "short" })
-      });
-    }
-    const toggle = (date) => {
-      if (selected.includes(date)) {
-        onChange(selected.filter((d) => d !== date));
+  function HoldingsTable({ holdings }) {
+    const [sortField, setSortField] = (0, import_react93.useState)("currentValueEur");
+    const [sortDir, setSortDir] = (0, import_react93.useState)("desc");
+    const onSort = (field) => {
+      if (sortField === field) {
+        setSortDir((d) => d === "asc" ? "desc" : "asc");
       } else {
-        onChange([...selected, date].sort());
+        setSortField(field);
+        setSortDir("desc");
       }
     };
-    const isWeekend = (date) => {
-      const d = /* @__PURE__ */ new Date(date + "T00:00:00");
-      return d.getDay() === 0 || d.getDay() === 6;
-    };
-    return /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)("div", { children: [
-      /* @__PURE__ */ (0, import_jsx_runtime88.jsx)("div", { className: "date-picker-grid", children: days.map((d) => /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(
-        UnstyledButton,
-        {
-          className: `date-chip ${selected.includes(d.date) ? "date-chip-selected" : ""} ${isWeekend(d.date) ? "date-chip-weekend" : ""}`,
-          onClick: () => toggle(d.date),
-          children: [
-            /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { size: "xs", ta: "center", opacity: 0.7, tt: "uppercase", lh: 1.2, children: d.weekday }),
-            /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { size: "xs", ta: "center", fw: 600, lh: 1.2, children: d.label })
-          ]
-        },
-        d.date
-      )) }),
-      /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { size: "xs", c: "dimmed", mt: "xs", fs: "italic", children: selected.length === 0 ? "No dates selected \u2014 scanning next 7 days automatically" : `${selected.length} date(s) selected` })
-    ] });
+    const sorted = (0, import_react93.useMemo)(() => {
+      return [...holdings].sort((a, b) => {
+        const av = a[sortField];
+        const bv = b[sortField];
+        if (typeof av === "string") return sortDir === "asc" ? av.localeCompare(bv) : bv.localeCompare(av);
+        return sortDir === "asc" ? av - bv : bv - av;
+      });
+    }, [holdings, sortField, sortDir]);
+    const totals = (0, import_react93.useMemo)(() => ({
+      totalCost: holdings.reduce((s, h) => s + h.totalCostBasisEur, 0),
+      totalValue: holdings.reduce((s, h) => s + h.currentValueEur, 0),
+      totalPnl: holdings.reduce((s, h) => s + h.unrealizedPnlEur, 0)
+    }), [holdings]);
+    return /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(ScrollArea, { children: /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Table, { striped: true, highlightOnHover: true, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Thead, { children: /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Table.Tr, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "Symbol", field: "symbol", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "Qty", field: "totalQuantity", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "Avg Cost", field: "averageCostBasis", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "Total Cost", field: "totalCostBasisEur", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "Price", field: "currentPrice", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "Value", field: "currentValueEur", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "P&L", field: "unrealizedPnlEur", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "P&L %", field: "unrealizedPnlPercent", sortField, sortDir, onSort }) })
+      ] }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Tbody, { children: sorted.map((h) => /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Table.Tr, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Text, { fw: 600, children: h.symbol }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right" }, children: formatNum(h.totalQuantity, h.totalQuantity % 1 === 0 ? 0 : 4) }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right" }, children: formatNum(h.averageCostBasis) }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right" }, children: formatNum(h.totalCostBasisEur) }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right" }, children: h.currentPrice > 0 ? formatNum(h.currentPrice) : "\u2014" }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right" }, children: h.currentPrice > 0 ? formatNum(h.currentValueEur) : "\u2014" }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right", color: h.unrealizedPnl >= 0 ? "#51cf66" : "#ff6b6b" }, children: h.currentPrice > 0 ? formatNum(h.unrealizedPnlEur) : "\u2014" }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right", color: h.unrealizedPnlPercent >= 0 ? "#51cf66" : "#ff6b6b" }, children: h.currentPrice > 0 ? `${formatNum(h.unrealizedPnlPercent)}%` : "\u2014" })
+      ] }, h.symbol)) }),
+      /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Tfoot, { children: /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Table.Tr, { style: { fontWeight: 700 }, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { children: "Total" }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, {}),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, {}),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right" }, children: formatNum(totals.totalCost) }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, {}),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right" }, children: formatNum(totals.totalValue) }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right", color: totals.totalPnl >= 0 ? "#51cf66" : "#ff6b6b" }, children: formatNum(totals.totalPnl) }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right", color: totals.totalPnl >= 0 ? "#51cf66" : "#ff6b6b" }, children: totals.totalCost > 0 ? `${formatNum(totals.totalPnl / totals.totalCost * 100)}%` : "\u2014" })
+      ] }) })
+    ] }) });
   }
-  function SlotTable({ slots }) {
-    if (!slots || slots.length === 0) {
-      return /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Center, { py: 48, children: /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Stack, { align: "center", gap: "xs", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { size: "2.5rem", opacity: 0.7, children: "\u{1F3BE}" }),
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { fw: 600, size: "md", children: "No courts available" }),
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { size: "sm", c: "dimmed", maw: 300, ta: "center", children: "No courts matching your preferences were found. We'll keep checking!" })
-      ] }) });
-    }
-    const byDate = {};
-    for (const slot of slots) {
-      if (!byDate[slot.date]) byDate[slot.date] = [];
-      byDate[slot.date].push(slot);
-    }
-    return /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Stack, { gap: "lg", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Group, { gap: "xs", align: "baseline", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { size: "2rem", fw: 700, c: "blue", lh: 1, children: slots.length }),
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Text, { size: "sm", c: "dimmed", fw: 500, children: [
-          "court",
-          slots.length !== 1 ? "s" : "",
-          " available"
-        ] })
-      ] }),
-      Object.entries(byDate).sort().map(([date, dateSlots]) => /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Stack, { gap: "sm", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(
-          Group,
-          {
-            justify: "space-between",
-            pb: 6,
-            style: { borderBottom: "1px solid var(--mantine-color-dark-4)" },
-            children: [
-              /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { fw: 600, size: "sm", c: "dimmed", children: formatDate(date) }),
-              /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Badge, { size: "sm", variant: "default", radius: "xl", children: [
-                dateSlots.length,
-                " slot",
-                dateSlots.length !== 1 ? "s" : ""
-              ] })
-            ]
-          }
-        ),
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(SimpleGrid, { cols: { base: 1, xs: 2, sm: 3 }, spacing: "sm", children: dateSlots.sort((a, b) => a.startTime.localeCompare(b.startTime)).map((s, i) => /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Paper, { withBorder: true, p: "sm", radius: "md", className: "slot-card", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Group, { justify: "space-between", mb: 4, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Text, { ff: "monospace", fw: 600, size: "sm", children: [
-              s.startTime,
-              " \u2013 ",
-              s.endTime
-            ] }),
-            /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Badge, { size: "xs", variant: "light", color: "gray", radius: "xl", children: [
-              s.durationMinutes,
-              " min"
-            ] })
-          ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Group, { justify: "space-between", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { size: "xs", c: "dimmed", truncate: true, children: s.courtName }),
-            /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Badge, { size: "xs", variant: "dot", color: "blue", children: s.provider })
-          ] })
-        ] }, i)) })
-      ] }, date))
-    ] });
-  }
-  function SettingsPanel() {
-    const [config, setConfig] = (0, import_react98.useState)(null);
-    const [saving, setSaving] = (0, import_react98.useState)(false);
-    const [saveResult, setSaveResult] = (0, import_react98.useState)(null);
-    (0, import_react98.useEffect)(() => {
-      fetchConfig().then(setConfig).catch(console.error);
-    }, []);
-    const update = (0, import_react98.useCallback)((key, value) => {
-      setConfig((prev) => prev ? { ...prev, [key]: value } : prev);
-    }, []);
-    const handleSave = async () => {
-      if (!config) return;
-      setSaving(true);
-      setSaveResult(null);
-      try {
-        const ok = await saveConfig(config);
-        setSaveResult(ok ? "ok" : "error");
-      } catch {
-        setSaveResult("error");
+  function TransactionsTable({ transactions }) {
+    const [sortField, setSortField] = (0, import_react93.useState)("date");
+    const [sortDir, setSortDir] = (0, import_react93.useState)("desc");
+    const onSort = (field) => {
+      if (sortField === field) {
+        setSortDir((d) => d === "asc" ? "desc" : "asc");
+      } else {
+        setSortField(field);
+        setSortDir("desc");
       }
-      setSaving(false);
-      setTimeout(() => setSaveResult(null), 3e3);
     };
-    if (!config) {
-      return /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Center, { py: "xl", children: /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Loader, { size: "sm" }) });
-    }
-    return /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Stack, { gap: "md", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Card, { withBorder: true, radius: "md", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Card.Section, { withBorder: true, inheritPadding: true, py: "xs", children: /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { fw: 600, size: "sm", children: "Dates to Scan" }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Card.Section, { inheritPadding: true, py: "md", children: /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(
-          DatePicker,
-          {
-            selected: config.scan_dates ?? [],
-            onChange: (dates) => update("scan_dates", dates)
-          }
-        ) })
-      ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Card, { withBorder: true, radius: "md", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Card.Section, { withBorder: true, inheritPadding: true, py: "xs", children: /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { fw: 600, size: "sm", children: "General" }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Card.Section, { inheritPadding: true, py: "md", children: /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(SimpleGrid, { cols: { base: 1, sm: 2 }, spacing: "sm", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(
-            NumberInput,
-            {
-              label: "Poll Interval (seconds)",
-              min: 10,
-              max: 3600,
-              value: config.poll_interval_seconds,
-              onChange: (v) => update("poll_interval_seconds", typeof v === "number" ? v : config.poll_interval_seconds),
-              size: "sm"
-            }
-          ),
-          /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(
-            TextInput,
-            {
-              label: "Preferred Start Time",
-              type: "time",
-              value: config.preferred_start_time,
-              onChange: (e) => update("preferred_start_time", e.currentTarget.value),
-              size: "sm"
-            }
-          ),
-          /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(
-            TextInput,
-            {
-              label: "Preferred End Time",
-              type: "time",
-              value: config.preferred_end_time,
-              onChange: (e) => update("preferred_end_time", e.currentTarget.value),
-              size: "sm"
-            }
-          ),
-          /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(
-            NumberInput,
-            {
-              label: "Min Duration (minutes)",
-              min: 30,
-              max: 180,
-              step: 30,
-              value: config.preferred_duration_minutes,
-              onChange: (v) => update(
-                "preferred_duration_minutes",
-                typeof v === "number" ? v : config.preferred_duration_minutes
-              ),
-              size: "sm"
-            }
-          ),
-          /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(
-            TextInput,
-            {
-              label: "Notify Device",
-              placeholder: "e.g. iphone",
-              value: config.notify_device,
-              onChange: (e) => update("notify_device", e.currentTarget.value),
-              size: "sm"
-            }
-          )
-        ] }) })
-      ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Card, { withBorder: true, radius: "md", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Card.Section, { withBorder: true, inheritPadding: true, py: "xs", children: /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { fw: 600, size: "sm", children: "SEB Arena" }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Card.Section, { inheritPadding: true, py: "md", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(
-            Switch,
-            {
-              label: "Enabled",
-              checked: config.seb_enabled,
-              onChange: (e) => update("seb_enabled", e.currentTarget.checked),
-              size: "sm"
-            }
-          ),
-          config.seb_enabled && /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(
-            TextInput,
-            {
-              label: "Session Token",
-              value: config.seb_session_token,
-              onChange: (e) => update("seb_session_token", e.currentTarget.value),
-              autoComplete: "off",
-              size: "sm",
-              mt: "sm"
-            }
-          )
-        ] })
-      ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Card, { withBorder: true, radius: "md", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Card.Section, { withBorder: true, inheritPadding: true, py: "xs", children: /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { fw: 600, size: "sm", children: "Baltic Tennis" }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Card.Section, { inheritPadding: true, py: "md", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(
-            Switch,
-            {
-              label: "Enabled",
-              checked: config.baltic_tennis_enabled,
-              onChange: (e) => update("baltic_tennis_enabled", e.currentTarget.checked),
-              size: "sm"
-            }
-          ),
-          config.baltic_tennis_enabled && /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(SimpleGrid, { cols: { base: 1, sm: 2 }, spacing: "sm", mt: "sm", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(
-              TextInput,
-              {
-                label: "Username",
-                placeholder: "email@example.com",
-                value: config.baltic_tennis_username,
-                onChange: (e) => update("baltic_tennis_username", e.currentTarget.value),
-                autoComplete: "off",
-                size: "sm"
-              }
-            ),
-            /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(
-              PasswordInput,
-              {
-                label: "Password",
-                value: config.baltic_tennis_password,
-                onChange: (e) => update("baltic_tennis_password", e.currentTarget.value),
-                autoComplete: "off",
-                size: "sm"
-              }
-            )
-          ] })
-        ] })
-      ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Card, { withBorder: true, radius: "md", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Card.Section, { withBorder: true, inheritPadding: true, py: "xs", children: /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { fw: 600, size: "sm", children: "Advanced" }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Card.Section, { inheritPadding: true, py: "md", children: /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(
-          Switch,
-          {
-            label: "Debug Mode",
-            checked: config.debug,
-            onChange: (e) => update("debug", e.currentTarget.checked),
-            size: "sm"
-          }
-        ) })
-      ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Group, { gap: "md", className: "save-bar", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Button, { onClick: handleSave, loading: saving, size: "sm", children: "Save Settings" }),
-        saveResult === "ok" && /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { size: "sm", c: "green", children: "Settings saved! Changes applied." }),
-        saveResult === "error" && /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { size: "sm", c: "red", children: "Failed to save settings." })
-      ] })
-    ] });
-  }
-  function BookingsPanel() {
-    const [bookings, setBookings] = (0, import_react98.useState)([]);
-    const [errors, setErrors] = (0, import_react98.useState)([]);
-    const [loading, setLoading] = (0, import_react98.useState)(true);
-    const load = (0, import_react98.useCallback)(async () => {
-      setLoading(true);
-      try {
-        const data = await fetchBookings();
-        setBookings(data.bookings ?? []);
-        setErrors(data.errors ?? []);
-      } catch {
-        setErrors(["Failed to fetch bookings"]);
-      }
-      setLoading(false);
-    }, []);
-    (0, import_react98.useEffect)(() => {
-      load();
-    }, [load]);
-    if (loading) {
-      return /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Center, { py: "xl", children: /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Loader, { size: "sm" }) });
-    }
-    return /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Stack, { gap: "md", children: [
-      errors.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Alert, { color: "red", variant: "light", title: "Error", children: errors.map((e, i) => /* @__PURE__ */ (0, import_jsx_runtime88.jsx)("div", { children: e }, i)) }),
-      bookings.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Center, { py: 48, children: /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Stack, { align: "center", gap: "xs", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { size: "2.5rem", opacity: 0.7, children: "\u{1F4CB}" }),
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { fw: 600, size: "md", children: "No bookings" }),
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { size: "sm", c: "dimmed", children: "No upcoming court bookings found." })
-      ] }) }) : /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Stack, { gap: "lg", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Group, { gap: "xs", align: "baseline", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { size: "2rem", fw: 700, c: "blue", lh: 1, children: bookings.length }),
-          /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Text, { size: "sm", c: "dimmed", fw: 500, children: [
-            "booking",
-            bookings.length !== 1 ? "s" : ""
-          ] })
+    const sorted = (0, import_react93.useMemo)(() => {
+      return [...transactions].sort((a, b) => {
+        const av = a[sortField];
+        const bv = b[sortField];
+        if (typeof av === "string") return sortDir === "asc" ? av.localeCompare(bv) : bv.localeCompare(av);
+        return sortDir === "asc" ? av - bv : bv - av;
+      });
+    }, [transactions, sortField, sortDir]);
+    return /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(ScrollArea, { children: /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Table, { striped: true, highlightOnHover: true, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Thead, { children: /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Table.Tr, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "Date", field: "date", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "Type", field: "type", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "Symbol", field: "symbol", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { children: "Description" }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "Qty", field: "quantity", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "Price", field: "pricePerUnit", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "Amount", field: "amount", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { children: "D/K" })
+      ] }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Tbody, { children: sorted.map((t, i) => /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Table.Tr, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { children: t.date }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Badge, { color: TYPE_COLORS[t.type] || "gray", variant: "light", size: "sm", children: t.type }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Text, { fw: t.symbol ? 600 : 400, children: t.symbol || "\u2014" }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { maxWidth: 300 }, children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Text, { size: "sm", truncate: "end", children: t.description }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right" }, children: t.quantity !== 0 ? formatNum(t.quantity, Math.abs(t.quantity) % 1 === 0 ? 0 : 4) : "\u2014" }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right" }, children: t.pricePerUnit > 0 ? formatNum(t.pricePerUnit) : "\u2014" }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Table.Td, { style: { textAlign: "right" }, children: [
+          formatNum(t.amount),
+          " ",
+          t.currency
         ] }),
-        Object.entries(
-          bookings.reduce((acc, b) => {
-            (acc[b.date] ??= []).push(b);
-            return acc;
-          }, {})
-        ).sort().map(([date, items]) => /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Stack, { gap: "sm", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(
-            Group,
-            {
-              justify: "space-between",
-              pb: 6,
-              style: { borderBottom: "1px solid var(--mantine-color-dark-4)" },
-              children: [
-                /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { fw: 600, size: "sm", c: "dimmed", children: formatDate(date) }),
-                /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Badge, { size: "sm", variant: "default", radius: "xl", children: [
-                  items.length,
-                  " booking",
-                  items.length !== 1 ? "s" : ""
-                ] })
-              ]
-            }
-          ),
-          /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(SimpleGrid, { cols: { base: 1, xs: 2, sm: 3 }, spacing: "sm", children: items.sort((a, b) => a.startTime.localeCompare(b.startTime)).map((b, i) => /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(
-            Paper,
-            {
-              withBorder: true,
-              p: "sm",
-              radius: "md",
-              className: "slot-card slot-card-booked",
-              children: [
-                /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Group, { justify: "space-between", mb: 4, children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Text, { ff: "monospace", fw: 600, size: "sm", children: [
-                    b.startTime,
-                    " \u2013 ",
-                    b.endTime
-                  ] }),
-                  /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Badge, { size: "xs", variant: "light", color: "gray", radius: "xl", children: [
-                    b.durationMinutes,
-                    " min"
-                  ] })
-                ] }),
-                /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Group, { justify: "space-between", children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { size: "xs", c: "dimmed", truncate: true, children: b.courtName }),
-                  /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Badge, { size: "xs", variant: "dot", color: "blue", children: b.provider })
-                ] }),
-                (b.price || b.status) && /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Group, { gap: "xs", mt: 4, children: [
-                  b.price && /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { size: "xs", c: "dimmed", children: b.price }),
-                  b.status && /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { size: "xs", c: "dimmed", children: b.status })
-                ] })
-              ]
-            },
-            i
-          )) })
-        ] }, date))
-      ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Button, { variant: "default", size: "xs", onClick: load, children: "Refresh" })
-    ] });
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { children: t.raw?.debitCredit || "\u2014" })
+      ] }, t.id + "-" + i)) })
+    ] }) });
   }
+  var theme = createTheme({ primaryColor: "blue", defaultRadius: "md" });
   function App() {
-    const [tab, setTab] = (0, import_react98.useState)("courts");
-    const [status, setStatus] = (0, import_react98.useState)(null);
-    const [error, setError] = (0, import_react98.useState)(false);
-    const refresh = (0, import_react98.useCallback)(async () => {
-      try {
-        const data = await fetchStatus();
-        setStatus(data);
-        setError(false);
-      } catch {
-        setError(true);
-      }
+    const [data, setData] = (0, import_react93.useState)(null);
+    const [loading, setLoading] = (0, import_react93.useState)(true);
+    const [error, setError] = (0, import_react93.useState)(null);
+    (0, import_react93.useEffect)(() => {
+      fetch(`${BASE}/api/investments`).then((r2) => r2.json()).then((d) => {
+        setData(d);
+        setLoading(false);
+      }).catch((e) => {
+        setError(e.message);
+        setLoading(false);
+      });
     }, []);
-    (0, import_react98.useEffect)(() => {
-      refresh();
-      const id = setInterval(refresh, 1e4);
-      return () => clearInterval(id);
-    }, [refresh]);
-    const [resuming, setResuming] = (0, import_react98.useState)(false);
-    const handleResume = (0, import_react98.useCallback)(async () => {
-      setResuming(true);
-      try {
-        await resumeProviders();
-        await refresh();
-      } catch {
-      }
-      setResuming(false);
-    }, [refresh]);
-    const configWarnings = status?.configWarnings ?? [];
-    const providerErrors = status?.providerErrors ?? [];
-    const disabledProviders = status?.disabledProviders ?? [];
-    const hasIssues = configWarnings.length > 0 || disabledProviders.length > 0;
-    const statusBadge = error ? /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Badge, { color: "red", variant: "light", children: "Error" }) : hasIssues ? /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Badge, { color: "red", variant: "light", children: "Issues" }) : status ? /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Badge, { color: "green", variant: "light", children: "Running" }) : /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Badge, { color: "gray", variant: "light", children: "Loading..." });
-    return /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Container, { size: 860, px: "md", py: "lg", children: /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Stack, { gap: "lg", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Group, { justify: "space-between", wrap: "wrap", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Group, { gap: "sm", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Title, { order: 3, children: "Arnoldas Life Helper" }),
-          statusBadge
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Button, { variant: "subtle", component: "a", href: `${BASE}/investments`, size: "xs", children: "Investments" })
+    return /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(MantineProvider, { theme, defaultColorScheme: "dark", children: /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Container, { size: "xl", py: "md", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Group, { justify: "space-between", mb: "md", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Title, { order: 3, children: "Investments" }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Button, { variant: "subtle", component: "a", href: `${BASE}/`, size: "xs", children: "Back to Life Helper" })
       ] }),
-      configWarnings.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Alert, { color: "yellow", variant: "light", title: "Configuration issues", children: /* @__PURE__ */ (0, import_jsx_runtime88.jsx)("ul", { style: { margin: 0, paddingLeft: 16 }, children: configWarnings.map((w, i) => /* @__PURE__ */ (0, import_jsx_runtime88.jsx)("li", { children: w.message }, i)) }) }),
-      disabledProviders.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Alert, { color: "red", variant: "light", title: "Disabled providers", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)("ul", { style: { margin: 0, paddingLeft: 16 }, children: [
-          providerErrors.map((e, i) => /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)("li", { children: [
-            e.provider,
-            " (",
-            e.date,
-            "): ",
-            e.error
-          ] }, i)),
-          disabledProviders.filter((name) => !providerErrors.some((e) => e.provider === name)).map((name, i) => /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)("li", { children: [
-            name,
-            ": disabled due to previous error"
-          ] }, `d-${i}`))
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(
-          Button,
-          {
-            variant: "light",
-            color: "red",
-            size: "xs",
-            mt: "sm",
-            onClick: handleResume,
-            loading: resuming,
-            children: "Resume All Providers"
-          }
-        )
-      ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Tabs, { value: tab, onChange: setTab, variant: "pills", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Tabs.List, { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Tabs.Tab, { value: "courts", children: "Courts" }),
-          /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Tabs.Tab, { value: "bookings", children: "Bookings" }),
-          /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Tabs.Tab, { value: "settings", children: "Settings" })
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Tabs.Panel, { value: "courts", pt: "md", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(SlotTable, { slots: status?.availableSlots ?? [] }),
-          status?.lastPoll && /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Group, { gap: 4, mt: "md", wrap: "wrap", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Text, { size: "xs", c: "dimmed", children: [
-              "Last poll: ",
-              new Date(status.lastPoll).toLocaleTimeString()
-            ] }),
-            status.pollStats && /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(import_jsx_runtime88.Fragment, { children: [
-              /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { size: "xs", c: "dimmed", opacity: 0.4, children: "|" }),
-              /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Text, { size: "xs", c: "dimmed", children: [
-                status.pollStats.datesChecked,
-                " date",
-                status.pollStats.datesChecked !== 1 ? "s" : "",
-                " checked"
-              ] }),
-              /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { size: "xs", c: "dimmed", opacity: 0.4, children: "|" }),
-              /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Text, { size: "xs", c: "dimmed", children: [
-                status.totalSlots,
-                " total / ",
-                (status.availableSlots ?? []).length,
-                " matching"
-              ] }),
-              /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { size: "xs", c: "dimmed", opacity: 0.4, children: "|" }),
-              /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(Text, { size: "xs", c: "dimmed", children: [
-                status.pollStats.durationMs,
-                "ms"
-              ] }),
-              Object.keys(status.pollStats.providerBreakdown ?? {}).length > 0 && /* @__PURE__ */ (0, import_jsx_runtime88.jsxs)(import_jsx_runtime88.Fragment, { children: [
-                /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { size: "xs", c: "dimmed", opacity: 0.4, children: "|" }),
-                /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Text, { size: "xs", c: "dimmed", children: Object.entries(status.pollStats.providerBreakdown).map(([k, v]) => `${k}: ${v}`).join(", ") })
-              ] })
-            ] })
+      loading && /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Center, { py: "xl", children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Loader, { size: "sm" }) }),
+      error && /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Alert, { color: "red", title: "Error", mb: "md", children: error }),
+      data && /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Tabs, { defaultValue: "holdings", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Tabs.List, { mb: "md", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Tabs.Tab, { value: "holdings", children: [
+            "Holdings (",
+            data.holdings.length,
+            ")"
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Tabs.Tab, { value: "transactions", children: [
+            "Transactions (",
+            data.transactions.length,
+            ")"
           ] })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Tabs.Panel, { value: "bookings", pt: "md", children: /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(BookingsPanel, {}) }),
-        /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Tabs.Panel, { value: "settings", pt: "md", children: /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(SettingsPanel, {}) })
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Tabs.Panel, { value: "holdings", children: data.holdings.length > 0 ? /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Card, { padding: "xs", children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(HoldingsTable, { holdings: data.holdings }) }) : /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Text, { c: "dimmed", children: "No holdings found." }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Tabs.Panel, { value: "transactions", children: data.transactions.length > 0 ? /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Card, { padding: "xs", children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(TransactionsTable, { transactions: data.transactions }) }) : /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Text, { c: "dimmed", children: "No transactions found." }) })
       ] })
     ] }) });
   }
-  var theme = createTheme({
-    primaryColor: "blue",
-    defaultRadius: "md"
-  });
-  function mount() {
-    const root = document.getElementById("app");
-    const app = /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(MantineProvider, { theme, defaultColorScheme: "dark", children: /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(App, {}) });
-    if (root) {
-      (0, import_client.createRoot)(root).render(app);
-    } else {
-      document.addEventListener("DOMContentLoaded", () => {
-        (0, import_client.createRoot)(document.getElementById("app")).render(app);
-      });
-    }
-  }
-  mount();
+  (0, import_client.createRoot)(document.getElementById("app")).render(/* @__PURE__ */ (0, import_jsx_runtime80.jsx)(App, {}));
 })();
 /*! Bundled license information:
 
@@ -32758,4 +30622,4 @@ react/cjs/react-jsx-runtime.development.js:
    * LICENSE file in the root directory of this source tree.
    *)
 */
-//# sourceMappingURL=app.js.map
+//# sourceMappingURL=investments.js.map

@@ -122,10 +122,12 @@
 - Designed for easy swap to CSV-backed rate lookup
 - All portfolio values expressible in original currency and EUR
 
-### Current Prices
+### Market Prices (Date-Based)
 
-- Stub `getCurrentPrice` with hardcoded approximate prices for known tickers
-- Covers Baltic (APG1L, IGN1L, TEL1L, KNF1L, ROE1L), EU (ASML), and US/HK (BABA, WIX, BYD) stocks
+- Date-based price lookup via `getPrice(ticker, date)` — returns the closest available price snapshot for any date
+- `getCurrentPrice(ticker)` convenience wrapper uses today's date
+- Hardcoded price history (2020–2026) for all tracked tickers: Baltic (APG1L, IGN1L, TEL1L, KNF1L, SAB1L, LNA1L, ROE1L), EU (ASML), US/HK (BABA, WIX, BYD/002594), and Revolut (E3G1/Evolution AB)
+- Same closest-date interpolation pattern as currency conversion
 
 ### Swedbank CSV Parser
 
@@ -150,11 +152,42 @@
 - Client-side column sorting
 - Navigation link from main dashboard
 
+### Revolut Parser
+
+- Parses multi-section Revolut CSV export from `/data/Investments/revolut/`
+- **Brokerage sells** (EUR & USD): creates synthetic BUY + SELL transaction pairs from each sell row (dateAcquired/costBasis → BUY, dateSold/grossProceeds → SELL) for FIFO tracking
+- **Crypto sells**: BTC and XRP trades parsed as BUY + CRYPTO_SELL pairs with USD→EUR conversion
+- **Interest summary**: extracts total earned interest from Flexible Cash Funds (EUR/USD) and Savings Accounts (EUR/USD) — displayed as a summary card, no individual transactions
+- Supports multi-currency: EUR brokerage (E3G1/Evolution), USD brokerage (BABA/Alibaba), USD crypto
+- Base currency conversion uses existing EUR/USD rate table
+
+### Interactive Brokers Parser
+
+- Parses IB trade confirmation CSV exports from `/data/Investments/interactive-brokers/`
+- Handles 90+ column CSV format with full field mapping to `IInteractiveBrokersTransaction`
+- Classifies STK (stock/ADR) trades as BUY or SELL transactions
+- Skips CASH (forex) rows — internal currency conversions, not investment transactions
+- Multi-currency support: EUR, USD, CNH, DKK — converts to EUR base currency using IB's `FXRateToBase` when available, falls back to internal rate table
+- Fees: combines IB commission + taxes per trade
+
+### Wix Equity Parser
+
+- Parses Wix employer equity data from `/data/Investments/wix/`
+- **shares-issued.txt**: RSU vestings and ESPP purchases — space-delimited, no header
+- **shares-sold.txt**: share sales (same-day compensation sales and later market sales) — space-delimited, no header
+- Handles variable-length sale type field ("Sell of Stock" vs "Sell of Restricted Stock")
+- Deduplicates records (issued by vestingDate+grantId+shares, sold by transactionId)
+- RSU vestings → `RSU_VEST` transactions with FMV as cost basis for portfolio tracking
+- ESPP purchases → `ESPP_PURCHASE` transactions with discounted purchase price as cost basis
+- Sales → `SELL` transactions with fees
+- All amounts in USD, converted to EUR base currency
+- Holdings computation supports RSU/ESPP lot sources for FIFO tracking
+
 ### Parser Interface
 
 - Generic `IDataParser<T>` interface defined for each broker
 - `IRevolutParser` handles multi-section file format (flexible cash, savings, brokerage, crypto)
-- Remaining parsers not yet built (IB, Revolut, Wix)
+- All broker parsers implemented
 
 ---
 

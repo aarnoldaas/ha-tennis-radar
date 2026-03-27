@@ -2,15 +2,13 @@
 // Data Parser Interface
 // ============================================================================
 //
-// One implementation per broker. Parsers are NOT implemented yet — this file
-// defines the contract they must fulfill.
+// One implementation per broker.
 //
-// TODO: Implement parsers:
+// Parsers:
 //   - SwedBankParser      → ISwedBankTransaction[]
 //   - IBParser            → IInteractiveBrokersTransaction[]
 //   - RevolutParser       → IRevolutData (multi-section)
-//   - WixIssuedParser     → IWixShareIssued[]
-//   - WixSoldParser       → IWixShareSold[]
+//   - WixParser           → IWixShareIssued[] + IWixShareSold[]
 // ============================================================================
 
 import type {
@@ -49,9 +47,8 @@ export interface IRevolutParser {
 }
 
 export { SwedBankParser, parseAllSwedbankFiles, classifySwedbankTransaction, classifySwedbankTransactions } from './swedbank-parser.js';
-
-// TODO: Implement the following parser classes
-// export class IBParser implements IDataParser<IInteractiveBrokersTransaction> { ... }
-// export class RevolutParserImpl implements IRevolutParser { ... }
-// export class WixIssuedParser implements IDataParser<IWixShareIssued> { ... }
-// export class WixSoldParser implements IDataParser<IWixShareSold> { ... }
+export { parseRevolutFile, parseAllRevolutFiles, classifyRevolutTransactions } from './revolut-parser.js';
+export type { RevolutParsedData, RevolutInterestSummary } from './revolut-parser.js';
+export { parseIBFile, parseAllIBFiles, classifyIBTransactions } from './ib-parser.js';
+export { parseWixIssuedFile, parseWixSoldFile, parseAllWixFiles, classifyWixTransactions } from './wix-parser.js';
+export type { WixParsedData } from './wix-parser.js';

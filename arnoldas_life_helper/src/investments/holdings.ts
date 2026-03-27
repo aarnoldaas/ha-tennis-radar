@@ -6,13 +6,14 @@ export function computeHoldings(transactions: ITransaction[]): IHolding[] {
   const lotsBySymbol = new Map<string, ILot[]>();
 
   for (const txn of sorted) {
-    if (txn.type === 'BUY' && txn.quantity > 0) {
+    if ((txn.type === 'BUY' || txn.type === 'RSU_VEST' || txn.type === 'ESPP_PURCHASE') && txn.quantity > 0) {
       const lots = lotsBySymbol.get(txn.symbol) || [];
+      const source = txn.type === 'RSU_VEST' ? 'RSU' : txn.type === 'ESPP_PURCHASE' ? 'ESPP' : 'MARKET';
       lots.push({
         id: `lot-${txn.id}`,
         symbol: txn.symbol,
         broker: txn.broker,
-        source: 'MARKET',
+        source,
         acquisitionDate: txn.date,
         originalQuantity: txn.quantity,
         remainingQuantity: txn.quantity,
@@ -22,7 +23,7 @@ export function computeHoldings(transactions: ITransaction[]): IHolding[] {
         sourceTransactionId: txn.id,
       });
       lotsBySymbol.set(txn.symbol, lots);
-    } else if (txn.type === 'SELL' && txn.quantity < 0) {
+    } else if ((txn.type === 'SELL' || txn.type === 'CRYPTO_SELL') && txn.quantity < 0) {
       const lots = lotsBySymbol.get(txn.symbol);
       if (!lots || lots.length === 0) continue;
 

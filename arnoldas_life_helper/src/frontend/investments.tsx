@@ -56,9 +56,18 @@ interface IHolding {
   unrealizedPnlEur: number;
 }
 
+interface InterestSummary {
+  flexibleCashEur: number;
+  flexibleCashUsd: number;
+  savingsEur: number;
+  savingsUsd: number;
+  totalEur: number;
+}
+
 interface InvestmentData {
   transactions: ITransaction[];
   holdings: IHolding[];
+  interestSummary: InterestSummary | null;
 }
 
 type SortDir = 'asc' | 'desc';
@@ -66,6 +75,7 @@ type SortDir = 'asc' | 'desc';
 const TYPE_COLORS: Record<string, string> = {
   BUY: 'green',
   SELL: 'red',
+  CRYPTO_SELL: 'red',
   DIVIDEND: 'blue',
   TAX: 'orange',
   FEE: 'yellow',
@@ -272,6 +282,28 @@ function App() {
         )}
 
         {data && (
+          <>
+          {data.interestSummary && data.interestSummary.totalEur > 0 && (
+            <Card padding="sm" mb="md" withBorder>
+              <Group justify="space-between">
+                <Text size="sm" fw={600}>Revolut Interest</Text>
+                <Group gap="lg">
+                  <Stack gap={0} align="flex-end">
+                    <Text size="xs" c="dimmed">Flexible Cash</Text>
+                    <Text size="sm">{'\u20AC'}{formatNum(data.interestSummary.flexibleCashEur)} + ${formatNum(data.interestSummary.flexibleCashUsd)}</Text>
+                  </Stack>
+                  <Stack gap={0} align="flex-end">
+                    <Text size="xs" c="dimmed">Savings</Text>
+                    <Text size="sm">{'\u20AC'}{formatNum(data.interestSummary.savingsEur)} + ${formatNum(data.interestSummary.savingsUsd)}</Text>
+                  </Stack>
+                  <Stack gap={0} align="flex-end">
+                    <Text size="xs" c="dimmed">Total (EUR)</Text>
+                    <Text size="sm" fw={700} c="cyan">{'\u20AC'}{formatNum(data.interestSummary.totalEur)}</Text>
+                  </Stack>
+                </Group>
+              </Group>
+            </Card>
+          )}
           <Tabs defaultValue="holdings">
             <Tabs.List mb="md">
               <Tabs.Tab value="holdings">
@@ -296,6 +328,7 @@ function App() {
               }
             </Tabs.Panel>
           </Tabs>
+          </>
         )}
       </Container>
     </MantineProvider>

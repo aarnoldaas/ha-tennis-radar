@@ -555,10 +555,10 @@
               props.children = childArray;
             }
             if (type && type.defaultProps) {
-              var defaultProps25 = type.defaultProps;
-              for (propName in defaultProps25) {
+              var defaultProps26 = type.defaultProps;
+              for (propName in defaultProps26) {
                 if (props[propName] === void 0) {
-                  props[propName] = defaultProps25[propName];
+                  props[propName] = defaultProps26[propName];
                 }
               }
             }
@@ -601,14 +601,14 @@
                 }
                 key = "" + config.key;
               }
-              var defaultProps25;
+              var defaultProps26;
               if (element.type && element.type.defaultProps) {
-                defaultProps25 = element.type.defaultProps;
+                defaultProps26 = element.type.defaultProps;
               }
               for (propName in config) {
                 if (hasOwnProperty.call(config, propName) && !RESERVED_PROPS.hasOwnProperty(propName)) {
-                  if (config[propName] === void 0 && defaultProps25 !== void 0) {
-                    props[propName] = defaultProps25[propName];
+                  if (config[propName] === void 0 && defaultProps26 !== void 0) {
+                    props[propName] = defaultProps26[propName];
                   } else {
                     props[propName] = config[propName];
                   }
@@ -939,17 +939,17 @@
               _init: lazyInitializer
             };
             {
-              var defaultProps25;
+              var defaultProps26;
               var propTypes;
               Object.defineProperties(lazyType, {
                 defaultProps: {
                   configurable: true,
                   get: function() {
-                    return defaultProps25;
+                    return defaultProps26;
                   },
                   set: function(newDefaultProps) {
                     error("React.lazy(...): It is not supported to assign `defaultProps` to a lazy component import. Either specify them where the component is defined, or create a wrapping component around it.");
-                    defaultProps25 = newDefaultProps;
+                    defaultProps26 = newDefaultProps;
                     Object.defineProperty(lazyType, "defaultProps", {
                       enumerable: true
                     });
@@ -2435,7 +2435,7 @@
           var HostPortal = 4;
           var HostComponent = 5;
           var HostText = 6;
-          var Fragment5 = 7;
+          var Fragment6 = 7;
           var Mode = 8;
           var ContextConsumer = 9;
           var ContextProvider = 10;
@@ -3592,7 +3592,7 @@
                 return "DehydratedFragment";
               case ForwardRef:
                 return getWrappedName$1(type, type.render, "ForwardRef");
-              case Fragment5:
+              case Fragment6:
                 return "Fragment";
               case HostComponent:
                 return type;
@@ -12021,7 +12021,7 @@
               }
             }
             function updateFragment2(returnFiber, current2, fragment, lanes, key) {
-              if (current2 === null || current2.tag !== Fragment5) {
+              if (current2 === null || current2.tag !== Fragment6) {
                 var created = createFiberFromFragment(fragment, returnFiber.mode, lanes, key);
                 created.return = returnFiber;
                 return created;
@@ -12424,7 +12424,7 @@
                 if (child.key === key) {
                   var elementType = element.type;
                   if (elementType === REACT_FRAGMENT_TYPE) {
-                    if (child.tag === Fragment5) {
+                    if (child.tag === Fragment6) {
                       deleteRemainingChildren(returnFiber, child.sibling);
                       var existing = useFiber(child, element.props.children);
                       existing.return = returnFiber;
@@ -15322,10 +15322,10 @@
           function resolveDefaultProps(Component, baseProps) {
             if (Component && Component.defaultProps) {
               var props = assign({}, baseProps);
-              var defaultProps25 = Component.defaultProps;
-              for (var propName in defaultProps25) {
+              var defaultProps26 = Component.defaultProps;
+              for (var propName in defaultProps26) {
                 if (props[propName] === void 0) {
-                  props[propName] = defaultProps25[propName];
+                  props[propName] = defaultProps26[propName];
                 }
               }
               return props;
@@ -17900,7 +17900,7 @@
                 var _resolvedProps2 = workInProgress2.elementType === type ? _unresolvedProps2 : resolveDefaultProps(type, _unresolvedProps2);
                 return updateForwardRef(current2, workInProgress2, type, _resolvedProps2, renderLanes2);
               }
-              case Fragment5:
+              case Fragment6:
                 return updateFragment(current2, workInProgress2, renderLanes2);
               case Mode:
                 return updateMode(current2, workInProgress2, renderLanes2);
@@ -18172,7 +18172,7 @@
               case SimpleMemoComponent:
               case FunctionComponent:
               case ForwardRef:
-              case Fragment5:
+              case Fragment6:
               case Mode:
               case Profiler:
               case ContextConsumer:
@@ -22433,7 +22433,7 @@
             return fiber;
           }
           function createFiberFromFragment(elements, mode, lanes, key) {
-            var fiber = createFiber(Fragment5, elements, key, mode);
+            var fiber = createFiber(Fragment6, elements, key, mode);
             fiber.lanes = lanes;
             return fiber;
           }
@@ -24207,10 +24207,10 @@
                 }
               }
               if (type && type.defaultProps) {
-                var defaultProps25 = type.defaultProps;
-                for (propName in defaultProps25) {
+                var defaultProps26 = type.defaultProps;
+                for (propName in defaultProps26) {
                   if (props[propName] === void 0) {
-                    props[propName] = defaultProps25[propName];
+                    props[propName] = defaultProps26[propName];
                   }
                 }
               }
@@ -24465,10 +24465,10 @@
               return jsxWithValidation(type, props, key, false);
             }
           }
-          var jsx54 = jsxWithValidationDynamic;
+          var jsx55 = jsxWithValidationDynamic;
           var jsxs13 = jsxWithValidationStatic;
           exports.Fragment = REACT_FRAGMENT_TYPE;
-          exports.jsx = jsx54;
+          exports.jsx = jsx55;
           exports.jsxs = jsxs13;
         })();
       }
@@ -24488,7 +24488,7 @@
   });
 
   // src/frontend/investments.tsx
-  var import_react93 = __toESM(require_react(), 1);
+  var import_react94 = __toESM(require_react(), 1);
   var import_client = __toESM(require_client(), 1);
 
   // node_modules/@mantine/core/esm/core/utils/keys/keys.mjs
@@ -25938,7 +25938,7 @@
   function MantineClasses() {
     const theme2 = useMantineTheme();
     const nonce = useMantineStyleNonce();
-    const classes17 = keys(theme2.breakpoints).reduce((acc, breakpoint) => {
+    const classes18 = keys(theme2.breakpoints).reduce((acc, breakpoint) => {
       const isPxBreakpoint = theme2.breakpoints[breakpoint].includes("px");
       const pxValue = px(theme2.breakpoints[breakpoint]);
       const maxWidthBreakpoint = isPxBreakpoint ? `${pxValue - 0.1}px` : em(pxValue - 0.1);
@@ -25950,7 +25950,7 @@
       {
         "data-mantine-styles": "classes",
         nonce: nonce?.(),
-        dangerouslySetInnerHTML: { __html: classes17 }
+        dangerouslySetInnerHTML: { __html: classes18 }
       }
     );
   }
@@ -26507,8 +26507,8 @@
   }
 
   // node_modules/@mantine/core/esm/core/styles-api/use-styles/get-class-name/get-selector-class-name/get-selector-class-name.mjs
-  function getSelectorClassName({ selector, classes: classes17, unstyled }) {
-    return unstyled ? void 0 : classes17[selector];
+  function getSelectorClassName({ selector, classes: classes18, unstyled }) {
+    return unstyled ? void 0 : classes18[selector];
   }
 
   // node_modules/@mantine/core/esm/core/styles-api/use-styles/get-class-name/get-static-class-names/get-static-class-names.mjs
@@ -26545,11 +26545,11 @@
   // node_modules/@mantine/core/esm/core/styles-api/use-styles/get-class-name/get-variant-class-name/get-variant-class-name.mjs
   function getVariantClassName({
     options,
-    classes: classes17,
+    classes: classes18,
     selector,
     unstyled
   }) {
-    return options?.variant && !unstyled ? classes17[`${selector}--${options.variant}`] : void 0;
+    return options?.variant && !unstyled ? classes18[`${selector}--${options.variant}`] : void 0;
   }
 
   // node_modules/@mantine/core/esm/core/styles-api/use-styles/get-class-name/get-class-name.mjs
@@ -26560,7 +26560,7 @@
     selector,
     classNamesPrefix,
     classNames,
-    classes: classes17,
+    classes: classes18,
     unstyled,
     className,
     rootSelector,
@@ -26573,12 +26573,12 @@
     return clsx_default(
       getGlobalClassNames({ theme: theme2, options, unstyled: unstyled || headless }),
       getThemeClassNames({ theme: theme2, themeName, selector, props, stylesCtx }),
-      getVariantClassName({ options, classes: classes17, selector, unstyled }),
+      getVariantClassName({ options, classes: classes18, selector, unstyled }),
       getResolvedClassNames({ selector, stylesCtx, theme: theme2, classNames, props }),
       getResolvedClassNames({ selector, stylesCtx, theme: theme2, classNames: transformedStyles, props }),
       getOptionsClassNames({ selector, stylesCtx, options, props, theme: theme2 }),
       getRootClassName({ rootSelector, selector, className }),
-      getSelectorClassName({ selector, classes: classes17, unstyled: unstyled || headless }),
+      getSelectorClassName({ selector, classes: classes18, unstyled: unstyled || headless }),
       withStaticClasses && !headless && getStaticClassNames({
         themeName,
         classNamesPrefix,
@@ -26641,7 +26641,7 @@
   // node_modules/@mantine/core/esm/core/styles-api/use-styles/get-style/resolve-vars/resolve-vars.mjs
   function resolveVars({
     vars,
-    varsResolver: varsResolver18,
+    varsResolver: varsResolver19,
     theme: theme2,
     props,
     stylesCtx,
@@ -26650,7 +26650,7 @@
     headless
   }) {
     return mergeVars([
-      headless ? {} : varsResolver18?.(theme2, props, stylesCtx),
+      headless ? {} : varsResolver19?.(theme2, props, stylesCtx),
       ...themeName.map((name) => theme2.components?.[name]?.vars?.(theme2, props, stylesCtx)),
       vars?.(theme2, props, stylesCtx)
     ])?.[selector];
@@ -26668,7 +26668,7 @@
     styles,
     style,
     vars,
-    varsResolver: varsResolver18,
+    varsResolver: varsResolver19,
     headless,
     withStylesTransform
   }) {
@@ -26676,7 +26676,7 @@
       ...!withStylesTransform && getThemeStyles({ theme: theme2, themeName, props, stylesCtx, selector }),
       ...!withStylesTransform && resolveStyles({ theme: theme2, styles, props, stylesCtx })[selector],
       ...!withStylesTransform && resolveStyles({ theme: theme2, styles: options?.styles, props: options?.props || props, stylesCtx })[selector],
-      ...resolveVars({ theme: theme2, props, stylesCtx, vars, varsResolver: varsResolver18, selector, themeName, headless }),
+      ...resolveVars({ theme: theme2, props, stylesCtx, vars, varsResolver: varsResolver19, selector, themeName, headless }),
       ...rootSelector === selector ? resolveStyle({ style, theme: theme2 }) : null,
       ...resolveStyle({ style: options?.style, theme: theme2 })
     };
@@ -26711,7 +26711,7 @@
   // node_modules/@mantine/core/esm/core/styles-api/use-styles/use-styles.mjs
   function useStyles({
     name,
-    classes: classes17,
+    classes: classes18,
     props,
     stylesCtx,
     className,
@@ -26721,7 +26721,7 @@
     classNames,
     styles,
     vars,
-    varsResolver: varsResolver18
+    varsResolver: varsResolver19
   }) {
     const theme2 = useMantineTheme();
     const classNamesPrefix = useMantineClassNamesPrefix();
@@ -26741,7 +26741,7 @@
         selector,
         classNamesPrefix,
         classNames,
-        classes: classes17,
+        classes: classes18,
         unstyled,
         className,
         rootSelector,
@@ -26762,7 +26762,7 @@
         styles,
         style,
         vars,
-        varsResolver: varsResolver18,
+        varsResolver: varsResolver19,
         headless,
         withStylesTransform
       })
@@ -26777,11 +26777,11 @@
   // node_modules/@mantine/core/esm/core/MantineProvider/use-props/use-props.mjs
   var import_react27 = __toESM(require_react(), 1);
   var import_jsx_runtime17 = __toESM(require_jsx_runtime(), 1);
-  function useProps(component, defaultProps25, props) {
+  function useProps(component, defaultProps26, props) {
     const theme2 = useMantineTheme();
     const contextPropsPayload = theme2.components[component]?.defaultProps;
     const contextProps = typeof contextPropsPayload === "function" ? contextPropsPayload(theme2) : contextPropsPayload;
-    return { ...defaultProps25, ...contextProps, ...filterProps(props) };
+    return { ...defaultProps26, ...contextProps, ...filterProps(props) };
   }
 
   // node_modules/@mantine/core/esm/core/MantineProvider/create-theme/create-theme.mjs
@@ -29751,23 +29751,75 @@
   Container.classes = classes13;
   Container.displayName = "@mantine/core/Container";
 
+  // node_modules/@mantine/core/esm/components/Stack/Stack.mjs
+  var import_jsx_runtime68 = __toESM(require_jsx_runtime(), 1);
+  var import_react82 = __toESM(require_react(), 1);
+
+  // node_modules/@mantine/core/esm/components/Stack/Stack.module.css.mjs
+  var classes14 = { "root": "m_6d731127" };
+
+  // node_modules/@mantine/core/esm/components/Stack/Stack.mjs
+  var defaultProps18 = {
+    gap: "md",
+    align: "stretch",
+    justify: "flex-start"
+  };
+  var varsResolver14 = createVarsResolver((_, { gap, align, justify }) => ({
+    root: {
+      "--stack-gap": getSpacing(gap),
+      "--stack-align": align,
+      "--stack-justify": justify
+    }
+  }));
+  var Stack = factory((_props, ref) => {
+    const props = useProps("Stack", defaultProps18, _props);
+    const {
+      classNames,
+      className,
+      style,
+      styles,
+      unstyled,
+      vars,
+      align,
+      justify,
+      gap,
+      variant,
+      ...others
+    } = props;
+    const getStyles = useStyles({
+      name: "Stack",
+      props,
+      classes: classes14,
+      className,
+      style,
+      classNames,
+      styles,
+      unstyled,
+      vars,
+      varsResolver: varsResolver14
+    });
+    return /* @__PURE__ */ (0, import_jsx_runtime68.jsx)(Box, { ref, ...getStyles("root"), variant, ...others });
+  });
+  Stack.classes = classes14;
+  Stack.displayName = "@mantine/core/Stack";
+
   // node_modules/@mantine/core/esm/components/Table/Table.mjs
-  var import_jsx_runtime72 = __toESM(require_jsx_runtime(), 1);
-  var import_react85 = __toESM(require_react(), 1);
+  var import_jsx_runtime73 = __toESM(require_jsx_runtime(), 1);
+  var import_react86 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/components/Table/Table.components.mjs
-  var import_jsx_runtime69 = __toESM(require_jsx_runtime(), 1);
-  var import_react83 = __toESM(require_react(), 1);
+  var import_jsx_runtime70 = __toESM(require_jsx_runtime(), 1);
+  var import_react84 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/components/Table/Table.context.mjs
-  var import_react82 = __toESM(require_react(), 1);
-  var import_jsx_runtime68 = __toESM(require_jsx_runtime(), 1);
+  var import_react83 = __toESM(require_react(), 1);
+  var import_jsx_runtime69 = __toESM(require_jsx_runtime(), 1);
   var [TableProvider, useTableContext] = createSafeContext(
     "Table component was not found in the tree"
   );
 
   // node_modules/@mantine/core/esm/components/Table/Table.module.css.mjs
-  var classes14 = { "table": "m_b23fa0ef", "th": "m_4e7aa4f3", "tr": "m_4e7aa4fd", "td": "m_4e7aa4ef", "tbody": "m_b2404537", "thead": "m_b242d975", "caption": "m_9e5a3ac7", "scrollContainer": "m_a100c15", "scrollContainerInner": "m_62259741" };
+  var classes15 = { "table": "m_b23fa0ef", "th": "m_4e7aa4f3", "tr": "m_4e7aa4fd", "td": "m_4e7aa4ef", "tbody": "m_b2404537", "thead": "m_b242d975", "caption": "m_9e5a3ac7", "scrollContainer": "m_a100c15", "scrollContainerInner": "m_62259741" };
 
   // node_modules/@mantine/core/esm/components/Table/Table.components.mjs
   function getDataAttributes(ctx, options) {
@@ -29801,7 +29853,7 @@
       const props = useProps(name, {}, _props);
       const { classNames, className, style, styles, ...others } = props;
       const ctx = useTableContext();
-      return /* @__PURE__ */ (0, import_jsx_runtime69.jsx)(
+      return /* @__PURE__ */ (0, import_jsx_runtime70.jsx)(
         Box,
         {
           component: element,
@@ -29813,7 +29865,7 @@
       );
     });
     Component.displayName = `@mantine/core/${name}`;
-    Component.classes = classes14;
+    Component.classes = classes15;
     return Component;
   }
   var TableTh = tableElement("th", { columnBorder: true });
@@ -29829,24 +29881,24 @@
   var TableCaption = tableElement("caption", { captionSide: true });
 
   // node_modules/@mantine/core/esm/components/Table/TableDataRenderer.mjs
-  var import_jsx_runtime70 = __toESM(require_jsx_runtime(), 1);
+  var import_jsx_runtime71 = __toESM(require_jsx_runtime(), 1);
   function TableDataRenderer({ data }) {
-    return /* @__PURE__ */ (0, import_jsx_runtime70.jsxs)(import_jsx_runtime70.Fragment, { children: [
-      data.caption && /* @__PURE__ */ (0, import_jsx_runtime70.jsx)(TableCaption, { children: data.caption }),
-      data.head && /* @__PURE__ */ (0, import_jsx_runtime70.jsx)(TableThead, { children: /* @__PURE__ */ (0, import_jsx_runtime70.jsx)(TableTr, { children: data.head.map((item, index) => /* @__PURE__ */ (0, import_jsx_runtime70.jsx)(TableTh, { children: item }, index)) }) }),
-      data.body && /* @__PURE__ */ (0, import_jsx_runtime70.jsx)(TableTbody, { children: data.body.map((row, rowIndex) => /* @__PURE__ */ (0, import_jsx_runtime70.jsx)(TableTr, { children: row.map((item, index) => /* @__PURE__ */ (0, import_jsx_runtime70.jsx)(TableTd, { children: item }, index)) }, rowIndex)) }),
-      data.foot && /* @__PURE__ */ (0, import_jsx_runtime70.jsx)(TableTfoot, { children: /* @__PURE__ */ (0, import_jsx_runtime70.jsx)(TableTr, { children: data.foot.map((item, index) => /* @__PURE__ */ (0, import_jsx_runtime70.jsx)(TableTh, { children: item }, index)) }) })
+    return /* @__PURE__ */ (0, import_jsx_runtime71.jsxs)(import_jsx_runtime71.Fragment, { children: [
+      data.caption && /* @__PURE__ */ (0, import_jsx_runtime71.jsx)(TableCaption, { children: data.caption }),
+      data.head && /* @__PURE__ */ (0, import_jsx_runtime71.jsx)(TableThead, { children: /* @__PURE__ */ (0, import_jsx_runtime71.jsx)(TableTr, { children: data.head.map((item, index) => /* @__PURE__ */ (0, import_jsx_runtime71.jsx)(TableTh, { children: item }, index)) }) }),
+      data.body && /* @__PURE__ */ (0, import_jsx_runtime71.jsx)(TableTbody, { children: data.body.map((row, rowIndex) => /* @__PURE__ */ (0, import_jsx_runtime71.jsx)(TableTr, { children: row.map((item, index) => /* @__PURE__ */ (0, import_jsx_runtime71.jsx)(TableTd, { children: item }, index)) }, rowIndex)) }),
+      data.foot && /* @__PURE__ */ (0, import_jsx_runtime71.jsx)(TableTfoot, { children: /* @__PURE__ */ (0, import_jsx_runtime71.jsx)(TableTr, { children: data.foot.map((item, index) => /* @__PURE__ */ (0, import_jsx_runtime71.jsx)(TableTh, { children: item }, index)) }) })
     ] });
   }
   TableDataRenderer.displayName = "@mantine/core/TableDataRenderer";
 
   // node_modules/@mantine/core/esm/components/Table/TableScrollContainer.mjs
-  var import_jsx_runtime71 = __toESM(require_jsx_runtime(), 1);
-  var import_react84 = __toESM(require_react(), 1);
-  var defaultProps18 = {
+  var import_jsx_runtime72 = __toESM(require_jsx_runtime(), 1);
+  var import_react85 = __toESM(require_react(), 1);
+  var defaultProps19 = {
     type: "scrollarea"
   };
-  var varsResolver14 = createVarsResolver(
+  var varsResolver15 = createVarsResolver(
     (_, { minWidth, maxHeight, type }) => ({
       scrollContainer: {
         "--table-min-width": rem(minWidth),
@@ -29856,7 +29908,7 @@
     })
   );
   var TableScrollContainer = factory((_props, ref) => {
-    const props = useProps("TableScrollContainer", defaultProps18, _props);
+    const props = useProps("TableScrollContainer", defaultProps19, _props);
     const {
       classNames,
       className,
@@ -29873,7 +29925,7 @@
     } = props;
     const getStyles = useStyles({
       name: "TableScrollContainer",
-      classes: classes14,
+      classes: classes15,
       props,
       className,
       style,
@@ -29881,10 +29933,10 @@
       styles,
       unstyled,
       vars,
-      varsResolver: varsResolver14,
+      varsResolver: varsResolver15,
       rootSelector: "scrollContainer"
     });
-    return /* @__PURE__ */ (0, import_jsx_runtime71.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime72.jsx)(
       Box,
       {
         component: type === "scrollarea" ? ScrollArea : "div",
@@ -29892,19 +29944,19 @@
         ref,
         ...getStyles("scrollContainer"),
         ...others,
-        children: /* @__PURE__ */ (0, import_jsx_runtime71.jsx)("div", { ...getStyles("scrollContainerInner"), children })
+        children: /* @__PURE__ */ (0, import_jsx_runtime72.jsx)("div", { ...getStyles("scrollContainerInner"), children })
       }
     );
   });
-  TableScrollContainer.classes = classes14;
+  TableScrollContainer.classes = classes15;
   TableScrollContainer.displayName = "@mantine/core/TableScrollContainer";
 
   // node_modules/@mantine/core/esm/components/Table/Table.mjs
-  var defaultProps19 = {
+  var defaultProps20 = {
     withRowBorders: true,
     verticalSpacing: 7
   };
-  var varsResolver15 = createVarsResolver(
+  var varsResolver16 = createVarsResolver(
     (theme2, {
       layout,
       captionSide,
@@ -29931,7 +29983,7 @@
     })
   );
   var Table = factory((_props, ref) => {
-    const props = useProps("Table", defaultProps19, _props);
+    const props = useProps("Table", defaultProps20, _props);
     const {
       classNames,
       className,
@@ -29965,15 +30017,15 @@
       props,
       className,
       style,
-      classes: classes14,
+      classes: classes15,
       classNames,
       styles,
       unstyled,
       rootSelector: "table",
       vars,
-      varsResolver: varsResolver15
+      varsResolver: varsResolver16
     });
-    return /* @__PURE__ */ (0, import_jsx_runtime72.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime73.jsx)(
       TableProvider,
       {
         value: {
@@ -29985,7 +30037,7 @@
           withRowBorders,
           captionSide: captionSide || "bottom"
         },
-        children: /* @__PURE__ */ (0, import_jsx_runtime72.jsx)(
+        children: /* @__PURE__ */ (0, import_jsx_runtime73.jsx)(
           Box,
           {
             component: "table",
@@ -29994,13 +30046,13 @@
             mod: [{ "data-with-table-border": withTableBorder, "data-tabular-nums": tabularNums }, mod],
             ...getStyles("table"),
             ...others,
-            children: children || !!data && /* @__PURE__ */ (0, import_jsx_runtime72.jsx)(TableDataRenderer, { data })
+            children: children || !!data && /* @__PURE__ */ (0, import_jsx_runtime73.jsx)(TableDataRenderer, { data })
           }
         )
       }
     );
   });
-  Table.classes = classes14;
+  Table.classes = classes15;
   Table.displayName = "@mantine/core/Table";
   Table.Td = TableTd;
   Table.Th = TableTh;
@@ -30013,30 +30065,30 @@
   Table.DataRenderer = TableDataRenderer;
 
   // node_modules/@mantine/core/esm/components/Tabs/Tabs.mjs
-  var import_jsx_runtime77 = __toESM(require_jsx_runtime(), 1);
-  var import_react90 = __toESM(require_react(), 1);
+  var import_jsx_runtime78 = __toESM(require_jsx_runtime(), 1);
+  var import_react91 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/components/Tabs/Tabs.context.mjs
-  var import_react86 = __toESM(require_react(), 1);
-  var import_jsx_runtime73 = __toESM(require_jsx_runtime(), 1);
+  var import_react87 = __toESM(require_react(), 1);
+  var import_jsx_runtime74 = __toESM(require_jsx_runtime(), 1);
   var [TabsProvider, useTabsContext] = createSafeContext(
     "Tabs component was not found in the tree"
   );
 
   // node_modules/@mantine/core/esm/components/Tabs/TabsList/TabsList.mjs
-  var import_jsx_runtime74 = __toESM(require_jsx_runtime(), 1);
-  var import_react87 = __toESM(require_react(), 1);
+  var import_jsx_runtime75 = __toESM(require_jsx_runtime(), 1);
+  var import_react88 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/components/Tabs/Tabs.module.css.mjs
-  var classes15 = { "root": "m_89d60db1", "list--default": "m_576c9d4", "list": "m_89d33d6d", "panel": "m_b0c91715", "tab": "m_4ec4dce6", "tabSection": "m_fc420b1f", "tab--default": "m_539e827b", "list--outline": "m_6772fbd5", "tab--outline": "m_b59ab47c", "tab--pills": "m_c3381914" };
+  var classes16 = { "root": "m_89d60db1", "list--default": "m_576c9d4", "list": "m_89d33d6d", "panel": "m_b0c91715", "tab": "m_4ec4dce6", "tabSection": "m_fc420b1f", "tab--default": "m_539e827b", "list--outline": "m_6772fbd5", "tab--outline": "m_b59ab47c", "tab--pills": "m_c3381914" };
 
   // node_modules/@mantine/core/esm/components/Tabs/TabsList/TabsList.mjs
-  var defaultProps20 = {};
+  var defaultProps21 = {};
   var TabsList = factory((_props, ref) => {
-    const props = useProps("TabsList", defaultProps20, _props);
+    const props = useProps("TabsList", defaultProps21, _props);
     const { children, className, grow, justify, classNames, styles, style, mod, ...others } = props;
     const ctx = useTabsContext();
-    return /* @__PURE__ */ (0, import_jsx_runtime74.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime75.jsx)(
       Box,
       {
         ...others,
@@ -30066,20 +30118,20 @@
       }
     );
   });
-  TabsList.classes = classes15;
+  TabsList.classes = classes16;
   TabsList.displayName = "@mantine/core/TabsList";
 
   // node_modules/@mantine/core/esm/components/Tabs/TabsPanel/TabsPanel.mjs
-  var import_jsx_runtime75 = __toESM(require_jsx_runtime(), 1);
-  var import_react88 = __toESM(require_react(), 1);
-  var defaultProps21 = {};
+  var import_jsx_runtime76 = __toESM(require_jsx_runtime(), 1);
+  var import_react89 = __toESM(require_react(), 1);
+  var defaultProps22 = {};
   var TabsPanel = factory((_props, ref) => {
-    const props = useProps("TabsPanel", defaultProps21, _props);
+    const props = useProps("TabsPanel", defaultProps22, _props);
     const { children, className, value, classNames, styles, style, mod, keepMounted, ...others } = props;
     const ctx = useTabsContext();
     const active = ctx.value === value;
     const content = ctx.keepMounted || keepMounted ? children : active ? children : null;
-    return /* @__PURE__ */ (0, import_jsx_runtime75.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime76.jsx)(
       Box,
       {
         ...others,
@@ -30099,15 +30151,15 @@
       }
     );
   });
-  TabsPanel.classes = classes15;
+  TabsPanel.classes = classes16;
   TabsPanel.displayName = "@mantine/core/TabsPanel";
 
   // node_modules/@mantine/core/esm/components/Tabs/TabsTab/TabsTab.mjs
-  var import_jsx_runtime76 = __toESM(require_jsx_runtime(), 1);
-  var import_react89 = __toESM(require_react(), 1);
-  var defaultProps22 = {};
+  var import_jsx_runtime77 = __toESM(require_jsx_runtime(), 1);
+  var import_react90 = __toESM(require_react(), 1);
+  var defaultProps23 = {};
   var TabsTab = factory((_props, ref) => {
-    const props = useProps("TabsTab", defaultProps22, _props);
+    const props = useProps("TabsTab", defaultProps23, _props);
     const {
       className,
       children,
@@ -30135,7 +30187,7 @@
       onClick?.(event);
     };
     const stylesApiProps = { classNames, styles, props };
-    return /* @__PURE__ */ (0, import_jsx_runtime76.jsxs)(
+    return /* @__PURE__ */ (0, import_jsx_runtime77.jsxs)(
       UnstyledButton,
       {
         ...others,
@@ -30171,19 +30223,19 @@
           onKeyDown
         }),
         children: [
-          leftSection && /* @__PURE__ */ (0, import_jsx_runtime76.jsx)("span", { ...ctx.getStyles("tabSection", stylesApiProps), "data-position": "left", children: leftSection }),
-          children && /* @__PURE__ */ (0, import_jsx_runtime76.jsx)("span", { ...ctx.getStyles("tabLabel", stylesApiProps), children }),
-          rightSection && /* @__PURE__ */ (0, import_jsx_runtime76.jsx)("span", { ...ctx.getStyles("tabSection", stylesApiProps), "data-position": "right", children: rightSection })
+          leftSection && /* @__PURE__ */ (0, import_jsx_runtime77.jsx)("span", { ...ctx.getStyles("tabSection", stylesApiProps), "data-position": "left", children: leftSection }),
+          children && /* @__PURE__ */ (0, import_jsx_runtime77.jsx)("span", { ...ctx.getStyles("tabLabel", stylesApiProps), children }),
+          rightSection && /* @__PURE__ */ (0, import_jsx_runtime77.jsx)("span", { ...ctx.getStyles("tabSection", stylesApiProps), "data-position": "right", children: rightSection })
         ]
       }
     );
   });
-  TabsTab.classes = classes15;
+  TabsTab.classes = classes16;
   TabsTab.displayName = "@mantine/core/TabsTab";
 
   // node_modules/@mantine/core/esm/components/Tabs/Tabs.mjs
   var VALUE_ERROR = "Tabs.Tab or Tabs.Panel component was rendered with invalid value or without value";
-  var defaultProps23 = {
+  var defaultProps24 = {
     keepMounted: true,
     orientation: "horizontal",
     loop: true,
@@ -30194,7 +30246,7 @@
     variant: "default",
     placement: "left"
   };
-  var varsResolver16 = createVarsResolver((theme2, { radius, color, autoContrast }) => ({
+  var varsResolver17 = createVarsResolver((theme2, { radius, color, autoContrast }) => ({
     root: {
       "--tabs-radius": getRadius(radius),
       "--tabs-color": getThemeColor(color, theme2),
@@ -30202,7 +30254,7 @@
     }
   }));
   var Tabs = factory((_props, ref) => {
-    const props = useProps("Tabs", defaultProps23, _props);
+    const props = useProps("Tabs", defaultProps24, _props);
     const {
       defaultValue,
       value,
@@ -30239,16 +30291,16 @@
     const getStyles = useStyles({
       name: "Tabs",
       props,
-      classes: classes15,
+      classes: classes16,
       className,
       style,
       classNames,
       styles,
       unstyled,
       vars,
-      varsResolver: varsResolver16
+      varsResolver: varsResolver17
     });
-    return /* @__PURE__ */ (0, import_jsx_runtime77.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime78.jsx)(
       TabsProvider,
       {
         value: {
@@ -30270,7 +30322,7 @@
           unstyled,
           getStyles
         },
-        children: /* @__PURE__ */ (0, import_jsx_runtime77.jsx)(
+        children: /* @__PURE__ */ (0, import_jsx_runtime78.jsx)(
           Box,
           {
             ref,
@@ -30292,19 +30344,19 @@
       }
     );
   });
-  Tabs.classes = classes15;
+  Tabs.classes = classes16;
   Tabs.displayName = "@mantine/core/Tabs";
   Tabs.Tab = TabsTab;
   Tabs.Panel = TabsPanel;
   Tabs.List = TabsList;
 
   // node_modules/@mantine/core/esm/components/Title/Title.mjs
-  var import_jsx_runtime79 = __toESM(require_jsx_runtime(), 1);
-  var import_react92 = __toESM(require_react(), 1);
+  var import_jsx_runtime80 = __toESM(require_jsx_runtime(), 1);
+  var import_react93 = __toESM(require_react(), 1);
 
   // node_modules/@mantine/core/esm/components/Title/get-title-size.mjs
-  var import_react91 = __toESM(require_react(), 1);
-  var import_jsx_runtime78 = __toESM(require_jsx_runtime(), 1);
+  var import_react92 = __toESM(require_react(), 1);
+  var import_jsx_runtime79 = __toESM(require_jsx_runtime(), 1);
   var headings3 = ["h1", "h2", "h3", "h4", "h5", "h6"];
   var sizes = ["xs", "sm", "md", "lg", "xl"];
   function getTitleSize(order, size) {
@@ -30330,13 +30382,13 @@
   }
 
   // node_modules/@mantine/core/esm/components/Title/Title.module.css.mjs
-  var classes16 = { "root": "m_8a5d1357" };
+  var classes17 = { "root": "m_8a5d1357" };
 
   // node_modules/@mantine/core/esm/components/Title/Title.mjs
-  var defaultProps24 = {
+  var defaultProps25 = {
     order: 1
   };
-  var varsResolver17 = createVarsResolver((_, { order, size, lineClamp, textWrap }) => {
+  var varsResolver18 = createVarsResolver((_, { order, size, lineClamp, textWrap }) => {
     const sizeVariables = getTitleSize(order, size);
     return {
       root: {
@@ -30349,7 +30401,7 @@
     };
   });
   var Title = factory((_props, ref) => {
-    const props = useProps("Title", defaultProps24, _props);
+    const props = useProps("Title", defaultProps25, _props);
     const {
       classNames,
       className,
@@ -30368,19 +30420,19 @@
     const getStyles = useStyles({
       name: "Title",
       props,
-      classes: classes16,
+      classes: classes17,
       className,
       style,
       classNames,
       styles,
       unstyled,
       vars,
-      varsResolver: varsResolver17
+      varsResolver: varsResolver18
     });
     if (![1, 2, 3, 4, 5, 6].includes(order)) {
       return null;
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(
       Box,
       {
         ...getStyles("root"),
@@ -30393,15 +30445,16 @@
       }
     );
   });
-  Title.classes = classes16;
+  Title.classes = classes17;
   Title.displayName = "@mantine/core/Title";
 
   // src/frontend/investments.tsx
-  var import_jsx_runtime80 = __toESM(require_jsx_runtime(), 1);
+  var import_jsx_runtime81 = __toESM(require_jsx_runtime(), 1);
   var BASE = window.INGRESS_PATH || "";
   var TYPE_COLORS = {
     BUY: "green",
     SELL: "red",
+    CRYPTO_SELL: "red",
     DIVIDEND: "blue",
     TAX: "orange",
     FEE: "yellow",
@@ -30413,15 +30466,15 @@
   }
   function SortHeader({ label, field, sortField, sortDir, onSort }) {
     const active = sortField === field;
-    return /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(UnstyledButton, { onClick: () => onSort(field), style: { fontWeight: 600 }, children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(UnstyledButton, { onClick: () => onSort(field), style: { fontWeight: 600 }, children: [
       label,
       " ",
       active ? sortDir === "asc" ? "\u25B2" : "\u25BC" : ""
     ] });
   }
   function HoldingsTable({ holdings }) {
-    const [sortField, setSortField] = (0, import_react93.useState)("currentValueEur");
-    const [sortDir, setSortDir] = (0, import_react93.useState)("desc");
+    const [sortField, setSortField] = (0, import_react94.useState)("currentValueEur");
+    const [sortDir, setSortDir] = (0, import_react94.useState)("desc");
     const onSort = (field) => {
       if (sortField === field) {
         setSortDir((d) => d === "asc" ? "desc" : "asc");
@@ -30430,7 +30483,7 @@
         setSortDir("desc");
       }
     };
-    const sorted = (0, import_react93.useMemo)(() => {
+    const sorted = (0, import_react94.useMemo)(() => {
       return [...holdings].sort((a, b) => {
         const av = a[sortField];
         const bv = b[sortField];
@@ -30438,47 +30491,47 @@
         return sortDir === "asc" ? av - bv : bv - av;
       });
     }, [holdings, sortField, sortDir]);
-    const totals = (0, import_react93.useMemo)(() => ({
+    const totals = (0, import_react94.useMemo)(() => ({
       totalCost: holdings.reduce((s, h) => s + h.totalCostBasisEur, 0),
       totalValue: holdings.reduce((s, h) => s + h.currentValueEur, 0),
       totalPnl: holdings.reduce((s, h) => s + h.unrealizedPnlEur, 0)
     }), [holdings]);
-    return /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(ScrollArea, { children: /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Table, { striped: true, highlightOnHover: true, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Thead, { children: /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Table.Tr, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "Symbol", field: "symbol", sortField, sortDir, onSort }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "Qty", field: "totalQuantity", sortField, sortDir, onSort }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "Avg Cost", field: "averageCostBasis", sortField, sortDir, onSort }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "Total Cost", field: "totalCostBasisEur", sortField, sortDir, onSort }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "Price", field: "currentPrice", sortField, sortDir, onSort }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "Value", field: "currentValueEur", sortField, sortDir, onSort }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "P&L", field: "unrealizedPnlEur", sortField, sortDir, onSort }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "P&L %", field: "unrealizedPnlPercent", sortField, sortDir, onSort }) })
+    return /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(ScrollArea, { children: /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Table, { striped: true, highlightOnHover: true, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Thead, { children: /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Table.Tr, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Th, { children: /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(SortHeader, { label: "Symbol", field: "symbol", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(SortHeader, { label: "Qty", field: "totalQuantity", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(SortHeader, { label: "Avg Cost", field: "averageCostBasis", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(SortHeader, { label: "Total Cost", field: "totalCostBasisEur", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(SortHeader, { label: "Price", field: "currentPrice", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(SortHeader, { label: "Value", field: "currentValueEur", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(SortHeader, { label: "P&L", field: "unrealizedPnlEur", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(SortHeader, { label: "P&L %", field: "unrealizedPnlPercent", sortField, sortDir, onSort }) })
       ] }) }),
-      /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Tbody, { children: sorted.map((h) => /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Table.Tr, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Text, { fw: 600, children: h.symbol }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right" }, children: formatNum(h.totalQuantity, h.totalQuantity % 1 === 0 ? 0 : 4) }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right" }, children: formatNum(h.averageCostBasis) }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right" }, children: formatNum(h.totalCostBasisEur) }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right" }, children: h.currentPrice > 0 ? formatNum(h.currentPrice) : "\u2014" }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right" }, children: h.currentPrice > 0 ? formatNum(h.currentValueEur) : "\u2014" }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right", color: h.unrealizedPnl >= 0 ? "#51cf66" : "#ff6b6b" }, children: h.currentPrice > 0 ? formatNum(h.unrealizedPnlEur) : "\u2014" }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right", color: h.unrealizedPnlPercent >= 0 ? "#51cf66" : "#ff6b6b" }, children: h.currentPrice > 0 ? `${formatNum(h.unrealizedPnlPercent)}%` : "\u2014" })
+      /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Tbody, { children: sorted.map((h) => /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Table.Tr, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { children: /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Text, { fw: 600, children: h.symbol }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right" }, children: formatNum(h.totalQuantity, h.totalQuantity % 1 === 0 ? 0 : 4) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right" }, children: formatNum(h.averageCostBasis) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right" }, children: formatNum(h.totalCostBasisEur) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right" }, children: h.currentPrice > 0 ? formatNum(h.currentPrice) : "\u2014" }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right" }, children: h.currentPrice > 0 ? formatNum(h.currentValueEur) : "\u2014" }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right", color: h.unrealizedPnl >= 0 ? "#51cf66" : "#ff6b6b" }, children: h.currentPrice > 0 ? formatNum(h.unrealizedPnlEur) : "\u2014" }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right", color: h.unrealizedPnlPercent >= 0 ? "#51cf66" : "#ff6b6b" }, children: h.currentPrice > 0 ? `${formatNum(h.unrealizedPnlPercent)}%` : "\u2014" })
       ] }, h.symbol)) }),
-      /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Tfoot, { children: /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Table.Tr, { style: { fontWeight: 700 }, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { children: "Total" }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, {}),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, {}),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right" }, children: formatNum(totals.totalCost) }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, {}),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right" }, children: formatNum(totals.totalValue) }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right", color: totals.totalPnl >= 0 ? "#51cf66" : "#ff6b6b" }, children: formatNum(totals.totalPnl) }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right", color: totals.totalPnl >= 0 ? "#51cf66" : "#ff6b6b" }, children: totals.totalCost > 0 ? `${formatNum(totals.totalPnl / totals.totalCost * 100)}%` : "\u2014" })
+      /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Tfoot, { children: /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Table.Tr, { style: { fontWeight: 700 }, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { children: "Total" }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, {}),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, {}),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right" }, children: formatNum(totals.totalCost) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, {}),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right" }, children: formatNum(totals.totalValue) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right", color: totals.totalPnl >= 0 ? "#51cf66" : "#ff6b6b" }, children: formatNum(totals.totalPnl) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right", color: totals.totalPnl >= 0 ? "#51cf66" : "#ff6b6b" }, children: totals.totalCost > 0 ? `${formatNum(totals.totalPnl / totals.totalCost * 100)}%` : "\u2014" })
       ] }) })
     ] }) });
   }
   function TransactionsTable({ transactions }) {
-    const [sortField, setSortField] = (0, import_react93.useState)("date");
-    const [sortDir, setSortDir] = (0, import_react93.useState)("desc");
+    const [sortField, setSortField] = (0, import_react94.useState)("date");
+    const [sortDir, setSortDir] = (0, import_react94.useState)("desc");
     const onSort = (field) => {
       if (sortField === field) {
         setSortDir((d) => d === "asc" ? "desc" : "asc");
@@ -30487,7 +30540,7 @@
         setSortDir("desc");
       }
     };
-    const sorted = (0, import_react93.useMemo)(() => {
+    const sorted = (0, import_react94.useMemo)(() => {
       return [...transactions].sort((a, b) => {
         const av = a[sortField];
         const bv = b[sortField];
@@ -30495,39 +30548,39 @@
         return sortDir === "asc" ? av - bv : bv - av;
       });
     }, [transactions, sortField, sortDir]);
-    return /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(ScrollArea, { children: /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Table, { striped: true, highlightOnHover: true, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Thead, { children: /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Table.Tr, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "Date", field: "date", sortField, sortDir, onSort }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "Type", field: "type", sortField, sortDir, onSort }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "Symbol", field: "symbol", sortField, sortDir, onSort }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { children: "Description" }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "Qty", field: "quantity", sortField, sortDir, onSort }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "Price", field: "pricePerUnit", sortField, sortDir, onSort }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(SortHeader, { label: "Amount", field: "amount", sortField, sortDir, onSort }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Th, { children: "D/K" })
+    return /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(ScrollArea, { children: /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Table, { striped: true, highlightOnHover: true, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Thead, { children: /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Table.Tr, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Th, { children: /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(SortHeader, { label: "Date", field: "date", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Th, { children: /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(SortHeader, { label: "Type", field: "type", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Th, { children: /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(SortHeader, { label: "Symbol", field: "symbol", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Th, { children: "Description" }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(SortHeader, { label: "Qty", field: "quantity", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(SortHeader, { label: "Price", field: "pricePerUnit", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Th, { style: { textAlign: "right" }, children: /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(SortHeader, { label: "Amount", field: "amount", sortField, sortDir, onSort }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Th, { children: "D/K" })
       ] }) }),
-      /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Tbody, { children: sorted.map((t, i) => /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Table.Tr, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { children: t.date }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Badge, { color: TYPE_COLORS[t.type] || "gray", variant: "light", size: "sm", children: t.type }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Text, { fw: t.symbol ? 600 : 400, children: t.symbol || "\u2014" }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { maxWidth: 300 }, children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Text, { size: "sm", truncate: "end", children: t.description }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right" }, children: t.quantity !== 0 ? formatNum(t.quantity, Math.abs(t.quantity) % 1 === 0 ? 0 : 4) : "\u2014" }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { style: { textAlign: "right" }, children: t.pricePerUnit > 0 ? formatNum(t.pricePerUnit) : "\u2014" }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Table.Td, { style: { textAlign: "right" }, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Tbody, { children: sorted.map((t, i) => /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Table.Tr, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { children: t.date }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { children: /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Badge, { color: TYPE_COLORS[t.type] || "gray", variant: "light", size: "sm", children: t.type }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { children: /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Text, { fw: t.symbol ? 600 : 400, children: t.symbol || "\u2014" }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { maxWidth: 300 }, children: /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Text, { size: "sm", truncate: "end", children: t.description }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right" }, children: t.quantity !== 0 ? formatNum(t.quantity, Math.abs(t.quantity) % 1 === 0 ? 0 : 4) : "\u2014" }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { style: { textAlign: "right" }, children: t.pricePerUnit > 0 ? formatNum(t.pricePerUnit) : "\u2014" }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Table.Td, { style: { textAlign: "right" }, children: [
           formatNum(t.amount),
           " ",
           t.currency
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Table.Td, { children: t.raw?.debitCredit || "\u2014" })
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Table.Td, { children: t.raw?.debitCredit || "\u2014" })
       ] }, t.id + "-" + i)) })
     ] }) });
   }
   var theme = createTheme({ primaryColor: "blue", defaultRadius: "md" });
   function App() {
-    const [data, setData] = (0, import_react93.useState)(null);
-    const [loading, setLoading] = (0, import_react93.useState)(true);
-    const [error, setError] = (0, import_react93.useState)(null);
-    (0, import_react93.useEffect)(() => {
+    const [data, setData] = (0, import_react94.useState)(null);
+    const [loading, setLoading] = (0, import_react94.useState)(true);
+    const [error, setError] = (0, import_react94.useState)(null);
+    (0, import_react94.useEffect)(() => {
       fetch(`${BASE}/api/investments`).then((r2) => r2.json()).then((d) => {
         setData(d);
         setLoading(false);
@@ -30536,32 +30589,64 @@
         setLoading(false);
       });
     }, []);
-    return /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(MantineProvider, { theme, defaultColorScheme: "dark", children: /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Container, { size: "xl", py: "md", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Group, { justify: "space-between", mb: "md", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Title, { order: 3, children: "Investments" }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Button, { variant: "subtle", component: "a", href: `${BASE}/`, size: "xs", children: "Back to Life Helper" })
+    return /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(MantineProvider, { theme, defaultColorScheme: "dark", children: /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Container, { size: "xl", py: "md", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Group, { justify: "space-between", mb: "md", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Title, { order: 3, children: "Investments" }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Button, { variant: "subtle", component: "a", href: `${BASE}/`, size: "xs", children: "Back to Life Helper" })
       ] }),
-      loading && /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Center, { py: "xl", children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Loader, { size: "sm" }) }),
-      error && /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Alert, { color: "red", title: "Error", mb: "md", children: error }),
-      data && /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Tabs, { defaultValue: "holdings", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Tabs.List, { mb: "md", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Tabs.Tab, { value: "holdings", children: [
-            "Holdings (",
-            data.holdings.length,
-            ")"
-          ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime80.jsxs)(Tabs.Tab, { value: "transactions", children: [
-            "Transactions (",
-            data.transactions.length,
-            ")"
+      loading && /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Center, { py: "xl", children: /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Loader, { size: "sm" }) }),
+      error && /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Alert, { color: "red", title: "Error", mb: "md", children: error }),
+      data && /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(import_jsx_runtime81.Fragment, { children: [
+        data.interestSummary && data.interestSummary.totalEur > 0 && /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Card, { padding: "sm", mb: "md", withBorder: true, children: /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Group, { justify: "space-between", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Text, { size: "sm", fw: 600, children: "Revolut Interest" }),
+          /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Group, { gap: "lg", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Stack, { gap: 0, align: "flex-end", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Text, { size: "xs", c: "dimmed", children: "Flexible Cash" }),
+              /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Text, { size: "sm", children: [
+                "\u20AC",
+                formatNum(data.interestSummary.flexibleCashEur),
+                " + $",
+                formatNum(data.interestSummary.flexibleCashUsd)
+              ] })
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Stack, { gap: 0, align: "flex-end", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Text, { size: "xs", c: "dimmed", children: "Savings" }),
+              /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Text, { size: "sm", children: [
+                "\u20AC",
+                formatNum(data.interestSummary.savingsEur),
+                " + $",
+                formatNum(data.interestSummary.savingsUsd)
+              ] })
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Stack, { gap: 0, align: "flex-end", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Text, { size: "xs", c: "dimmed", children: "Total (EUR)" }),
+              /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Text, { size: "sm", fw: 700, c: "cyan", children: [
+                "\u20AC",
+                formatNum(data.interestSummary.totalEur)
+              ] })
+            ] })
           ] })
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Tabs.Panel, { value: "holdings", children: data.holdings.length > 0 ? /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Card, { padding: "xs", children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(HoldingsTable, { holdings: data.holdings }) }) : /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Text, { c: "dimmed", children: "No holdings found." }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Tabs.Panel, { value: "transactions", children: data.transactions.length > 0 ? /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Card, { padding: "xs", children: /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(TransactionsTable, { transactions: data.transactions }) }) : /* @__PURE__ */ (0, import_jsx_runtime80.jsx)(Text, { c: "dimmed", children: "No transactions found." }) })
+        ] }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Tabs, { defaultValue: "holdings", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Tabs.List, { mb: "md", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Tabs.Tab, { value: "holdings", children: [
+              "Holdings (",
+              data.holdings.length,
+              ")"
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime81.jsxs)(Tabs.Tab, { value: "transactions", children: [
+              "Transactions (",
+              data.transactions.length,
+              ")"
+            ] })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Tabs.Panel, { value: "holdings", children: data.holdings.length > 0 ? /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Card, { padding: "xs", children: /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(HoldingsTable, { holdings: data.holdings }) }) : /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Text, { c: "dimmed", children: "No holdings found." }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Tabs.Panel, { value: "transactions", children: data.transactions.length > 0 ? /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Card, { padding: "xs", children: /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(TransactionsTable, { transactions: data.transactions }) }) : /* @__PURE__ */ (0, import_jsx_runtime81.jsx)(Text, { c: "dimmed", children: "No transactions found." }) })
+        ] })
       ] })
     ] }) });
   }
-  (0, import_client.createRoot)(document.getElementById("app")).render(/* @__PURE__ */ (0, import_jsx_runtime80.jsx)(App, {}));
+  (0, import_client.createRoot)(document.getElementById("app")).render(/* @__PURE__ */ (0, import_jsx_runtime81.jsx)(App, {}));
 })();
 /*! Bundled license information:
 

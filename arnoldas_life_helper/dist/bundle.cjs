@@ -5485,7 +5485,7 @@ var require_thread_stream = __commonJS({
     var { version } = require_package();
     var { EventEmitter } = require("events");
     var { Worker } = require("worker_threads");
-    var { join: join4 } = require("path");
+    var { join: join7 } = require("path");
     var { pathToFileURL } = require("url");
     var { wait } = require_wait();
     var {
@@ -5521,7 +5521,7 @@ var require_thread_stream = __commonJS({
     function createWorker(stream, opts) {
       const { filename, workerData } = opts;
       const bundlerOverrides = "__bundlerPathsOverrides" in globalThis ? globalThis.__bundlerPathsOverrides : {};
-      const toExecute = bundlerOverrides["thread-stream-worker"] || join4(__dirname, "lib", "worker.js");
+      const toExecute = bundlerOverrides["thread-stream-worker"] || join7(__dirname, "lib", "worker.js");
       const worker = new Worker(toExecute, {
         ...opts.workerOpts,
         trackUnmanagedFds: false,
@@ -5910,9 +5910,9 @@ var require_transport = __commonJS({
   "node_modules/pino/lib/transport.js"(exports2, module2) {
     "use strict";
     var { createRequire } = require("module");
-    var { existsSync: existsSync4 } = require("node:fs");
+    var { existsSync: existsSync7 } = require("node:fs");
     var getCallers = require_caller();
-    var { join: join4, isAbsolute, sep } = require("node:path");
+    var { join: join7, isAbsolute, sep } = require("node:path");
     var { fileURLToPath } = require("node:url");
     var sleep = require_atomic_sleep();
     var onExit = require_on_exit_leak_free();
@@ -5984,7 +5984,7 @@ var require_transport = __commonJS({
           return false;
         }
       }
-      return isAbsolute(path) && !existsSync4(path);
+      return isAbsolute(path) && !existsSync7(path);
     }
     function stripQuotes(value) {
       const first2 = value[0];
@@ -6065,7 +6065,7 @@ var require_transport = __commonJS({
         throw new Error("only one of target or targets can be specified");
       }
       if (targets) {
-        target = bundlerOverrides["pino-worker"] || join4(__dirname, "worker.js");
+        target = bundlerOverrides["pino-worker"] || join7(__dirname, "worker.js");
         options2.targets = targets.filter((dest) => dest.target).map((dest) => {
           return {
             ...dest,
@@ -6083,7 +6083,7 @@ var require_transport = __commonJS({
           });
         });
       } else if (pipeline) {
-        target = bundlerOverrides["pino-worker"] || join4(__dirname, "worker.js");
+        target = bundlerOverrides["pino-worker"] || join7(__dirname, "worker.js");
         options2.pipelines = [pipeline.map((dest) => {
           return {
             ...dest,
@@ -6106,7 +6106,7 @@ var require_transport = __commonJS({
           return origin;
         }
         if (origin === "pino/file") {
-          return join4(__dirname, "..", "file.js");
+          return join7(__dirname, "..", "file.js");
         }
         let fixTarget2;
         for (const filePath of callers) {
@@ -7086,7 +7086,7 @@ var require_safe_stable_stringify = __commonJS({
               return circularValue;
             }
             let res = "";
-            let join4 = ",";
+            let join7 = ",";
             const originalIndentation = indentation;
             if (Array.isArray(value)) {
               if (value.length === 0) {
@@ -7100,7 +7100,7 @@ var require_safe_stable_stringify = __commonJS({
                 indentation += spacer;
                 res += `
 ${indentation}`;
-                join4 = `,
+                join7 = `,
 ${indentation}`;
               }
               const maximumValuesToStringify = Math.min(value.length, maximumBreadth);
@@ -7108,13 +7108,13 @@ ${indentation}`;
               for (; i < maximumValuesToStringify - 1; i++) {
                 const tmp2 = stringifyFnReplacer(String(i), value, stack, replacer, spacer, indentation);
                 res += tmp2 !== void 0 ? tmp2 : "null";
-                res += join4;
+                res += join7;
               }
               const tmp = stringifyFnReplacer(String(i), value, stack, replacer, spacer, indentation);
               res += tmp !== void 0 ? tmp : "null";
               if (value.length - 1 > maximumBreadth) {
                 const removedKeys = value.length - maximumBreadth - 1;
-                res += `${join4}"... ${getItemCount(removedKeys)} not stringified"`;
+                res += `${join7}"... ${getItemCount(removedKeys)} not stringified"`;
               }
               if (spacer !== "") {
                 res += `
@@ -7135,7 +7135,7 @@ ${originalIndentation}`;
             let separator = "";
             if (spacer !== "") {
               indentation += spacer;
-              join4 = `,
+              join7 = `,
 ${indentation}`;
               whitespace2 = " ";
             }
@@ -7149,13 +7149,13 @@ ${indentation}`;
               const tmp = stringifyFnReplacer(key2, value, stack, replacer, spacer, indentation);
               if (tmp !== void 0) {
                 res += `${separator}${strEscape(key2)}:${whitespace2}${tmp}`;
-                separator = join4;
+                separator = join7;
               }
             }
             if (keyLength > maximumBreadth) {
               const removedKeys = keyLength - maximumBreadth;
               res += `${separator}"...":${whitespace2}"${getItemCount(removedKeys)} not stringified"`;
-              separator = join4;
+              separator = join7;
             }
             if (spacer !== "" && separator.length > 1) {
               res = `
@@ -7196,7 +7196,7 @@ ${originalIndentation}`;
             }
             const originalIndentation = indentation;
             let res = "";
-            let join4 = ",";
+            let join7 = ",";
             if (Array.isArray(value)) {
               if (value.length === 0) {
                 return "[]";
@@ -7209,7 +7209,7 @@ ${originalIndentation}`;
                 indentation += spacer;
                 res += `
 ${indentation}`;
-                join4 = `,
+                join7 = `,
 ${indentation}`;
               }
               const maximumValuesToStringify = Math.min(value.length, maximumBreadth);
@@ -7217,13 +7217,13 @@ ${indentation}`;
               for (; i < maximumValuesToStringify - 1; i++) {
                 const tmp2 = stringifyArrayReplacer(String(i), value[i], stack, replacer, spacer, indentation);
                 res += tmp2 !== void 0 ? tmp2 : "null";
-                res += join4;
+                res += join7;
               }
               const tmp = stringifyArrayReplacer(String(i), value[i], stack, replacer, spacer, indentation);
               res += tmp !== void 0 ? tmp : "null";
               if (value.length - 1 > maximumBreadth) {
                 const removedKeys = value.length - maximumBreadth - 1;
-                res += `${join4}"... ${getItemCount(removedKeys)} not stringified"`;
+                res += `${join7}"... ${getItemCount(removedKeys)} not stringified"`;
               }
               if (spacer !== "") {
                 res += `
@@ -7236,7 +7236,7 @@ ${originalIndentation}`;
             let whitespace2 = "";
             if (spacer !== "") {
               indentation += spacer;
-              join4 = `,
+              join7 = `,
 ${indentation}`;
               whitespace2 = " ";
             }
@@ -7245,7 +7245,7 @@ ${indentation}`;
               const tmp = stringifyArrayReplacer(key2, value[key2], stack, replacer, spacer, indentation);
               if (tmp !== void 0) {
                 res += `${separator}${strEscape(key2)}:${whitespace2}${tmp}`;
-                separator = join4;
+                separator = join7;
               }
             }
             if (spacer !== "" && separator.length > 1) {
@@ -7303,20 +7303,20 @@ ${originalIndentation}`;
               indentation += spacer;
               let res2 = `
 ${indentation}`;
-              const join5 = `,
+              const join8 = `,
 ${indentation}`;
               const maximumValuesToStringify = Math.min(value.length, maximumBreadth);
               let i = 0;
               for (; i < maximumValuesToStringify - 1; i++) {
                 const tmp2 = stringifyIndent(String(i), value[i], stack, spacer, indentation);
                 res2 += tmp2 !== void 0 ? tmp2 : "null";
-                res2 += join5;
+                res2 += join8;
               }
               const tmp = stringifyIndent(String(i), value[i], stack, spacer, indentation);
               res2 += tmp !== void 0 ? tmp : "null";
               if (value.length - 1 > maximumBreadth) {
                 const removedKeys = value.length - maximumBreadth - 1;
-                res2 += `${join5}"... ${getItemCount(removedKeys)} not stringified"`;
+                res2 += `${join8}"... ${getItemCount(removedKeys)} not stringified"`;
               }
               res2 += `
 ${originalIndentation}`;
@@ -7332,16 +7332,16 @@ ${originalIndentation}`;
               return '"[Object]"';
             }
             indentation += spacer;
-            const join4 = `,
+            const join7 = `,
 ${indentation}`;
             let res = "";
             let separator = "";
             let maximumPropertiesToStringify = Math.min(keyLength, maximumBreadth);
             if (isTypedArrayWithEntries(value)) {
-              res += stringifyTypedArray(value, join4, maximumBreadth);
+              res += stringifyTypedArray(value, join7, maximumBreadth);
               keys = keys.slice(value.length);
               maximumPropertiesToStringify -= value.length;
-              separator = join4;
+              separator = join7;
             }
             if (deterministic) {
               keys = sort(keys, comparator);
@@ -7352,13 +7352,13 @@ ${indentation}`;
               const tmp = stringifyIndent(key2, value[key2], stack, spacer, indentation);
               if (tmp !== void 0) {
                 res += `${separator}${strEscape(key2)}: ${tmp}`;
-                separator = join4;
+                separator = join7;
               }
             }
             if (keyLength > maximumBreadth) {
               const removedKeys = keyLength - maximumBreadth;
               res += `${separator}"...": "${getItemCount(removedKeys)} not stringified"`;
-              separator = join4;
+              separator = join7;
             }
             if (separator !== "") {
               res = `
@@ -41672,7 +41672,7 @@ var require_send = __commonJS({
     var { parseTokenList } = require_parseTokenList();
     var { createHttpError } = require_createHttpError();
     var extname = path.extname;
-    var join4 = path.join;
+    var join7 = path.join;
     var normalize = path.normalize;
     var resolve2 = path.resolve;
     var sep = path.sep;
@@ -41759,7 +41759,7 @@ var require_send = __commonJS({
           return { statusCode: 403 };
         }
         parts = path2.split(sep);
-        path2 = normalize(join4(root2, path2));
+        path2 = normalize(join7(root2, path2));
       } else {
         if (UP_PATH_REGEXP.test(path2)) {
           debug('malicious path "%s"', path2);
@@ -42042,7 +42042,7 @@ var require_send = __commonJS({
       let err;
       for (let i = 0; i < options2.index.length; i++) {
         const index2 = options2.index[i];
-        const p = join4(path2, index2);
+        const p = join7(path2, index2);
         const { error, stat } = await tryStat(p);
         if (error) {
           err = error;
@@ -43150,30 +43150,30 @@ var require_papaparse = __commonJS({
       function getWorkerBlob() {
         var URL2 = global2.URL || global2.webkitURL || null;
         var code = moduleFactory.toString();
-        return Papa2.BLOB_URL || (Papa2.BLOB_URL = URL2.createObjectURL(new Blob(["var global = (function() { if (typeof self !== 'undefined') { return self; } if (typeof window !== 'undefined') { return window; } if (typeof global !== 'undefined') { return global; } return {}; })(); global.IS_PAPA_WORKER=true; ", "(", code, ")();"], { type: "text/javascript" })));
+        return Papa4.BLOB_URL || (Papa4.BLOB_URL = URL2.createObjectURL(new Blob(["var global = (function() { if (typeof self !== 'undefined') { return self; } if (typeof window !== 'undefined') { return window; } if (typeof global !== 'undefined') { return global; } return {}; })(); global.IS_PAPA_WORKER=true; ", "(", code, ")();"], { type: "text/javascript" })));
       }
       var IS_WORKER = !global2.document && !!global2.postMessage, IS_PAPA_WORKER = global2.IS_PAPA_WORKER || false;
       var workers = {}, workerIdCounter = 0;
-      var Papa2 = {};
-      Papa2.parse = CsvToJson;
-      Papa2.unparse = JsonToCsv;
-      Papa2.RECORD_SEP = String.fromCharCode(30);
-      Papa2.UNIT_SEP = String.fromCharCode(31);
-      Papa2.BYTE_ORDER_MARK = "\uFEFF";
-      Papa2.BAD_DELIMITERS = ["\r", "\n", '"', Papa2.BYTE_ORDER_MARK];
-      Papa2.WORKERS_SUPPORTED = !IS_WORKER && !!global2.Worker;
-      Papa2.NODE_STREAM_INPUT = 1;
-      Papa2.LocalChunkSize = 1024 * 1024 * 10;
-      Papa2.RemoteChunkSize = 1024 * 1024 * 5;
-      Papa2.DefaultDelimiter = ",";
-      Papa2.Parser = Parser3;
-      Papa2.ParserHandle = ParserHandle;
-      Papa2.NetworkStreamer = NetworkStreamer;
-      Papa2.FileStreamer = FileStreamer;
-      Papa2.StringStreamer = StringStreamer;
-      Papa2.ReadableStreamStreamer = ReadableStreamStreamer;
+      var Papa4 = {};
+      Papa4.parse = CsvToJson;
+      Papa4.unparse = JsonToCsv;
+      Papa4.RECORD_SEP = String.fromCharCode(30);
+      Papa4.UNIT_SEP = String.fromCharCode(31);
+      Papa4.BYTE_ORDER_MARK = "\uFEFF";
+      Papa4.BAD_DELIMITERS = ["\r", "\n", '"', Papa4.BYTE_ORDER_MARK];
+      Papa4.WORKERS_SUPPORTED = !IS_WORKER && !!global2.Worker;
+      Papa4.NODE_STREAM_INPUT = 1;
+      Papa4.LocalChunkSize = 1024 * 1024 * 10;
+      Papa4.RemoteChunkSize = 1024 * 1024 * 5;
+      Papa4.DefaultDelimiter = ",";
+      Papa4.Parser = Parser3;
+      Papa4.ParserHandle = ParserHandle;
+      Papa4.NetworkStreamer = NetworkStreamer;
+      Papa4.FileStreamer = FileStreamer;
+      Papa4.StringStreamer = StringStreamer;
+      Papa4.ReadableStreamStreamer = ReadableStreamStreamer;
       if (typeof PAPA_BROWSER_CONTEXT === "undefined") {
-        Papa2.DuplexStreamStreamer = DuplexStreamStreamer;
+        Papa4.DuplexStreamStreamer = DuplexStreamStreamer;
       }
       if (global2.jQuery) {
         var $2 = global2.jQuery;
@@ -43223,7 +43223,7 @@ var require_papaparse = __commonJS({
                 userCompleteFunc(results, f.file, f.inputElem);
               fileComplete();
             };
-            Papa2.parse(f.file, f.instanceConfig);
+            Papa4.parse(f.file, f.instanceConfig);
           }
           function error(name, file, elem, reason) {
             if (isFunction(options2.error))
@@ -43247,7 +43247,7 @@ var require_papaparse = __commonJS({
         }
         _config.dynamicTyping = dynamicTyping;
         _config.transform = isFunction(_config.transform) ? _config.transform : false;
-        if (_config.worker && Papa2.WORKERS_SUPPORTED) {
+        if (_config.worker && Papa4.WORKERS_SUPPORTED) {
           var w = newWorker();
           w.userStep = _config.step;
           w.userChunk = _config.chunk;
@@ -43266,7 +43266,7 @@ var require_papaparse = __commonJS({
           return;
         }
         var streamer = null;
-        if (_input === Papa2.NODE_STREAM_INPUT && typeof PAPA_BROWSER_CONTEXT === "undefined") {
+        if (_input === Papa4.NODE_STREAM_INPUT && typeof PAPA_BROWSER_CONTEXT === "undefined") {
           streamer = new DuplexStreamStreamer(_config);
           return streamer.getStream();
         } else if (typeof _input === "string") {
@@ -43323,7 +43323,7 @@ var require_papaparse = __commonJS({
         function unpackConfig() {
           if (typeof _config !== "object")
             return;
-          if (typeof _config.delimiter === "string" && !Papa2.BAD_DELIMITERS.filter(function(value) {
+          if (typeof _config.delimiter === "string" && !Papa4.BAD_DELIMITERS.filter(function(value) {
             return _config.delimiter.indexOf(value) !== -1;
           }).length) {
             _delimiter = _config.delimiter;
@@ -43408,7 +43408,7 @@ var require_papaparse = __commonJS({
             needsQuotes = true;
           }
           var escapedQuoteStr = str.toString().replace(quoteCharRegex, _escapedQuote);
-          needsQuotes = needsQuotes || _quotes === true || typeof _quotes === "function" && _quotes(str, col) || Array.isArray(_quotes) && _quotes[col] || hasAny(escapedQuoteStr, Papa2.BAD_DELIMITERS) || escapedQuoteStr.indexOf(_delimiter) > -1 || escapedQuoteStr.charAt(0) === " " || escapedQuoteStr.charAt(escapedQuoteStr.length - 1) === " ";
+          needsQuotes = needsQuotes || _quotes === true || typeof _quotes === "function" && _quotes(str, col) || Array.isArray(_quotes) && _quotes[col] || hasAny(escapedQuoteStr, Papa4.BAD_DELIMITERS) || escapedQuoteStr.indexOf(_delimiter) > -1 || escapedQuoteStr.charAt(0) === " " || escapedQuoteStr.charAt(escapedQuoteStr.length - 1) === " ";
           return needsQuotes ? _quoteChar + escapedQuoteStr + _quoteChar : escapedQuoteStr;
         }
         function hasAny(str, substrings) {
@@ -43472,7 +43472,7 @@ var require_papaparse = __commonJS({
           if (IS_PAPA_WORKER) {
             global2.postMessage({
               results,
-              workerId: Papa2.WORKER_ID,
+              workerId: Papa4.WORKER_ID,
               finished: finishedIncludingPreview
             });
           } else if (isFunction(this._config.chunk) && !isFakeChunk) {
@@ -43502,7 +43502,7 @@ var require_papaparse = __commonJS({
             this._config.error(error);
           else if (IS_PAPA_WORKER && this._config.error) {
             global2.postMessage({
-              workerId: Papa2.WORKER_ID,
+              workerId: Papa4.WORKER_ID,
               error,
               finished: false
             });
@@ -43521,7 +43521,7 @@ var require_papaparse = __commonJS({
       function NetworkStreamer(config) {
         config = config || {};
         if (!config.chunkSize)
-          config.chunkSize = Papa2.RemoteChunkSize;
+          config.chunkSize = Papa4.RemoteChunkSize;
         ChunkStreamer.call(this, config);
         var xhr;
         if (IS_WORKER) {
@@ -43598,7 +43598,7 @@ var require_papaparse = __commonJS({
       function FileStreamer(config) {
         config = config || {};
         if (!config.chunkSize)
-          config.chunkSize = Papa2.LocalChunkSize;
+          config.chunkSize = Papa4.LocalChunkSize;
         ChunkStreamer.call(this, config);
         var reader, slice2;
         var usingAsyncReader = typeof FileReader !== "undefined";
@@ -43844,7 +43844,7 @@ var require_papaparse = __commonJS({
               _config.delimiter = delimGuess.bestDelimiter;
             else {
               _delimiterError = true;
-              _config.delimiter = Papa2.DefaultDelimiter;
+              _config.delimiter = Papa4.DefaultDelimiter;
             }
             _results.meta.delimiter = _config.delimiter;
           } else if (isFunction(_config.delimiter)) {
@@ -43917,7 +43917,7 @@ var require_papaparse = __commonJS({
         }
         function processResults() {
           if (_results && _delimiterError) {
-            addError("Delimiter", "UndetectableDelimiter", "Unable to auto-detect delimiting character; defaulted to '" + Papa2.DefaultDelimiter + "'");
+            addError("Delimiter", "UndetectableDelimiter", "Unable to auto-detect delimiting character; defaulted to '" + Papa4.DefaultDelimiter + "'");
             _delimiterError = false;
           }
           if (_config.skipEmptyLines) {
@@ -44009,7 +44009,7 @@ var require_papaparse = __commonJS({
         }
         function guessDelimiter(input, newline, skipEmptyLines, comments, delimitersToGuess) {
           var bestDelim, bestDelta, fieldCountPrevRow, maxFieldCount;
-          delimitersToGuess = delimitersToGuess || [",", "	", "|", ";", Papa2.RECORD_SEP, Papa2.UNIT_SEP];
+          delimitersToGuess = delimitersToGuess || [",", "	", "|", ";", Papa4.RECORD_SEP, Papa4.UNIT_SEP];
           for (var i = 0; i < delimitersToGuess.length; i++) {
             var delim = delimitersToGuess[i];
             var delta = 0, avgFieldCount = 0, emptyLinesCount = 0;
@@ -44084,13 +44084,13 @@ var require_papaparse = __commonJS({
         if (config.escapeChar !== void 0) {
           escapeChar = config.escapeChar;
         }
-        if (typeof delim !== "string" || Papa2.BAD_DELIMITERS.indexOf(delim) > -1)
+        if (typeof delim !== "string" || Papa4.BAD_DELIMITERS.indexOf(delim) > -1)
           delim = ",";
         if (comments === delim)
           throw new Error("Comment character same as delimiter");
         else if (comments === true)
           comments = "#";
-        else if (typeof comments !== "string" || Papa2.BAD_DELIMITERS.indexOf(comments) > -1)
+        else if (typeof comments !== "string" || Papa4.BAD_DELIMITERS.indexOf(comments) > -1)
           comments = false;
         if (newline !== "\n" && newline !== "\r" && newline !== "\r\n")
           newline = "\n";
@@ -44335,7 +44335,7 @@ var require_papaparse = __commonJS({
         };
       }
       function newWorker() {
-        if (!Papa2.WORKERS_SUPPORTED)
+        if (!Papa4.WORKERS_SUPPORTED)
           return false;
         var workerUrl = getWorkerBlob();
         var w = new global2.Worker(workerUrl);
@@ -44391,19 +44391,19 @@ var require_papaparse = __commonJS({
       }
       function workerThreadReceivedMessage(e) {
         var msg = e.data;
-        if (typeof Papa2.WORKER_ID === "undefined" && msg)
-          Papa2.WORKER_ID = msg.workerId;
+        if (typeof Papa4.WORKER_ID === "undefined" && msg)
+          Papa4.WORKER_ID = msg.workerId;
         if (typeof msg.input === "string") {
           global2.postMessage({
-            workerId: Papa2.WORKER_ID,
-            results: Papa2.parse(msg.input, msg.config),
+            workerId: Papa4.WORKER_ID,
+            results: Papa4.parse(msg.input, msg.config),
             finished: true
           });
         } else if (global2.File && msg.input instanceof File || msg.input instanceof Object) {
-          var results = Papa2.parse(msg.input, msg.config);
+          var results = Papa4.parse(msg.input, msg.config);
           if (results)
             global2.postMessage({
-              workerId: Papa2.WORKER_ID,
+              workerId: Papa4.WORKER_ID,
               results,
               finished: true
             });
@@ -44425,7 +44425,7 @@ var require_papaparse = __commonJS({
       function isFunction(func) {
         return typeof func === "function";
       }
-      return Papa2;
+      return Papa4;
     });
   }
 });
@@ -73068,12 +73068,12 @@ function getEffectiveDates(scanDates) {
 // src/server.ts
 var import_fastify = __toESM(require_fastify(), 1);
 var import_static = __toESM(require_static(), 1);
-var import_node_fs4 = require("node:fs");
-var import_node_path3 = require("node:path");
+var import_node_fs7 = require("node:fs");
+var import_node_path6 = require("node:path");
 
 // src/investments/portfolio-service.ts
-var import_node_path2 = require("node:path");
-var import_node_fs3 = require("node:fs");
+var import_node_path5 = require("node:path");
+var import_node_fs6 = require("node:fs");
 
 // src/investments/swedbank-parser.ts
 var import_papaparse = __toESM(require_papaparse(), 1);
@@ -73255,34 +73255,710 @@ function classifySwedbankTransactions(raws) {
   return raws.map(classifySwedbankTransaction);
 }
 
+// src/investments/revolut-parser.ts
+var import_papaparse2 = __toESM(require_papaparse(), 1);
+var import_node_fs3 = require("node:fs");
+var import_node_path2 = require("node:path");
+
+// src/investments/currency.ts
+var HARDCODED_EUR_USD_RATES = [
+  // 2017
+  { date: "2017-01-01", from: "EUR", to: "USD", rate: 1.0541 },
+  { date: "2017-07-01", from: "EUR", to: "USD", rate: 1.1412 },
+  { date: "2017-12-31", from: "EUR", to: "USD", rate: 1.1993 },
+  // 2018
+  { date: "2018-01-01", from: "EUR", to: "USD", rate: 1.2005 },
+  { date: "2018-07-01", from: "EUR", to: "USD", rate: 1.1658 },
+  { date: "2018-12-31", from: "EUR", to: "USD", rate: 1.145 },
+  // 2019
+  { date: "2019-01-01", from: "EUR", to: "USD", rate: 1.145 },
+  { date: "2019-07-01", from: "EUR", to: "USD", rate: 1.138 },
+  { date: "2019-12-31", from: "EUR", to: "USD", rate: 1.1213 },
+  // 2020
+  { date: "2020-01-01", from: "EUR", to: "USD", rate: 1.1213 },
+  { date: "2020-04-08", from: "EUR", to: "USD", rate: 1.087 },
+  { date: "2020-07-01", from: "EUR", to: "USD", rate: 1.1198 },
+  { date: "2020-10-21", from: "EUR", to: "USD", rate: 1.184 },
+  { date: "2020-11-24", from: "EUR", to: "USD", rate: 1.189 },
+  { date: "2020-12-31", from: "EUR", to: "USD", rate: 1.2271 },
+  // 2021
+  { date: "2021-01-01", from: "EUR", to: "USD", rate: 1.2271 },
+  { date: "2021-02-11", from: "EUR", to: "USD", rate: 1.212 },
+  { date: "2021-04-10", from: "EUR", to: "USD", rate: 1.19 },
+  { date: "2021-07-01", from: "EUR", to: "USD", rate: 1.1856 },
+  { date: "2021-07-31", from: "EUR", to: "USD", rate: 1.187 },
+  { date: "2021-12-14", from: "EUR", to: "USD", rate: 1.128 },
+  { date: "2021-12-31", from: "EUR", to: "USD", rate: 1.1326 },
+  // 2022
+  { date: "2022-01-01", from: "EUR", to: "USD", rate: 1.1326 },
+  { date: "2022-07-01", from: "EUR", to: "USD", rate: 1.0387 },
+  { date: "2022-12-31", from: "EUR", to: "USD", rate: 1.0666 },
+  // 2023
+  { date: "2023-01-01", from: "EUR", to: "USD", rate: 1.0666 },
+  { date: "2023-07-01", from: "EUR", to: "USD", rate: 1.0866 },
+  { date: "2023-12-31", from: "EUR", to: "USD", rate: 1.105 },
+  // 2024
+  { date: "2024-01-01", from: "EUR", to: "USD", rate: 1.105 },
+  { date: "2024-07-01", from: "EUR", to: "USD", rate: 1.071 },
+  { date: "2024-10-04", from: "EUR", to: "USD", rate: 1.098 },
+  { date: "2024-10-08", from: "EUR", to: "USD", rate: 1.0975 },
+  { date: "2024-11-19", from: "EUR", to: "USD", rate: 1.055 },
+  { date: "2024-12-31", from: "EUR", to: "USD", rate: 1.035 },
+  // 2025
+  { date: "2025-01-01", from: "EUR", to: "USD", rate: 1.035 },
+  { date: "2025-01-14", from: "EUR", to: "USD", rate: 1.029 },
+  { date: "2025-01-28", from: "EUR", to: "USD", rate: 1.043 },
+  { date: "2025-03-01", from: "EUR", to: "USD", rate: 1.038 },
+  { date: "2025-04-09", from: "EUR", to: "USD", rate: 1.095 },
+  { date: "2025-04-16", from: "EUR", to: "USD", rate: 1.136 },
+  { date: "2025-05-29", from: "EUR", to: "USD", rate: 1.128 },
+  { date: "2025-06-18", from: "EUR", to: "USD", rate: 1.118 },
+  { date: "2025-07-01", from: "EUR", to: "USD", rate: 1.11 },
+  { date: "2025-12-31", from: "EUR", to: "USD", rate: 1.1 },
+  // 2026
+  { date: "2026-01-01", from: "EUR", to: "USD", rate: 1.1 },
+  { date: "2026-01-28", from: "EUR", to: "USD", rate: 1.045 },
+  { date: "2026-03-01", from: "EUR", to: "USD", rate: 1.05 },
+  { date: "2026-03-26", from: "EUR", to: "USD", rate: 1.08 }
+];
+function findClosestRate(rates, targetDate) {
+  if (rates.length === 0) return void 0;
+  const target = new Date(targetDate).getTime();
+  let best = rates[0];
+  let bestDiff = Math.abs(new Date(best.date).getTime() - target);
+  for (let i = 1; i < rates.length; i++) {
+    const diff = Math.abs(new Date(rates[i].date).getTime() - target);
+    if (diff < bestDiff) {
+      best = rates[i];
+      bestDiff = diff;
+    }
+  }
+  return best;
+}
+function getExchangeRate(date, from, to) {
+  if (from === to) return 1;
+  if (from === "EUR" && to === "USD") {
+    const entry = findClosestRate(HARDCODED_EUR_USD_RATES, date);
+    return entry?.rate ?? 1.08;
+  }
+  if (from === "USD" && to === "EUR") {
+    const entry = findClosestRate(HARDCODED_EUR_USD_RATES, date);
+    return entry ? 1 / entry.rate : 1 / 1.08;
+  }
+  if (from === "CNH" && to === "EUR") {
+    const cnh_to_usd = 0.138;
+    const usd_to_eur = getExchangeRate(date, "USD", "EUR");
+    return cnh_to_usd * usd_to_eur;
+  }
+  if (from === "EUR" && to === "CNH") {
+    return 1 / getExchangeRate(date, "CNH", "EUR");
+  }
+  if (from === "DKK" && to === "EUR") return 0.1341;
+  if (from === "EUR" && to === "DKK") return 7.4573;
+  console.warn(
+    `No exchange rate available for ${from}\u2192${to} on ${date}, returning 1`
+  );
+  return 1;
+}
+function convertAmount(amount, date, from, to) {
+  return amount * getExchangeRate(date, from, to);
+}
+
+// src/investments/revolut-parser.ts
+var MONTH_MAP = {
+  Jan: "01",
+  Feb: "02",
+  Mar: "03",
+  Apr: "04",
+  May: "05",
+  Jun: "06",
+  Jul: "07",
+  Aug: "08",
+  Sep: "09",
+  Oct: "10",
+  Nov: "11",
+  Dec: "12"
+};
+function parseRevolutDate(dateStr) {
+  const cleaned = dateStr.replace(/^"|"$/g, "").trim();
+  const match = cleaned.match(/^(\w{3})\s+(\d{1,2}),\s+(\d{4})/);
+  if (!match) return "";
+  const [, mon, day, year] = match;
+  return `${year}-${MONTH_MAP[mon] || "01"}-${day.padStart(2, "0")}`;
+}
+function parseMoney(raw) {
+  if (!raw) return 0;
+  const cleaned = raw.replace(/^"|"$/g, "").replace(/US\$/g, "").replace(/[€$,]/g, "").trim();
+  return parseFloat(cleaned) || 0;
+}
+function findSection(lines, marker) {
+  return lines.findIndex((l) => l.trim().startsWith(marker));
+}
+function parseInterestFromSummary(lines, sectionMarker) {
+  const idx = findSection(lines, sectionMarker);
+  if (idx < 0) return 0;
+  for (let i = idx + 1; i < Math.min(idx + 15, lines.length); i++) {
+    if (lines[i].startsWith("Total earned interest")) {
+      const parts = lines[i].split(",");
+      return parts.length >= 2 ? parseMoney(parts[1]) : 0;
+    }
+  }
+  return 0;
+}
+function parseBrokerageSection(lines, sectionMarker, currency) {
+  const idx = findSection(lines, sectionMarker);
+  if (idx < 0) return [];
+  let headerIdx = -1;
+  for (let i = idx + 1; i < Math.min(idx + 5, lines.length); i++) {
+    if (lines[i].includes("Date acquired")) {
+      headerIdx = i;
+      break;
+    }
+  }
+  if (headerIdx < 0) return [];
+  const dataLines = [];
+  for (let i = headerIdx + 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line === "" || line.startsWith("Transactions for ") || line.startsWith("Summary for ")) break;
+    dataLines.push(lines[i]);
+  }
+  if (dataLines.length === 0) return [];
+  const csv = [lines[headerIdx], ...dataLines].join("\n");
+  const result = import_papaparse2.default.parse(csv, { header: true, skipEmptyLines: true });
+  return result.data.map((row) => ({
+    dateAcquired: row["Date acquired"] || "",
+    dateSold: row["Date sold"] || "",
+    securityName: row["Security name"] || "",
+    symbol: row["Symbol"] || "",
+    isin: row["ISIN"] || "",
+    country: row["Country"] || "",
+    quantity: parseFloat(row["Qty"]) || 0,
+    costBasis: parseMoney(row["Cost basis"]),
+    costBasisBaseCurrency: parseMoney(row["Cost basis base currency"]),
+    costBasisRate: parseFloat(row["Cost basis rate"]) || 0,
+    grossProceeds: parseMoney(row["Gross proceeds"]),
+    grossProceedsBaseCurrency: parseMoney(row["Gross proceeds base currency"]),
+    grossProceedsRate: parseFloat(row["Gross proceeds rate"]) || 0,
+    grossPnl: parseMoney(row["Gross PnL"]),
+    grossPnlBaseCurrency: parseMoney(row["Gross PnL base currency"]),
+    fees: parseMoney(row["Fees"]),
+    feesBaseCurrency: parseMoney(row["Fees  base currency"]),
+    currency
+  }));
+}
+function parseCryptoSection(lines) {
+  const idx = findSection(lines, "Transactions for Crypto");
+  if (idx < 0) return [];
+  let headerIdx = -1;
+  for (let i = idx + 1; i < Math.min(idx + 3, lines.length); i++) {
+    if (lines[i].includes("Date acquired")) {
+      headerIdx = i;
+      break;
+    }
+  }
+  if (headerIdx < 0) return [];
+  const dataLines = [];
+  for (let i = headerIdx + 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line === "") break;
+    dataLines.push(lines[i]);
+  }
+  if (dataLines.length === 0) return [];
+  const csv = [lines[headerIdx], ...dataLines].join("\n");
+  const result = import_papaparse2.default.parse(csv, { header: true, skipEmptyLines: true });
+  return result.data.map((row) => ({
+    dateAcquired: row["Date acquired"] || "",
+    dateSold: row["Date sold"] || "",
+    tokenName: row["Token name"] || "",
+    quantity: parseFloat(row["Qty"]) || 0,
+    costBasis: parseMoney(row["Cost basis"]),
+    grossProceeds: parseMoney(row["Gross proceeds"]),
+    grossPnl: parseMoney(row["Gross PnL"])
+  }));
+}
+async function parseRevolutFile(filePath) {
+  const content = (0, import_node_fs3.readFileSync)(filePath, "utf-8");
+  const lines = content.split("\n");
+  const flexibleCashEur = parseInterestFromSummary(lines, "Summary for Flexible Cash Funds - EUR");
+  const flexibleCashUsd = parseInterestFromSummary(lines, "Summary for Flexible Cash Funds - USD");
+  const savingsEur = parseInterestFromSummary(lines, "Summary for Savings Accounts - EUR");
+  const savingsUsd = parseInterestFromSummary(lines, "Summary for Savings Accounts - USD");
+  const usdInEur = convertAmount(flexibleCashUsd + savingsUsd, "2025-06-01", "USD", "EUR");
+  const totalEur = Math.round((flexibleCashEur + savingsEur + usdInEur) * 100) / 100;
+  return {
+    brokerageEur: parseBrokerageSection(lines, "Transactions for Brokerage Account sells - EUR", "EUR"),
+    brokerageUsd: parseBrokerageSection(lines, "Transactions for Brokerage Account sells - USD", "USD"),
+    crypto: parseCryptoSection(lines),
+    interestSummary: { flexibleCashEur, flexibleCashUsd, savingsEur, savingsUsd, totalEur }
+  };
+}
+var EMPTY_SUMMARY = {
+  flexibleCashEur: 0,
+  flexibleCashUsd: 0,
+  savingsEur: 0,
+  savingsUsd: 0,
+  totalEur: 0
+};
+async function parseAllRevolutFiles(dirPath) {
+  if (!(0, import_node_fs3.existsSync)(dirPath)) {
+    return { brokerageEur: [], brokerageUsd: [], crypto: [], interestSummary: { ...EMPTY_SUMMARY } };
+  }
+  const files = (0, import_node_fs3.readdirSync)(dirPath).filter((f) => f.endsWith(".csv")).sort();
+  const combined = {
+    brokerageEur: [],
+    brokerageUsd: [],
+    crypto: [],
+    interestSummary: { ...EMPTY_SUMMARY }
+  };
+  for (const file of files) {
+    const data2 = await parseRevolutFile((0, import_node_path2.join)(dirPath, file));
+    combined.brokerageEur.push(...data2.brokerageEur);
+    combined.brokerageUsd.push(...data2.brokerageUsd);
+    combined.crypto.push(...data2.crypto);
+    combined.interestSummary.flexibleCashEur += data2.interestSummary.flexibleCashEur;
+    combined.interestSummary.flexibleCashUsd += data2.interestSummary.flexibleCashUsd;
+    combined.interestSummary.savingsEur += data2.interestSummary.savingsEur;
+    combined.interestSummary.savingsUsd += data2.interestSummary.savingsUsd;
+    combined.interestSummary.totalEur += data2.interestSummary.totalEur;
+  }
+  return combined;
+}
+function classifyRevolutTransactions(data2) {
+  const transactions = [];
+  let counter = 0;
+  for (const sell of [...data2.brokerageEur, ...data2.brokerageUsd]) {
+    counter++;
+    const buyDate = parseRevolutDate(sell.dateAcquired);
+    const sellDate = parseRevolutDate(sell.dateSold);
+    const costPerUnit = sell.quantity > 0 ? sell.costBasis / sell.quantity : 0;
+    const sellPricePerUnit = sell.quantity > 0 ? sell.grossProceeds / sell.quantity : 0;
+    transactions.push({
+      id: `rev-brok-buy-${counter}`,
+      broker: "revolut",
+      type: "BUY",
+      date: buyDate,
+      symbol: sell.symbol,
+      description: `Buy ${sell.securityName}`,
+      quantity: sell.quantity,
+      pricePerUnit: costPerUnit,
+      amount: Math.abs(sell.costBasis),
+      currency: sell.currency,
+      fees: 0,
+      amountInBaseCurrency: Math.abs(sell.costBasisBaseCurrency)
+    });
+    transactions.push({
+      id: `rev-brok-sell-${counter}`,
+      broker: "revolut",
+      type: "SELL",
+      date: sellDate,
+      symbol: sell.symbol,
+      description: `Sell ${sell.securityName}`,
+      quantity: -sell.quantity,
+      pricePerUnit: sellPricePerUnit,
+      amount: Math.abs(sell.grossProceeds),
+      currency: sell.currency,
+      fees: Math.abs(sell.fees),
+      amountInBaseCurrency: Math.abs(sell.grossProceedsBaseCurrency)
+    });
+  }
+  for (const sell of data2.crypto) {
+    counter++;
+    const buyDate = parseRevolutDate(sell.dateAcquired);
+    const sellDate = parseRevolutDate(sell.dateSold);
+    const costPerUnit = sell.quantity > 0 ? sell.costBasis / sell.quantity : 0;
+    const sellPricePerUnit = sell.quantity > 0 ? sell.grossProceeds / sell.quantity : 0;
+    transactions.push({
+      id: `rev-crypto-buy-${counter}`,
+      broker: "revolut",
+      type: "BUY",
+      date: buyDate,
+      symbol: sell.tokenName,
+      description: `Buy ${sell.tokenName}`,
+      quantity: sell.quantity,
+      pricePerUnit: costPerUnit,
+      amount: Math.abs(sell.costBasis),
+      currency: "USD",
+      fees: 0,
+      amountInBaseCurrency: convertAmount(Math.abs(sell.costBasis), buyDate, "USD", "EUR")
+    });
+    transactions.push({
+      id: `rev-crypto-sell-${counter}`,
+      broker: "revolut",
+      type: "CRYPTO_SELL",
+      date: sellDate,
+      symbol: sell.tokenName,
+      description: `Sell ${sell.tokenName}`,
+      quantity: -sell.quantity,
+      pricePerUnit: sellPricePerUnit,
+      amount: Math.abs(sell.grossProceeds),
+      currency: "USD",
+      fees: 0,
+      amountInBaseCurrency: convertAmount(Math.abs(sell.grossProceeds), sellDate, "USD", "EUR")
+    });
+  }
+  return transactions;
+}
+
+// src/investments/ib-parser.ts
+var import_papaparse3 = __toESM(require_papaparse(), 1);
+var import_node_fs4 = require("node:fs");
+var import_node_path3 = require("node:path");
+function parseIBDate(dateStr) {
+  if (!dateStr) return "";
+  const match = dateStr.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if (!match) return "";
+  const [, mm, dd, yyyy] = match;
+  return `${yyyy}-${mm}-${dd}`;
+}
+function mapRow(row) {
+  return {
+    clientAccountId: row["ClientAccountID"] || "",
+    currencyPrimary: row["CurrencyPrimary"] || "",
+    fxRateToBase: parseFloat(row["FXRateToBase"]) || 0,
+    assetClass: row["AssetClass"] || "STK",
+    subCategory: row["SubCategory"] || "",
+    symbol: row["Symbol"] || "",
+    description: row["Description"] || "",
+    isin: row["ISIN"] || "",
+    listingExchange: row["ListingExchange"] || "",
+    tradeId: row["TradeID"] || "",
+    tradeDate: row["TradeDate"] || "",
+    dateTime: row["DateTime"] || "",
+    quantity: parseFloat(row["Quantity"]) || 0,
+    tradePrice: parseFloat(row["TradePrice"]) || 0,
+    tradeMoney: parseFloat(row["TradeMoney"]) || 0,
+    proceeds: parseFloat(row["Proceeds"]) || 0,
+    taxes: parseFloat(row["Taxes"]) || 0,
+    ibCommission: parseFloat(row["IBCommission"]) || 0,
+    ibCommissionCurrency: row["IBCommissionCurrency"] || "",
+    netCash: parseFloat(row["NetCash"]) || 0,
+    closePrice: parseFloat(row["ClosePrice"]) || 0,
+    openCloseIndicator: row["Open/CloseIndicator"] || "",
+    costBasis: parseFloat(row["CostBasis"]) || 0,
+    fifoPnlRealized: parseFloat(row["FifoPnlRealized"]) || 0,
+    mtmPnl: parseFloat(row["MtmPnl"]) || 0,
+    buySell: row["Buy/Sell"] || "BUY"
+  };
+}
+async function parseIBFile(filePath) {
+  const content = (0, import_node_fs4.readFileSync)(filePath, "utf-8");
+  const result = import_papaparse3.default.parse(content, { header: true, skipEmptyLines: true });
+  return result.data.map(mapRow);
+}
+async function parseAllIBFiles(dirPath) {
+  if (!(0, import_node_fs4.existsSync)(dirPath)) return [];
+  const files = (0, import_node_fs4.readdirSync)(dirPath).filter((f) => f.endsWith(".csv")).sort();
+  const all = [];
+  for (const file of files) {
+    const txns = await parseIBFile((0, import_node_path3.join)(dirPath, file));
+    all.push(...txns);
+  }
+  return all;
+}
+function classifyIBTransactions(rawTxns) {
+  const transactions = [];
+  for (const txn of rawTxns) {
+    if (txn.assetClass === "CASH") continue;
+    const date = parseIBDate(txn.tradeDate);
+    const isBuy = txn.buySell === "BUY";
+    const qty = txn.quantity;
+    const fees = Math.abs(txn.ibCommission) + Math.abs(txn.taxes);
+    const amount = Math.abs(txn.tradeMoney);
+    const currency = txn.currencyPrimary;
+    let amountInBaseCurrency;
+    if (currency === "EUR") {
+      amountInBaseCurrency = amount;
+    } else if (txn.fxRateToBase > 0) {
+      amountInBaseCurrency = amount * txn.fxRateToBase;
+    } else {
+      amountInBaseCurrency = convertAmount(amount, date, currency, "EUR");
+    }
+    transactions.push({
+      id: `ib-${txn.tradeId}`,
+      broker: "interactive-brokers",
+      type: isBuy ? "BUY" : "SELL",
+      date,
+      symbol: txn.symbol,
+      description: `${isBuy ? "Buy" : "Sell"} ${txn.description}`,
+      quantity: qty,
+      pricePerUnit: txn.tradePrice,
+      amount,
+      currency,
+      fees,
+      amountInBaseCurrency
+    });
+  }
+  return transactions;
+}
+
+// src/investments/wix-parser.ts
+var import_node_fs5 = require("node:fs");
+var import_node_path4 = require("node:path");
+function parseWixDate(dateStr) {
+  const match = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!match) return "";
+  const [, dd, mm, yyyy] = match;
+  return `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
+}
+function issuedKey(r) {
+  return `${parseWixDate(r.vestingDate)}|${r.grantId}|${r.shares}`;
+}
+function parseWixIssuedFile(filePath) {
+  const content = (0, import_node_fs5.readFileSync)(filePath, "utf-8");
+  const lines = content.split("\n").filter((l) => l.trim());
+  const seen = /* @__PURE__ */ new Set();
+  const results = [];
+  for (const line of lines) {
+    const match = line.match(
+      /^(\d{1,2}\/\d{1,2}\/\d{4})\s+(\S+)\s+(RSU|ESPP)\s+(\d{1,2}\/\d{1,2}\/\d{4})\s+(\d+)\s+([\d.]+)\s+\$\s+([\d.]+)\s+\$$/
+    );
+    if (!match) {
+      console.warn(`[Wix] Could not parse issued line: ${line}`);
+      continue;
+    }
+    const record = {
+      grantDate: match[1],
+      grantId: match[2],
+      type: match[3],
+      vestingDate: match[4],
+      shares: parseInt(match[5], 10),
+      fmv: parseFloat(match[6]),
+      costBasisPerShare: parseFloat(match[7])
+    };
+    const key = issuedKey(record);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    results.push(record);
+  }
+  return results;
+}
+function parseWixSoldFile(filePath) {
+  const content = (0, import_node_fs5.readFileSync)(filePath, "utf-8");
+  const lines = content.split("\n").filter((l) => l.trim());
+  const seen = /* @__PURE__ */ new Set();
+  const results = [];
+  for (const line of lines) {
+    const match = line.match(
+      /^(\d+)\s+(Sell of (?:Restricted )?Stock)\s+(\S+)\s+(\d{1,2}\/\d{1,2}\/\d{4})\s+(RSU|ESPP)\s+(\d{1,2}\/\d{1,2}\/\d{4})\s+(\d+)\s+([\d.]+)\s+\$\s+([\d.]+)\s+\$\s+([\d.]+)\s+\$$/
+    );
+    if (!match) {
+      console.warn(`[Wix] Could not parse sold line: ${line}`);
+      continue;
+    }
+    const txnId = match[1];
+    if (seen.has(txnId)) continue;
+    seen.add(txnId);
+    results.push({
+      transactionId: txnId,
+      saleType: match[2],
+      grantId: match[3],
+      grantDate: match[4],
+      equityType: match[5],
+      saleDate: match[6],
+      shares: parseInt(match[7], 10),
+      salePricePerShare: parseFloat(match[8]),
+      costBasisPerShare: parseFloat(match[9]),
+      fees: parseFloat(match[10])
+    });
+  }
+  return results;
+}
+async function parseAllWixFiles(dirPath) {
+  const issuedPath = (0, import_node_path4.join)(dirPath, "shares-issued.txt");
+  const soldPath = (0, import_node_path4.join)(dirPath, "shares-sold.txt");
+  const issued = (0, import_node_fs5.existsSync)(issuedPath) ? parseWixIssuedFile(issuedPath) : [];
+  const sold = (0, import_node_fs5.existsSync)(soldPath) ? parseWixSoldFile(soldPath) : [];
+  return { issued, sold };
+}
+function classifyWixTransactions(data2) {
+  const transactions = [];
+  for (const rec of data2.issued) {
+    const date = parseWixDate(rec.vestingDate);
+    const isRsu = rec.type === "RSU";
+    const pricePerUnit = isRsu ? rec.fmv : rec.costBasisPerShare;
+    const amount = rec.shares * pricePerUnit;
+    const amountInBaseCurrency = convertAmount(amount, date, "USD", "EUR");
+    transactions.push({
+      id: `wix-${rec.type.toLowerCase()}-${rec.grantId}-${date}`,
+      broker: "wix",
+      type: isRsu ? "RSU_VEST" : "ESPP_PURCHASE",
+      date,
+      symbol: "WIX",
+      description: isRsu ? `RSU vest (grant ${rec.grantId}) \u2014 ${rec.shares} shares @ $${rec.fmv} FMV` : `ESPP purchase (plan ${rec.grantId}) \u2014 ${rec.shares} shares @ $${rec.costBasisPerShare} (FMV $${rec.fmv})`,
+      quantity: rec.shares,
+      pricePerUnit,
+      amount,
+      currency: "USD",
+      fees: 0,
+      amountInBaseCurrency,
+      raw: rec
+    });
+  }
+  for (const rec of data2.sold) {
+    const date = parseWixDate(rec.saleDate);
+    const amount = rec.shares * rec.salePricePerShare;
+    const amountInBaseCurrency = convertAmount(amount, date, "USD", "EUR");
+    transactions.push({
+      id: `wix-sell-${rec.transactionId}`,
+      broker: "wix",
+      type: "SELL",
+      date,
+      symbol: "WIX",
+      description: `${rec.saleType} (${rec.equityType} grant ${rec.grantId}) \u2014 ${rec.shares} shares @ $${rec.salePricePerShare}`,
+      quantity: -rec.shares,
+      pricePerUnit: rec.salePricePerShare,
+      amount,
+      currency: "USD",
+      fees: rec.fees,
+      amountInBaseCurrency,
+      raw: rec
+    });
+  }
+  return transactions;
+}
+
 // src/investments/prices.ts
 var HARDCODED_PRICES = {
-  // Baltic stocks (Swedbank — Vilnius Stock Exchange, EUR)
-  APG1L: { price: 3.6, currency: "EUR" },
-  IGN1L: { price: 20.5, currency: "EUR" },
-  TEL1L: { price: 2.1, currency: "EUR" },
-  KNF1L: { price: 0.35, currency: "EUR" },
-  SAB1L: { price: 0.8, currency: "EUR" },
-  LNA1L: { price: 1.25, currency: "EUR" },
-  ROE1L: { price: 0.95, currency: "EUR" },
-  // EU stocks (Interactive Brokers, EUR)
-  ASML: { price: 680, currency: "EUR" },
-  "2222": { price: 7.8, currency: "EUR" },
-  // Saudi Aramco (if traded)
-  // US/HK stocks (Interactive Brokers, USD)
-  BABA: { price: 175, currency: "USD" },
-  WIX: { price: 210, currency: "USD" },
-  "002594": { price: 360, currency: "CNH" },
-  // BYD
-  // Revolut brokerage
-  E3G1: { price: 72, currency: "EUR" }
-  // Evolution AB
+  // ---- Baltic stocks (Swedbank — Vilnius Stock Exchange, EUR) ----
+  APG1L: [
+    { date: "2020-01-01", price: 2.6, currency: "EUR" },
+    { date: "2021-01-01", price: 2.8, currency: "EUR" },
+    { date: "2022-01-01", price: 3, currency: "EUR" },
+    { date: "2023-01-01", price: 3.1, currency: "EUR" },
+    { date: "2024-01-01", price: 3.2, currency: "EUR" },
+    { date: "2025-01-01", price: 3.4, currency: "EUR" },
+    { date: "2026-03-01", price: 3.6, currency: "EUR" }
+  ],
+  IGN1L: [
+    { date: "2020-01-01", price: 8.5, currency: "EUR" },
+    { date: "2021-01-01", price: 10, currency: "EUR" },
+    { date: "2022-01-01", price: 14, currency: "EUR" },
+    { date: "2023-01-01", price: 16.5, currency: "EUR" },
+    { date: "2024-01-01", price: 18, currency: "EUR" },
+    { date: "2025-01-01", price: 19.5, currency: "EUR" },
+    { date: "2026-03-01", price: 20.5, currency: "EUR" }
+  ],
+  TEL1L: [
+    { date: "2020-01-01", price: 1.5, currency: "EUR" },
+    { date: "2021-01-01", price: 1.6, currency: "EUR" },
+    { date: "2022-01-01", price: 1.75, currency: "EUR" },
+    { date: "2023-01-01", price: 1.85, currency: "EUR" },
+    { date: "2024-01-01", price: 1.95, currency: "EUR" },
+    { date: "2025-01-01", price: 2, currency: "EUR" },
+    { date: "2026-03-01", price: 2.1, currency: "EUR" }
+  ],
+  KNF1L: [
+    { date: "2020-01-01", price: 0.42, currency: "EUR" },
+    { date: "2021-01-01", price: 0.45, currency: "EUR" },
+    { date: "2022-01-01", price: 0.4, currency: "EUR" },
+    { date: "2023-01-01", price: 0.38, currency: "EUR" },
+    { date: "2024-01-01", price: 0.36, currency: "EUR" },
+    { date: "2025-01-01", price: 0.35, currency: "EUR" },
+    { date: "2026-03-01", price: 0.35, currency: "EUR" }
+  ],
+  SAB1L: [
+    { date: "2020-01-01", price: 0.65, currency: "EUR" },
+    { date: "2021-01-01", price: 0.7, currency: "EUR" },
+    { date: "2022-01-01", price: 0.72, currency: "EUR" },
+    { date: "2023-01-01", price: 0.74, currency: "EUR" },
+    { date: "2024-01-01", price: 0.76, currency: "EUR" },
+    { date: "2025-01-01", price: 0.78, currency: "EUR" },
+    { date: "2026-03-01", price: 0.8, currency: "EUR" }
+  ],
+  LNA1L: [
+    { date: "2020-01-01", price: 0.85, currency: "EUR" },
+    { date: "2021-01-01", price: 0.9, currency: "EUR" },
+    { date: "2022-01-01", price: 0.95, currency: "EUR" },
+    { date: "2023-01-01", price: 1, currency: "EUR" },
+    { date: "2024-01-01", price: 1.1, currency: "EUR" },
+    { date: "2025-01-01", price: 1.2, currency: "EUR" },
+    { date: "2026-03-01", price: 1.25, currency: "EUR" }
+  ],
+  ROE1L: [
+    { date: "2020-01-01", price: 0.6, currency: "EUR" },
+    { date: "2021-01-01", price: 0.65, currency: "EUR" },
+    { date: "2022-01-01", price: 0.7, currency: "EUR" },
+    { date: "2023-01-01", price: 0.75, currency: "EUR" },
+    { date: "2024-01-01", price: 0.8, currency: "EUR" },
+    { date: "2025-01-01", price: 0.9, currency: "EUR" },
+    { date: "2026-03-01", price: 0.95, currency: "EUR" }
+  ],
+  // ---- EU stocks (Interactive Brokers, EUR) ----
+  ASML: [
+    { date: "2020-01-01", price: 260, currency: "EUR" },
+    { date: "2021-01-01", price: 400, currency: "EUR" },
+    { date: "2022-01-01", price: 640, currency: "EUR" },
+    { date: "2023-01-01", price: 500, currency: "EUR" },
+    { date: "2024-01-01", price: 620, currency: "EUR" },
+    { date: "2025-01-01", price: 660, currency: "EUR" },
+    { date: "2026-03-01", price: 680, currency: "EUR" }
+  ],
+  // ---- US/HK stocks (Interactive Brokers, USD) ----
+  BABA: [
+    { date: "2020-01-01", price: 215, currency: "USD" },
+    { date: "2021-01-01", price: 230, currency: "USD" },
+    { date: "2022-01-01", price: 120, currency: "USD" },
+    { date: "2023-01-01", price: 90, currency: "USD" },
+    { date: "2024-01-01", price: 78, currency: "USD" },
+    { date: "2025-01-01", price: 85, currency: "USD" },
+    { date: "2026-03-01", price: 175, currency: "USD" }
+  ],
+  WIX: [
+    { date: "2020-01-01", price: 120, currency: "USD" },
+    { date: "2021-01-01", price: 250, currency: "USD" },
+    { date: "2022-01-01", price: 130, currency: "USD" },
+    { date: "2023-01-01", price: 80, currency: "USD" },
+    { date: "2024-01-01", price: 130, currency: "USD" },
+    { date: "2025-01-01", price: 190, currency: "USD" },
+    { date: "2026-03-01", price: 210, currency: "USD" }
+  ],
+  "002594": [
+    // BYD
+    { date: "2020-01-01", price: 50, currency: "CNH" },
+    { date: "2021-01-01", price: 195, currency: "CNH" },
+    { date: "2022-01-01", price: 270, currency: "CNH" },
+    { date: "2023-01-01", price: 260, currency: "CNH" },
+    { date: "2024-01-01", price: 220, currency: "CNH" },
+    { date: "2025-01-01", price: 290, currency: "CNH" },
+    { date: "2026-03-01", price: 360, currency: "CNH" }
+  ],
+  // ---- Revolut brokerage ----
+  E3G1: [
+    // Evolution AB
+    { date: "2020-01-01", price: 55, currency: "EUR" },
+    { date: "2021-01-01", price: 95, currency: "EUR" },
+    { date: "2022-01-01", price: 110, currency: "EUR" },
+    { date: "2023-01-01", price: 100, currency: "EUR" },
+    { date: "2024-01-01", price: 95, currency: "EUR" },
+    { date: "2025-01-01", price: 80, currency: "EUR" },
+    { date: "2026-03-01", price: 72, currency: "EUR" }
+  ]
 };
+function findClosestEntry(entries, targetDate) {
+  if (entries.length === 0) return void 0;
+  const target = new Date(targetDate).getTime();
+  let best = entries[0];
+  let bestDiff = Math.abs(new Date(best.date).getTime() - target);
+  for (let i = 1; i < entries.length; i++) {
+    const diff = Math.abs(new Date(entries[i].date).getTime() - target);
+    if (diff < bestDiff) {
+      best = entries[i];
+      bestDiff = diff;
+    }
+  }
+  return best;
+}
+function getPrice(ticker, date) {
+  const entries = HARDCODED_PRICES[ticker];
+  if (!entries) {
+    console.warn(`No hardcoded price for ticker "${ticker}"`);
+    return null;
+  }
+  const entry = findClosestEntry(entries, date);
+  return entry ? { price: entry.price, currency: entry.currency } : null;
+}
 function getCurrentPrice(ticker, currency) {
-  const entry = HARDCODED_PRICES[ticker];
-  if (entry) return entry;
-  console.warn(`No hardcoded price for ticker "${ticker}"`);
-  return null;
+  return getPrice(ticker, (/* @__PURE__ */ new Date()).toISOString().slice(0, 10));
 }
 
 // src/investments/holdings.ts
@@ -73290,13 +73966,14 @@ function computeHoldings(transactions) {
   const sorted = [...transactions].sort((a, b) => a.date.localeCompare(b.date));
   const lotsBySymbol = /* @__PURE__ */ new Map();
   for (const txn of sorted) {
-    if (txn.type === "BUY" && txn.quantity > 0) {
+    if ((txn.type === "BUY" || txn.type === "RSU_VEST" || txn.type === "ESPP_PURCHASE") && txn.quantity > 0) {
       const lots = lotsBySymbol.get(txn.symbol) || [];
+      const source = txn.type === "RSU_VEST" ? "RSU" : txn.type === "ESPP_PURCHASE" ? "ESPP" : "MARKET";
       lots.push({
         id: `lot-${txn.id}`,
         symbol: txn.symbol,
         broker: txn.broker,
-        source: "MARKET",
+        source,
         acquisitionDate: txn.date,
         originalQuantity: txn.quantity,
         remainingQuantity: txn.quantity,
@@ -73306,7 +73983,7 @@ function computeHoldings(transactions) {
         sourceTransactionId: txn.id
       });
       lotsBySymbol.set(txn.symbol, lots);
-    } else if (txn.type === "SELL" && txn.quantity < 0) {
+    } else if ((txn.type === "SELL" || txn.type === "CRYPTO_SELL") && txn.quantity < 0) {
       const lots = lotsBySymbol.get(txn.symbol);
       if (!lots || lots.length === 0) continue;
       let remaining = Math.abs(txn.quantity);
@@ -73360,18 +74037,50 @@ function computeHoldings(transactions) {
 // src/investments/portfolio-service.ts
 var cached = null;
 async function loadInvestmentData(dataDir2) {
-  const swedbankDir = (0, import_node_path2.join)(dataDir2, "Investments", "swedbank");
+  const swedbankDir = (0, import_node_path5.join)(dataDir2, "Investments", "swedbank");
+  const revolutDir = (0, import_node_path5.join)(dataDir2, "Investments", "revolut");
   let transactions = [];
-  if ((0, import_node_fs3.existsSync)(swedbankDir)) {
+  let interestSummary = null;
+  if ((0, import_node_fs6.existsSync)(swedbankDir)) {
     const rawTransactions = await parseAllSwedbankFiles(swedbankDir);
-    transactions = classifySwedbankTransactions(rawTransactions).sort((a, b) => a.date.localeCompare(b.date));
-    console.log(`[Investments] Parsed ${transactions.length} Swedbank transactions`);
+    const swedbankTxns = classifySwedbankTransactions(rawTransactions);
+    transactions.push(...swedbankTxns);
+    console.log(`[Investments] Parsed ${swedbankTxns.length} Swedbank transactions`);
   } else {
     console.log(`[Investments] No Swedbank data found at ${swedbankDir}`);
   }
+  const ibDir = (0, import_node_path5.join)(dataDir2, "Investments", "interactive-brokers");
+  if ((0, import_node_fs6.existsSync)(ibDir)) {
+    const rawIB = await parseAllIBFiles(ibDir);
+    const ibTxns = classifyIBTransactions(rawIB);
+    transactions.push(...ibTxns);
+    console.log(`[Investments] Parsed ${ibTxns.length} IB transactions (from ${rawIB.length} raw rows, ${rawIB.length - ibTxns.length} forex skipped)`);
+  } else {
+    console.log(`[Investments] No IB data found at ${ibDir}`);
+  }
+  const wixDir = (0, import_node_path5.join)(dataDir2, "Investments", "wix");
+  if ((0, import_node_fs6.existsSync)(wixDir)) {
+    const wixData = await parseAllWixFiles(wixDir);
+    const wixTxns = classifyWixTransactions(wixData);
+    transactions.push(...wixTxns);
+    console.log(`[Investments] Parsed ${wixTxns.length} Wix transactions (issued: ${wixData.issued.length}, sold: ${wixData.sold.length})`);
+  } else {
+    console.log(`[Investments] No Wix data found at ${wixDir}`);
+  }
+  if ((0, import_node_fs6.existsSync)(revolutDir)) {
+    const revolutData = await parseAllRevolutFiles(revolutDir);
+    const revolutTxns = classifyRevolutTransactions(revolutData);
+    transactions.push(...revolutTxns);
+    interestSummary = revolutData.interestSummary;
+    console.log(`[Investments] Parsed ${revolutTxns.length} Revolut transactions (brokerage: ${revolutData.brokerageEur.length + revolutData.brokerageUsd.length}, crypto: ${revolutData.crypto.length})`);
+    console.log(`[Investments] Revolut interest: \u20AC${revolutData.interestSummary.totalEur}`);
+  } else {
+    console.log(`[Investments] No Revolut data found at ${revolutDir}`);
+  }
+  transactions.sort((a, b) => a.date.localeCompare(b.date));
   const holdings = computeHoldings(transactions);
   console.log(`[Investments] Computed ${holdings.length} holdings`);
-  cached = { transactions, holdings };
+  cached = { transactions, holdings, interestSummary };
   return cached;
 }
 function getInvestmentData() {
@@ -73388,8 +74097,8 @@ var globalState = {
 };
 function createServer(options2) {
   const app = (0, import_fastify.default)({ logger: true });
-  const appDir = (0, import_node_path3.resolve)(process.env.APP_DIR || "/app");
-  const publicDir = (0, import_node_path3.join)(appDir, "public");
+  const appDir = (0, import_node_path6.resolve)(process.env.APP_DIR || "/app");
+  const publicDir = (0, import_node_path6.join)(appDir, "public");
   app.addHook("onSend", async (_request, reply) => {
     reply.header("Cache-Control", "no-store, no-cache, must-revalidate");
   });
@@ -73400,21 +74109,21 @@ function createServer(options2) {
   });
   const serveIndex = async (request, reply) => {
     const ingressPath = request.headers["x-ingress-path"] || "";
-    const html3 = (0, import_node_fs4.readFileSync)((0, import_node_path3.join)(publicDir, "index.html"), "utf-8").replace(/\{\{INGRESS_PATH\}\}/g, ingressPath);
+    const html3 = (0, import_node_fs7.readFileSync)((0, import_node_path6.join)(publicDir, "index.html"), "utf-8").replace(/\{\{INGRESS_PATH\}\}/g, ingressPath);
     reply.type("text/html").send(html3);
   };
   app.get("/", serveIndex);
   app.get("//", serveIndex);
   const serveInvestments = async (request, reply) => {
     const ingressPath = request.headers["x-ingress-path"] || "";
-    const html3 = (0, import_node_fs4.readFileSync)((0, import_node_path3.join)(publicDir, "investments.html"), "utf-8").replace(/\{\{INGRESS_PATH\}\}/g, ingressPath);
+    const html3 = (0, import_node_fs7.readFileSync)((0, import_node_path6.join)(publicDir, "investments.html"), "utf-8").replace(/\{\{INGRESS_PATH\}\}/g, ingressPath);
     reply.type("text/html").send(html3);
   };
   app.get("/investments", serveInvestments);
   app.get("/investments/", serveInvestments);
   app.get("/api/investments", async () => {
     const data2 = getInvestmentData();
-    if (!data2) return { transactions: [], holdings: [] };
+    if (!data2) return { transactions: [], holdings: [], interestSummary: null };
     return data2;
   });
   app.get("/api/status", async () => {

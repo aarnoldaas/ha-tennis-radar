@@ -76,7 +76,7 @@ export function createServer(options: { port: number; getOptions: () => AddonOpt
   // API: investment data
   app.get('/api/investments', async () => {
     const data = getInvestmentData();
-    if (!data) return { transactions: [], holdings: [] };
+    if (!data) return { transactions: [], holdings: [], interestSummary: null };
     return data;
   });
 

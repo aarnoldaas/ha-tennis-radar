@@ -375,6 +375,8 @@ export interface IHolding {
   totalCostBasisEur: number;
   currentValueEur: number;
   unrealizedPnlEur: number;
+  /** ISO 8601 timestamp of when the price was last fetched, null if using hardcoded fallback */
+  priceLastUpdated: string | null;
 }
 
 /**

@@ -5,17 +5,57 @@ import { parseAllRevolutFiles, classifyRevolutTransactions, type RevolutInterest
 import { parseAllIBFiles, classifyIBTransactions } from './ib-parser.js';
 import { parseAllWixFiles, classifyWixTransactions } from './wix-parser.js';
 import { computeHoldings } from './holdings.js';
-import type { ITransaction, IHolding } from './types.js';
+import { refreshPrices, getKnownTickers, getPriceRefreshTime } from './prices.js';
+import type { ITransaction, IHolding, IRealizedTrade, IDividendPayment, IRsuCompensationSummary } from './types.js';
+import { convertAmount } from './currency.js';
+import { computeAllocation, computeRiskWarnings, type AllocationBreakdown, type RiskWarning } from './analytics.js';
+import { computeRsuCompensation, computeEsppSummary, type EsppSummary } from './equity-compensation.js';
 
 export interface InvestmentData {
   transactions: ITransaction[];
   holdings: IHolding[];
+  realizedTrades: IRealizedTrade[];
+  dividends: IDividendPayment[];
   interestSummary: RevolutInterestSummary | null;
+  /** Total realized P&L in EUR */
+  totalRealizedPnlEur: number;
+  /** Total dividends in EUR */
+  totalDividendsEur: number;
+  /** Total interest in EUR */
+  totalInterestEur: number;
+  /** ISO timestamp of last price refresh, null if never refreshed */
+  priceRefreshTime: string | null;
+  /** Portfolio allocation breakdown */
+  allocation: AllocationBreakdown;
+  /** Concentration risk warnings */
+  riskWarnings: RiskWarning[];
+  /** RSU compensation summary */
+  rsuCompensation: IRsuCompensationSummary;
+  /** ESPP summary */
+  esppSummary: EsppSummary;
 }
 
 let cached: InvestmentData | null = null;
+let lastDataDir: string = '';
+
+function computeDividends(transactions: ITransaction[]): IDividendPayment[] {
+  return transactions
+    .filter(t => t.type === 'DIVIDEND')
+    .map(t => ({
+      transactionId: t.id,
+      date: t.date,
+      symbol: t.symbol,
+      broker: t.broker,
+      amount: t.amount,
+      currency: t.currency,
+      amountEur: convertAmount(t.amount, t.date, t.currency, 'EUR'),
+      perShareRate: t.pricePerUnit > 0 ? t.pricePerUnit : null,
+      description: t.description,
+    }));
+}
 
 export async function loadInvestmentData(dataDir: string): Promise<InvestmentData> {
+  lastDataDir = dataDir;
   const swedbankDir = join(dataDir, 'Investments', 'swedbank');
   const revolutDir = join(dataDir, 'Investments', 'revolut');
 
@@ -68,11 +108,58 @@ export async function loadInvestmentData(dataDir: string): Promise<InvestmentDat
 
   transactions.sort((a, b) => a.date.localeCompare(b.date));
 
-  const holdings = computeHoldings(transactions);
-  console.log(`[Investments] Computed ${holdings.length} holdings`);
+  const { holdings, realizedTrades } = await computeHoldings(transactions);
+  console.log(`[Investments] Computed ${holdings.length} holdings, ${realizedTrades.length} realized trades`);
 
-  cached = { transactions, holdings, interestSummary };
+  const dividends = computeDividends(transactions);
+  const totalRealizedPnlEur = realizedTrades.reduce((s, rt) => s + rt.realizedPnlEur, 0);
+  const totalDividendsEur = dividends.reduce((s, d) => s + d.amountEur, 0);
+  const totalInterestEur = interestSummary?.totalEur ?? 0;
+
+  const allocation = computeAllocation(holdings);
+  const riskWarnings = computeRiskWarnings(holdings);
+  const rsuCompensation = computeRsuCompensation(transactions);
+  const esppSummary = computeEsppSummary(transactions);
+
+  console.log(`[Investments] RSU compensation: $${rsuCompensation.totalCompensation} (${rsuCompensation.byYear.length} years)`);
+  console.log(`[Investments] ESPP: ${esppSummary.totalSharesPurchased} shares, ${esppSummary.averageDiscountPercent}% avg discount`);
+  console.log(`[Investments] Risk warnings: ${riskWarnings.length}`);
+
+  cached = {
+    transactions,
+    holdings,
+    realizedTrades,
+    dividends,
+    interestSummary,
+    totalRealizedPnlEur: Math.round(totalRealizedPnlEur * 100) / 100,
+    totalDividendsEur: Math.round(totalDividendsEur * 100) / 100,
+    totalInterestEur: Math.round(totalInterestEur * 100) / 100,
+    priceRefreshTime: getPriceRefreshTime(),
+    allocation,
+    riskWarnings,
+    rsuCompensation,
+    esppSummary,
+  };
   return cached;
+}
+
+/**
+ * Refresh live prices for all held tickers, then recompute holdings.
+ */
+export async function refreshInvestmentPrices(): Promise<{ fetched: number; failed: string[] }> {
+  // Collect tickers from current holdings
+  const heldTickers = cached ? cached.holdings.map(h => h.symbol) : [];
+  const allTickers = [...new Set([...heldTickers, ...getKnownTickers()])];
+
+  const result = await refreshPrices(allTickers);
+  console.log(`[Investments] Price refresh: ${result.fetched} fetched, ${result.failed.length} failed${result.failed.length > 0 ? ` (${result.failed.join(', ')})` : ''}`);
+
+  // Recompute holdings with fresh prices
+  if (lastDataDir) {
+    await loadInvestmentData(lastDataDir);
+  }
+
+  return result;
 }
 
 export function getInvestmentData(): InvestmentData | null {

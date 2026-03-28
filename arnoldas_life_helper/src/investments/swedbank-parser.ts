@@ -9,6 +9,11 @@ const TICKER_ALIASES: Record<string, string> = {
   'NOVC-GY': 'NOV-GY',
 };
 
+// Tickers traded in foreign currencies (Swedbank account is EUR but price is in trading currency)
+const TICKER_TRADING_CURRENCY: Record<string, string> = {
+  '002594': 'CNH',  // BYD on Shenzhen exchange, priced in CNY/CNH
+};
+
 // ISIN → ticker for dividend parsing
 const ISIN_TO_TICKER: Record<string, string> = {
   'LT0000115768': 'IGN1L',
@@ -176,6 +181,7 @@ export function classifySwedbankTransaction(raw: ISwedBankTransaction): ITransac
       const price = parseFloat(tradeMatch[4]);
       const type: TransactionType = direction === '+' ? 'BUY' : 'SELL';
 
+      const tradingCurrency = TICKER_TRADING_CURRENCY[ticker] || base.currency;
       return {
         ...base,
         type,
@@ -183,6 +189,7 @@ export function classifySwedbankTransaction(raw: ISwedBankTransaction): ITransac
         description: raw.details,
         quantity: direction === '+' ? quantity : -quantity,
         pricePerUnit: price,
+        currency: tradingCurrency,
       };
     }
 

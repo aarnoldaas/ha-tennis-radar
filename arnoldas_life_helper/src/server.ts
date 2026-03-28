@@ -5,7 +5,8 @@ import { join, resolve } from 'node:path';
 import type { TimeSlot } from './providers/types.js';
 import type { AddonOptions, ConfigWarning } from './utils/config.js';
 import { loadOptions, saveOptions, validateConfig } from './utils/config.js';
-import { getInvestmentData } from './investments/portfolio-service.js';
+import { getInvestmentData, refreshInvestmentPrices } from './investments/portfolio-service.js';
+import { loadEcbRates } from './investments/currency.js';
 
 // Shared state — updated by the polling loop
 export interface PollStats {
@@ -78,6 +79,18 @@ export function createServer(options: { port: number; getOptions: () => AddonOpt
     const data = getInvestmentData();
     if (!data) return { transactions: [], holdings: [], interestSummary: null };
     return data;
+  });
+
+  // API: refresh investment prices and ECB rates
+  app.post('/api/investments/refresh', async () => {
+    try {
+      await loadEcbRates();
+      const result = await refreshInvestmentPrices();
+      const data = getInvestmentData();
+      return { success: true, ...result, data };
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : String(err) };
+    }
   });
 
   // API: return current status

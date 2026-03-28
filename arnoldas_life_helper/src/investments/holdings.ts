@@ -1,16 +1,23 @@
-import type { ITransaction, IHolding, ILot, Broker } from './types.js';
+import type { ITransaction, IHolding, ILot, IRealizedTrade, Broker } from './types.js';
 import { getCurrentPrice } from './prices.js';
 import { convertAmount } from './currency.js';
+import { adjustLotForSplits } from './corporate-actions.js';
 
-export function computeHoldings(transactions: ITransaction[]): IHolding[] {
+interface HoldingsResult {
+  holdings: IHolding[];
+  realizedTrades: IRealizedTrade[];
+}
+
+export async function computeHoldings(transactions: ITransaction[]): Promise<HoldingsResult> {
   const sorted = [...transactions].sort((a, b) => a.date.localeCompare(b.date));
   const lotsBySymbol = new Map<string, ILot[]>();
+  const realizedTrades: IRealizedTrade[] = [];
 
   for (const txn of sorted) {
     if ((txn.type === 'BUY' || txn.type === 'RSU_VEST' || txn.type === 'ESPP_PURCHASE') && txn.quantity > 0) {
       const lots = lotsBySymbol.get(txn.symbol) || [];
       const source = txn.type === 'RSU_VEST' ? 'RSU' : txn.type === 'ESPP_PURCHASE' ? 'ESPP' : 'MARKET';
-      lots.push({
+      const lot: ILot = {
         id: `lot-${txn.id}`,
         symbol: txn.symbol,
         broker: txn.broker,
@@ -22,21 +29,66 @@ export function computeHoldings(transactions: ITransaction[]): IHolding[] {
         currency: txn.currency,
         fmvAtAcquisition: txn.pricePerUnit,
         sourceTransactionId: txn.id,
-      });
+      };
+      adjustLotForSplits(lot);
+      lots.push(lot);
       lotsBySymbol.set(txn.symbol, lots);
     } else if ((txn.type === 'SELL' || txn.type === 'CRYPTO_SELL') && txn.quantity < 0) {
       const lots = lotsBySymbol.get(txn.symbol);
       if (!lots || lots.length === 0) continue;
 
-      let remaining = Math.abs(txn.quantity);
+      const sellQty = Math.abs(txn.quantity);
+      const lotsConsumed: IRealizedTrade['lotsConsumed'] = [];
+      let remaining = sellQty;
+
       for (const lot of lots) {
         if (remaining <= 0) break;
         const take = Math.min(lot.remainingQuantity, remaining);
+        lotsConsumed.push({
+          lot: { ...lot },
+          quantityUsed: take,
+          costBasis: take * lot.costBasisPerShare,
+        });
         lot.remainingQuantity -= take;
         remaining -= take;
       }
       // Remove fully consumed lots
       lotsBySymbol.set(txn.symbol, lots.filter(l => l.remainingQuantity > 0));
+
+      // Build realized trade
+      const totalCostBasis = lotsConsumed.reduce((s, lc) => s + lc.costBasis, 0);
+      const proceeds = sellQty * txn.pricePerUnit;
+      const fees = txn.fees;
+      const realizedPnl = proceeds - totalCostBasis - fees;
+
+      // Hold period based on oldest consumed lot
+      const oldestLotDate = lotsConsumed.length > 0 ? lotsConsumed[0].lot.acquisitionDate : txn.date;
+      const holdMs = new Date(txn.date).getTime() - new Date(oldestLotDate).getTime();
+      const holdPeriod: 'short-term' | 'long-term' = holdMs >= 365 * 24 * 60 * 60 * 1000 ? 'long-term' : 'short-term';
+
+      const lotCurrency = lotsConsumed[0]?.lot.currency ?? txn.currency;
+      const proceedsEur = convertAmount(proceeds, txn.date, txn.currency, 'EUR');
+      const totalCostBasisEur = convertAmount(totalCostBasis, txn.date, lotCurrency, 'EUR');
+      const realizedPnlEur = proceedsEur - totalCostBasisEur;
+
+      realizedTrades.push({
+        sellTransactionId: txn.id,
+        symbol: txn.symbol,
+        broker: txn.broker,
+        sellDate: txn.date,
+        quantity: sellQty,
+        salePricePerShare: txn.pricePerUnit,
+        proceeds,
+        currency: txn.currency,
+        lotsConsumed,
+        totalCostBasis,
+        realizedPnl,
+        fees,
+        holdPeriod,
+        proceedsEur,
+        totalCostBasisEur,
+        realizedPnlEur: Math.round(realizedPnlEur * 100) / 100,
+      });
     }
   }
 
@@ -58,16 +110,23 @@ export function computeHoldings(transactions: ITransaction[]): IHolding[] {
     const priceInfo = getCurrentPrice(symbol);
     const currentPrice = priceInfo?.price ?? 0;
     const priceCurrency = priceInfo?.currency ?? currency;
+    const priceLastUpdated = priceInfo?.lastUpdated ?? null;
     const currentValue = totalQuantity * currentPrice;
-    const unrealizedPnl = currentValue - totalCostBasis;
-    const unrealizedPnlPercent = totalCostBasis > 0
-      ? (unrealizedPnl / totalCostBasis) * 100
-      : 0;
 
+    // Convert both sides to EUR before computing P&L to avoid currency mismatch
     const today = new Date().toISOString().slice(0, 10);
     const totalCostBasisEur = convertAmount(totalCostBasis, today, currency, 'EUR');
     const currentValueEur = convertAmount(currentValue, today, priceCurrency, 'EUR');
     const unrealizedPnlEur = currentValueEur - totalCostBasisEur;
+
+    // Original-currency P&L (only meaningful when currencies match)
+    const unrealizedPnl = currency === priceCurrency
+      ? currentValue - totalCostBasis
+      : unrealizedPnlEur; // fall back to EUR when currencies differ
+
+    const unrealizedPnlPercent = totalCostBasisEur > 0
+      ? (unrealizedPnlEur / totalCostBasisEur) * 100
+      : 0;
 
     holdings.push({
       symbol,
@@ -85,8 +144,12 @@ export function computeHoldings(transactions: ITransaction[]): IHolding[] {
       totalCostBasisEur: Math.round(totalCostBasisEur * 100) / 100,
       currentValueEur: Math.round(currentValueEur * 100) / 100,
       unrealizedPnlEur: Math.round(unrealizedPnlEur * 100) / 100,
+      priceLastUpdated,
     });
   }
 
-  return holdings.sort((a, b) => b.currentValueEur - a.currentValueEur);
+  return {
+    holdings: holdings.sort((a, b) => b.currentValueEur - a.currentValueEur),
+    realizedTrades,
+  };
 }

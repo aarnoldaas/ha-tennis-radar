@@ -1,9 +1,10 @@
 // ============================================================================
-// Market Prices — Hardcoded Stub (Date-Based)
+// Market Prices — Yahoo Finance + Hardcoded Fallback
 // ============================================================================
-//
-// TODO: Replace with real market data API (e.g. Yahoo Finance, Alpha Vantage).
-// ============================================================================
+
+import YahooFinance from 'yahoo-finance2';
+
+const yf = new (YahooFinance as any)({ suppressNotices: ['yahooSurvey'] });
 
 interface PriceEntry {
   date: string;
@@ -11,14 +12,103 @@ interface PriceEntry {
   currency: string;
 }
 
+interface CachedPrice {
+  price: number;
+  currency: string;
+  lastUpdated: string; // ISO 8601 timestamp
+}
+
+// ----------------------------------------------------------------------------
+// Ticker mapping: internal symbol → Yahoo Finance symbol
+// ----------------------------------------------------------------------------
+
+const YAHOO_TICKER_MAP: Record<string, string> = {
+  // Baltic stocks (Vilnius Stock Exchange)
+  APG1L: 'APG1L.VS',
+  IGN1L: 'IGN1L.VS',
+  TEL1L: 'TEL1L.VS',
+  KNF1L: 'KNF1L.VS',
+  SAB1L: 'SAB1L.VS',
+  LNA1L: 'LNA1L.VS',
+  ROE1L: 'ROE1L.VS',
+  // EU stocks
+  ASML: 'ASML.AS',
+  // China
+  '002594': '002594.SZ',
+  // Revolut brokerage
+  E3G1: 'E3G1.F',   // Evolution AB on Frankfurt/GETTEX (EUR) — matches IB trading venue
+  // US stocks — same ticker on Yahoo
+  BABA: 'BABA',
+  WIX: 'WIX',
+  GOOG: 'GOOG',
+  PBR: 'PBR',
+  NOVA: 'NVO', // Novo Nordisk ADR
+};
+
 /**
- * Hardcoded approximate prices for known tickers, keyed by date.
- *
- * Each ticker has an array of price snapshots sorted chronologically.
- * Use `getPrice()` to look up the closest price to any given date.
- *
- * TODO: Replace with live market data fetch.
+ * Override map for tickers where Yahoo Finance returns a missing or incorrect currency.
+ * The value is the correct trading currency for the ticker.
  */
+const TICKER_CURRENCY_OVERRIDE: Record<string, string> = {
+  '002594': 'CNY',  // BYD on Shenzhen — Yahoo may omit currency, price is in CNY
+};
+
+// ----------------------------------------------------------------------------
+// In-memory price cache (populated by manual refresh)
+// ----------------------------------------------------------------------------
+
+const priceCache = new Map<string, CachedPrice>();
+
+/**
+ * Fetch live prices for a list of tickers from Yahoo Finance.
+ * Updates the in-memory cache. Returns the number of successfully fetched tickers.
+ */
+export async function refreshPrices(tickers: string[]): Promise<{ fetched: number; failed: string[] }> {
+  const failed: string[] = [];
+  let fetched = 0;
+
+  for (const ticker of tickers) {
+    const yahooTicker = YAHOO_TICKER_MAP[ticker] || ticker;
+    try {
+      const quote = await yf.quote(yahooTicker) as { regularMarketPrice?: number; currency?: string };
+      if (quote && quote.regularMarketPrice) {
+        // Use explicit override first (for tickers where Yahoo returns wrong/missing currency),
+        // then Yahoo's currency, then hardcoded fallback, then USD.
+        const overrideCurrency = TICKER_CURRENCY_OVERRIDE[ticker];
+        const knownCurrency = HARDCODED_PRICES[ticker]?.[0]?.currency;
+        priceCache.set(ticker, {
+          price: quote.regularMarketPrice,
+          currency: overrideCurrency || quote.currency || knownCurrency || 'USD',
+          lastUpdated: new Date().toISOString(),
+        });
+        fetched++;
+      } else {
+        failed.push(ticker);
+      }
+    } catch {
+      failed.push(ticker);
+    }
+  }
+
+  return { fetched, failed };
+}
+
+/**
+ * Get the last refresh timestamp (oldest across all cached tickers), or null if nothing cached.
+ */
+export function getPriceRefreshTime(): string | null {
+  if (priceCache.size === 0) return null;
+  let oldest: string | null = null;
+  for (const entry of priceCache.values()) {
+    if (!oldest || entry.lastUpdated < oldest) oldest = entry.lastUpdated;
+  }
+  return oldest;
+}
+
+// ----------------------------------------------------------------------------
+// Hardcoded historical prices (fallback for historical lookups and when fetch fails)
+// ----------------------------------------------------------------------------
+
 const HARDCODED_PRICES: Record<string, PriceEntry[]> = {
   // ---- Baltic stocks (Swedbank — Vilnius Stock Exchange, EUR) ----
   APG1L: [
@@ -84,7 +174,6 @@ const HARDCODED_PRICES: Record<string, PriceEntry[]> = {
     { date: "2025-01-01", price: 0.90, currency: "EUR" },
     { date: "2026-03-01", price: 0.95, currency: "EUR" },
   ],
-
   // ---- EU stocks (Interactive Brokers, EUR) ----
   ASML: [
     { date: "2020-01-01", price: 260.00, currency: "EUR" },
@@ -95,7 +184,6 @@ const HARDCODED_PRICES: Record<string, PriceEntry[]> = {
     { date: "2025-01-01", price: 660.00, currency: "EUR" },
     { date: "2026-03-01", price: 680.00, currency: "EUR" },
   ],
-
   // ---- US/HK stocks (Interactive Brokers, USD) ----
   BABA: [
     { date: "2020-01-01", price: 215.00, currency: "USD" },
@@ -115,16 +203,15 @@ const HARDCODED_PRICES: Record<string, PriceEntry[]> = {
     { date: "2025-01-01", price: 190.00, currency: "USD" },
     { date: "2026-03-01", price: 210.00, currency: "USD" },
   ],
-  "002594": [ // BYD
-    { date: "2020-01-01", price: 50.00, currency: "CNH" },
-    { date: "2021-01-01", price: 195.00, currency: "CNH" },
-    { date: "2022-01-01", price: 270.00, currency: "CNH" },
-    { date: "2023-01-01", price: 260.00, currency: "CNH" },
-    { date: "2024-01-01", price: 220.00, currency: "CNH" },
-    { date: "2025-01-01", price: 290.00, currency: "CNH" },
-    { date: "2026-03-01", price: 360.00, currency: "CNH" },
+  "002594": [ // BYD (3:1 split June 2025; pre-split prices before that)
+    { date: "2020-01-01", price: 50.00, currency: "CNY" },
+    { date: "2021-01-01", price: 195.00, currency: "CNY" },
+    { date: "2022-01-01", price: 270.00, currency: "CNY" },
+    { date: "2023-01-01", price: 260.00, currency: "CNY" },
+    { date: "2024-01-01", price: 220.00, currency: "CNY" },
+    { date: "2025-01-01", price: 290.00, currency: "CNY" },
+    { date: "2026-03-01", price: 105.00, currency: "CNY" },
   ],
-
   // ---- US stocks (Interactive Brokers, USD) ----
   GOOG: [
     { date: "2020-01-01", price: 71.18, currency: "USD" },
@@ -153,16 +240,15 @@ const HARDCODED_PRICES: Record<string, PriceEntry[]> = {
     { date: "2025-01-01", price: 82.18, currency: "USD" },
     { date: "2026-03-01", price: 36.40, currency: "USD" },
   ],
-
   // ---- Revolut brokerage ----
-  E3G1: [ // Evolution AB
-    { date: "2020-01-01", price: 55.00, currency: "EUR" },
-    { date: "2021-01-01", price: 95.00, currency: "EUR" },
-    { date: "2022-01-01", price: 110.00, currency: "EUR" },
-    { date: "2023-01-01", price: 100.00, currency: "EUR" },
-    { date: "2024-01-01", price: 95.00, currency: "EUR" },
-    { date: "2025-01-01", price: 80.00, currency: "EUR" },
-    { date: "2026-03-01", price: 72.00, currency: "EUR" },
+  E3G1: [ // Evolution AB (Frankfurt/GETTEX, EUR)
+    { date: "2020-01-01", price: 21.00, currency: "EUR" },
+    { date: "2021-01-01", price: 76.00, currency: "EUR" },
+    { date: "2022-01-01", price: 120.00, currency: "EUR" },
+    { date: "2023-01-01", price: 95.00, currency: "EUR" },
+    { date: "2024-01-01", price: 103.00, currency: "EUR" },
+    { date: "2025-01-01", price: 95.00, currency: "EUR" },
+    { date: "2026-03-01", price: 50.70, currency: "EUR" },
   ],
 };
 
@@ -191,12 +277,7 @@ function findClosestEntry(
 
 /**
  * Get the market price for a ticker on (or closest to) a given date.
- *
- * @param ticker  The ticker symbol
- * @param date    ISO 8601 date string (YYYY-MM-DD)
- * @returns       Price and currency, or null if the ticker is unknown
- *
- * TODO: Replace with real market data API.
+ * Uses hardcoded historical data only (for cost basis and historical lookups).
  */
 export function getPrice(
   ticker: string,
@@ -212,17 +293,40 @@ export function getPrice(
 }
 
 /**
- * Get the current market price for a ticker (uses today's date).
+ * Get the current market price for a ticker.
  *
- * @param ticker    The ticker symbol
- * @param currency  Expected currency (unused hint; kept for backwards compat)
- * @returns         Current price per share and its currency, or null if unknown
+ * Priority:
+ * 1. Live-fetched price from cache (populated by refreshPrices())
+ * 2. Hardcoded fallback (closest to today)
  *
- * TODO: Replace with real market data API.
+ * Returns price, currency, and lastUpdated timestamp (null if using hardcoded fallback).
  */
 export function getCurrentPrice(
   ticker: string,
-  currency?: string,
-): { price: number; currency: string } | null {
-  return getPrice(ticker, new Date().toISOString().slice(0, 10));
+): { price: number; currency: string; lastUpdated: string | null } | null {
+  // Check live cache first
+  const cached = priceCache.get(ticker);
+  if (cached) {
+    return { price: cached.price, currency: cached.currency, lastUpdated: cached.lastUpdated };
+  }
+
+  // Fall back to hardcoded
+  const today = new Date().toISOString().slice(0, 10);
+  const fallback = getPrice(ticker, today);
+  if (fallback) {
+    return { price: fallback.price, currency: fallback.currency, lastUpdated: null };
+  }
+
+  return null;
+}
+
+/**
+ * Get all known ticker symbols (from hardcoded data + cache).
+ */
+export function getKnownTickers(): string[] {
+  const tickers = new Set<string>(Object.keys(HARDCODED_PRICES));
+  for (const ticker of priceCache.keys()) {
+    tickers.add(ticker);
+  }
+  return [...tickers];
 }

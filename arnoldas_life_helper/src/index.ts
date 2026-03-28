@@ -4,6 +4,7 @@ import { PollingManager } from './polling.js';
 import { CourtProviderManager } from './providers/manager.js';
 import { HomeAssistantNotifier } from './notifications.js';
 import { loadInvestmentData } from './investments/portfolio-service.js';
+import { loadEcbRates } from './investments/currency.js';
 
 let options = loadOptions();
 console.log('[TennisRadar] Configuration loaded:', {
@@ -100,11 +101,13 @@ function onResumeProviders() {
   console.log('[TennisRadar] All providers resumed via UI');
 }
 
-// Load investment data
+// Load ECB exchange rates, then investment data
 const dataDir = process.env.DATA_DIR || '/data';
-loadInvestmentData(dataDir).catch(err => {
-  console.error('[Investments] Failed to load portfolio data:', err);
-});
+loadEcbRates()
+  .then(() => loadInvestmentData(dataDir))
+  .catch(err => {
+    console.error('[Investments] Failed to load portfolio data:', err);
+  });
 
 // Start web UI and polling
 createServer({ port: 8099, getOptions: () => options, onConfigChange, onResumeProviders, fetchBookings: () => providerManager.fetchBookings() });

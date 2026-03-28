@@ -1,5 +1,5 @@
 name: "Arnoldas Life Helper"
-version: "1.26.0"
+version: "1.27.5"
 slug: "arnoldas_life_helper"
 description: "Personal life assistant — tennis court scanning, TODO lists, AI helper, and more"
 url: "https://github.com/aarnoldaas/ha-tennis-radar"

@@ -149,6 +149,7 @@
 
 - Separate page at `/investments` (independent entry point, not a tab)
 - **Holdings table**: symbol, quantity, average cost, current value, unrealized P&L with totals
+- **Copy Holdings** button: copies holdings as a markdown table to clipboard for pasting into AI chats
 - **Transactions table**: date, type (color-coded), symbol, description, quantity, price, amount
 - Client-side column sorting
 - Navigation link from main dashboard

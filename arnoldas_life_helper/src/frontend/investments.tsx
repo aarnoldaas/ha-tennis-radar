@@ -192,6 +192,30 @@ function timeAgo(iso: string): string {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
+function formatHoldingsForClipboard(holdings: IHolding[]): string {
+  const sorted = [...holdings].sort((a, b) => b.currentValueEur - a.currentValueEur);
+  const totalCost = holdings.reduce((s, h) => s + h.totalCostBasisEur, 0);
+  const totalValue = holdings.reduce((s, h) => s + h.currentValueEur, 0);
+  const totalPnl = holdings.reduce((s, h) => s + h.unrealizedPnlEur, 0);
+
+  const lines = [
+    `My investment portfolio holdings (all values in EUR):`,
+    ``,
+    `| Symbol | Qty | Avg Cost | Total Cost | Price | Value | P&L | P&L % |`,
+    `|--------|-----|----------|------------|-------|-------|-----|-------|`,
+  ];
+  for (const h of sorted) {
+    const qty = h.totalQuantity % 1 === 0 ? h.totalQuantity.toFixed(0) : h.totalQuantity.toFixed(4);
+    lines.push(
+      `| ${h.symbol} | ${qty} | ${h.averageCostBasis.toFixed(2)} ${h.currency} | ${h.totalCostBasisEur.toFixed(2)} | ${h.currentPrice > 0 ? h.currentPrice.toFixed(2) : 'N/A'} | ${h.currentPrice > 0 ? h.currentValueEur.toFixed(2) : 'N/A'} | ${h.currentPrice > 0 ? h.unrealizedPnlEur.toFixed(2) : 'N/A'} | ${h.currentPrice > 0 ? h.unrealizedPnlPercent.toFixed(2) + '%' : 'N/A'} |`
+    );
+  }
+  lines.push(
+    `| **Total** | | | **${totalCost.toFixed(2)}** | | **${totalValue.toFixed(2)}** | **${totalPnl.toFixed(2)}** | **${totalCost > 0 ? ((totalPnl / totalCost) * 100).toFixed(2) + '%' : 'N/A'}** |`
+  );
+  return lines.join('\n');
+}
+
 // --- Components ---
 
 function SortHeader({ label, field, sortField, sortDir, onSort }: {
@@ -616,6 +640,7 @@ function App() {
   const [data, setData] = useState<InvestmentData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadData = () => {
@@ -661,6 +686,20 @@ function App() {
             >
               Refresh Prices
             </Button>
+            {data && data.holdings.length > 0 && (
+              <Button
+                variant="light"
+                size="xs"
+                color={copied ? 'green' : 'gray'}
+                onClick={() => {
+                  navigator.clipboard.writeText(formatHoldingsForClipboard(data.holdings));
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+              >
+                {copied ? 'Copied!' : 'Copy Holdings'}
+              </Button>
+            )}
             <Button variant="subtle" component="a" href={`${BASE}/`} size="xs">
               Back to Life Helper
             </Button>

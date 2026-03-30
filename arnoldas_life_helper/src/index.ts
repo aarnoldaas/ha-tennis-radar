@@ -110,7 +110,7 @@ loadEcbRates()
   });
 
 // Start web UI and polling
-createServer({ port: 8099, getOptions: () => options, onConfigChange, onResumeProviders, fetchBookings: () => providerManager.fetchBookings() });
+createServer({ port: 8099, dataDir, getOptions: () => options, onConfigChange, onResumeProviders, fetchBookings: () => providerManager.fetchBookings() });
 poller.start();
 
 // Graceful shutdown

@@ -153,6 +153,7 @@
 - **Transactions table**: date, type (color-coded), symbol, description, quantity, price, amount
 - Client-side column sorting
 - Navigation link from main dashboard
+- **Upload tab**: upload/delete investment files (CSV/TXT) per broker via the web UI — no need for SSH or File Explorer to manage investment data. Files are stored in `/data/Investments/<broker>/` and portfolio data is automatically reloaded after changes.
 
 ### Revolut Parser
 

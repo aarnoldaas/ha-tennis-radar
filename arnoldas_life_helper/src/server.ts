@@ -1,11 +1,14 @@
 import Fastify from 'fastify';
 import fastifyStatic from '@fastify/static';
-import { readFileSync } from 'node:fs';
+import fastifyMultipart from '@fastify/multipart';
+import { readFileSync, existsSync, mkdirSync, readdirSync, unlinkSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { pipeline } from 'node:stream/promises';
+import { createWriteStream } from 'node:fs';
 import type { TimeSlot } from './providers/types.js';
 import type { AddonOptions, ConfigWarning } from './utils/config.js';
 import { loadOptions, saveOptions, validateConfig } from './utils/config.js';
-import { getInvestmentData, refreshInvestmentPrices } from './investments/portfolio-service.js';
+import { getInvestmentData, loadInvestmentData, refreshInvestmentPrices } from './investments/portfolio-service.js';
 import { loadEcbRates } from './investments/currency.js';
 
 // Shared state — updated by the polling loop
@@ -37,10 +40,19 @@ export const globalState: {
   disabledProviders: [],
 };
 
-export function createServer(options: { port: number; getOptions: () => AddonOptions; onConfigChange: (opts: AddonOptions) => void; onResumeProviders: () => void; fetchBookings: () => Promise<{ bookings: any[]; errors: string[] }> }) {
+const BROKER_DIRS: Record<string, string> = {
+  swedbank: 'swedbank',
+  'interactive-brokers': 'interactive-brokers',
+  revolut: 'revolut',
+  wix: 'wix',
+};
+
+export function createServer(options: { port: number; dataDir: string; getOptions: () => AddonOptions; onConfigChange: (opts: AddonOptions) => void; onResumeProviders: () => void; fetchBookings: () => Promise<{ bookings: any[]; errors: string[] }> }) {
   const app = Fastify({ logger: true });
+  app.register(fastifyMultipart, { limits: { fileSize: 10 * 1024 * 1024 } });
   const appDir = resolve(process.env.APP_DIR || '/app');
   const publicDir = join(appDir, 'public');
+  const investmentsDir = join(options.dataDir, 'Investments');
 
   // Disable caching on all responses
   app.addHook('onSend', async (_request, reply) => {
@@ -146,6 +158,70 @@ export function createServer(options: { port: number; getOptions: () => AddonOpt
   // API: resume disabled providers
   app.post('/api/resume', async () => {
     options.onResumeProviders();
+    return { success: true };
+  });
+
+  // API: list uploaded investment files
+  app.get('/api/investments/files', async () => {
+    const result: Record<string, string[]> = {};
+    for (const [key, dir] of Object.entries(BROKER_DIRS)) {
+      const fullPath = join(investmentsDir, dir);
+      if (existsSync(fullPath)) {
+        result[key] = readdirSync(fullPath).filter(f => {
+          const stat = statSync(join(fullPath, f));
+          return stat.isFile();
+        });
+      } else {
+        result[key] = [];
+      }
+    }
+    return result;
+  });
+
+  // API: upload investment files
+  app.post('/api/investments/upload', async (request) => {
+    const parts = request.parts();
+    const uploaded: string[] = [];
+
+    for await (const part of parts) {
+      if (part.type === 'file') {
+        const broker = part.fieldname;
+        const brokerDir = BROKER_DIRS[broker];
+        if (!brokerDir) continue;
+
+        const targetDir = join(investmentsDir, brokerDir);
+        mkdirSync(targetDir, { recursive: true });
+
+        const targetPath = join(targetDir, part.filename);
+        await pipeline(part.file, createWriteStream(targetPath));
+        uploaded.push(`${broker}/${part.filename}`);
+      }
+    }
+
+    // Reload investment data after upload
+    if (uploaded.length > 0) {
+      await loadEcbRates();
+      await loadInvestmentData(options.dataDir);
+    }
+
+    return { success: true, uploaded };
+  });
+
+  // API: delete an investment file
+  app.delete('/api/investments/files/:broker/:filename', async (request) => {
+    const { broker, filename } = request.params as { broker: string; filename: string };
+    const brokerDir = BROKER_DIRS[broker];
+    if (!brokerDir) return { success: false, error: 'Unknown broker' };
+
+    const filePath = join(investmentsDir, brokerDir, filename);
+    if (!existsSync(filePath)) return { success: false, error: 'File not found' };
+
+    unlinkSync(filePath);
+
+    // Reload investment data after deletion
+    await loadEcbRates();
+    await loadInvestmentData(options.dataDir);
+
     return { success: true };
   });
 

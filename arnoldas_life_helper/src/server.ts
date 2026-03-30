@@ -2,7 +2,6 @@ import Fastify from 'fastify';
 import fastifyStatic from '@fastify/static';
 import fastifyMultipart from '@fastify/multipart';
 import { readFileSync, existsSync, mkdirSync, readdirSync, unlinkSync, statSync } from 'node:fs';
-import { createHash } from 'node:crypto';
 import { join, resolve } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { createWriteStream } from 'node:fs';
@@ -48,16 +47,11 @@ const BROKER_DIRS: Record<string, string> = {
   wix: 'wix',
 };
 
-const APP_VERSION = process.env.BUILD_VERSION || 'dev';
-
-/** Hash static asset contents so the cache-buster changes on every rebuild, even without a version bump. */
-function computeAssetHash(publicDir: string): string {
-  const hash = createHash('md5');
-  for (const file of ['app.js', 'app.css', 'investments.js', 'investments.css']) {
-    const p = join(publicDir, file);
-    if (existsSync(p)) hash.update(readFileSync(p));
-  }
-  return hash.digest('hex').slice(0, 10);
+/** Find a hashed asset file like "app-AB12CD34.js" for a given base name and extension. */
+function findAsset(dir: string, base: string, ext: string): string {
+  const files = readdirSync(dir);
+  const match = files.find(f => f.startsWith(`${base}-`) && f.endsWith(`.${ext}`) && !f.endsWith(`.${ext}.map`));
+  return match || `${base}.${ext}`;
 }
 
 export function createServer(options: { port: number; dataDir: string; getOptions: () => AddonOptions; onConfigChange: (opts: AddonOptions) => void; onResumeProviders: () => void; fetchBookings: () => Promise<{ bookings: any[]; errors: string[] }> }) {
@@ -66,8 +60,12 @@ export function createServer(options: { port: number; dataDir: string; getOption
   const appDir = resolve(process.env.APP_DIR || '/app');
   const publicDir = join(appDir, 'public');
   const investmentsDir = join(options.dataDir, 'Investments');
-  const assetHash = computeAssetHash(publicDir);
-  const CACHE_BUSTER = `${APP_VERSION}-${assetHash}`;
+
+  // Discover hashed asset filenames produced by esbuild
+  const appJs = findAsset(publicDir, 'app', 'js');
+  const appCss = findAsset(publicDir, 'app', 'css');
+  const investJs = findAsset(publicDir, 'investments', 'js');
+  const investCss = findAsset(publicDir, 'investments', 'css');
 
   // Disable caching on all responses
   app.addHook('onSend', async (_request, reply) => {
@@ -87,12 +85,13 @@ export function createServer(options: { port: number; dataDir: string; getOption
     lastModified: false,
   });
 
-  // Inject ingress path into the HTML template
+  // Inject ingress path and hashed asset names into the HTML template
   const serveIndex = async (request: any, reply: any) => {
     const ingressPath = (request.headers['x-ingress-path'] as string) || '';
     const html = readFileSync(join(publicDir, 'index.html'), 'utf-8')
       .replace(/\{\{INGRESS_PATH\}\}/g, ingressPath)
-      .replace(/\{\{VERSION\}\}/g, CACHE_BUSTER);
+      .replace(/\{\{APP_JS\}\}/g, appJs)
+      .replace(/\{\{APP_CSS\}\}/g, appCss);
     reply.type('text/html').send(html);
   };
   app.get('/', serveIndex);
@@ -103,7 +102,8 @@ export function createServer(options: { port: number; dataDir: string; getOption
     const ingressPath = (request.headers['x-ingress-path'] as string) || '';
     const html = readFileSync(join(publicDir, 'investments.html'), 'utf-8')
       .replace(/\{\{INGRESS_PATH\}\}/g, ingressPath)
-      .replace(/\{\{VERSION\}\}/g, CACHE_BUSTER);
+      .replace(/\{\{INVEST_JS\}\}/g, investJs)
+      .replace(/\{\{INVEST_CSS\}\}/g, investCss);
     reply.type('text/html').send(html);
   };
   app.get('/investments', serveInvestments);

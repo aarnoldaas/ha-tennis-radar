@@ -4,8 +4,8 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "build": "esbuild src/index.ts --bundle --platform=node --format=cjs --outfile=dist/bundle.cjs --minify && esbuild src/frontend/app.tsx --bundle --platform=browser --format=iife --outfile=public/app.js --minify --sourcemap --jsx=automatic --jsx-import-source=react && esbuild src/frontend/investments.tsx --bundle --platform=browser --format=iife --outfile=public/investments.js --minify --sourcemap --jsx=automatic --jsx-import-source=react",
-    "build:dev": "esbuild src/index.ts --bundle --platform=node --format=cjs --outfile=dist/bundle.cjs && esbuild src/frontend/app.tsx --bundle --platform=browser --format=iife --outfile=public/app.js --jsx=automatic --jsx-import-source=react --sourcemap && esbuild src/frontend/investments.tsx --bundle --platform=browser --format=iife --outfile=public/investments.js --jsx=automatic --jsx-import-source=react --sourcemap",
+    "build": "node build.mjs --prod",
+    "build:dev": "node build.mjs",
     "dev": "npm run build:dev && APP_DIR=. DATA_DIR=./data node dist/bundle.cjs",
     "start": "node dist/bundle.cjs",
     "test": "vitest run",

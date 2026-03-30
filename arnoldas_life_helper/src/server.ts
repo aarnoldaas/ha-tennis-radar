@@ -58,7 +58,10 @@ export function createServer(options: { port: number; dataDir: string; getOption
 
   // Disable caching on all responses
   app.addHook('onSend', async (_request, reply) => {
-    reply.header('Cache-Control', 'no-store, no-cache, must-revalidate');
+    reply.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+    reply.header('Pragma', 'no-cache');
+    reply.header('Expires', '0');
+    reply.header('Surrogate-Control', 'no-store');
   });
 
   // Serve static frontend assets (css, js)
@@ -66,6 +69,9 @@ export function createServer(options: { port: number; dataDir: string; getOption
     root: publicDir,
     prefix: '/static/',
     decorateReply: true,
+    cacheControl: false,
+    etag: false,
+    lastModified: false,
   });
 
   // Inject ingress path into the HTML template

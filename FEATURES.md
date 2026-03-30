@@ -214,3 +214,4 @@
 - **Frontend**: Preact, TypeScript, Mantine UI, esbuild
 - **Backend**: Fastify, Node.js 20+, Cheerio
 - **Deployment**: Docker (Alpine Linux), s6-overlay, port 8099
+- **Cache busting**: Static assets (JS, CSS) include `?v=<version>` query parameters to prevent stale files after updates

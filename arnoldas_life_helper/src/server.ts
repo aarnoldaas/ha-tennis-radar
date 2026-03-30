@@ -47,6 +47,8 @@ const BROKER_DIRS: Record<string, string> = {
   wix: 'wix',
 };
 
+const APP_VERSION = process.env.BUILD_VERSION || 'dev';
+
 export function createServer(options: { port: number; dataDir: string; getOptions: () => AddonOptions; onConfigChange: (opts: AddonOptions) => void; onResumeProviders: () => void; fetchBookings: () => Promise<{ bookings: any[]; errors: string[] }> }) {
   const app = Fastify({ logger: true });
   app.register(fastifyMultipart, { limits: { fileSize: 10 * 1024 * 1024 } });
@@ -70,7 +72,8 @@ export function createServer(options: { port: number; dataDir: string; getOption
   const serveIndex = async (request: any, reply: any) => {
     const ingressPath = (request.headers['x-ingress-path'] as string) || '';
     const html = readFileSync(join(publicDir, 'index.html'), 'utf-8')
-      .replace(/\{\{INGRESS_PATH\}\}/g, ingressPath);
+      .replace(/\{\{INGRESS_PATH\}\}/g, ingressPath)
+      .replace(/\{\{VERSION\}\}/g, APP_VERSION);
     reply.type('text/html').send(html);
   };
   app.get('/', serveIndex);
@@ -80,7 +83,8 @@ export function createServer(options: { port: number; dataDir: string; getOption
   const serveInvestments = async (request: any, reply: any) => {
     const ingressPath = (request.headers['x-ingress-path'] as string) || '';
     const html = readFileSync(join(publicDir, 'investments.html'), 'utf-8')
-      .replace(/\{\{INGRESS_PATH\}\}/g, ingressPath);
+      .replace(/\{\{INGRESS_PATH\}\}/g, ingressPath)
+      .replace(/\{\{VERSION\}\}/g, APP_VERSION);
     reply.type('text/html').send(html);
   };
   app.get('/investments', serveInvestments);

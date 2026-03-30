@@ -7,6 +7,7 @@ WORKDIR /app
 
 # Cache-bust: forces fresh COPY on every version
 ARG BUILD_VERSION=dev
+ENV BUILD_VERSION=${BUILD_VERSION}
 RUN echo "version=${BUILD_VERSION}"
 
 COPY dist/bundle.cjs ./dist/

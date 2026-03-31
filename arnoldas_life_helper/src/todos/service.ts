@@ -34,7 +34,7 @@ export class TodoService {
   }
 
   async getItems(): Promise<TodoItem[]> {
-    const response = await this.callApi('/services/todo/get_items', 'POST', {
+    const response = await this.callApi('/services/todo/get_items?return_response', 'POST', {
       entity_id: this.entityId,
     });
 

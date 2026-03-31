@@ -8,7 +8,7 @@ import type { IHolding } from './types.js';
 // Ticker metadata
 // ----------------------------------------------------------------------------
 
-interface TickerMeta {
+export interface TickerMeta {
   geography: string;
   assetClass: string;
   sector: string;
@@ -37,7 +37,7 @@ const TICKER_META: Record<string, TickerMeta> = {
   '002594': { geography: 'China', assetClass: 'Stocks', sector: 'Automotive', currencyExposure: 'CNH' },
 };
 
-function getTickerMeta(symbol: string): TickerMeta {
+export function getTickerMeta(symbol: string): TickerMeta {
   return TICKER_META[symbol] || {
     geography: 'Other',
     assetClass: 'Stocks',
@@ -97,6 +97,17 @@ export function computeAllocation(holdings: IHolding[]): AllocationBreakdown {
     byCurrency: toEntries(currMap),
     bySector: toEntries(sectorMap),
   };
+}
+
+/**
+ * Build a map of ticker symbol → metadata for all holdings.
+ */
+export function buildTickerMetaMap(holdings: IHolding[]): Record<string, TickerMeta> {
+  const result: Record<string, TickerMeta> = {};
+  for (const h of holdings) {
+    result[h.symbol] = getTickerMeta(h.symbol);
+  }
+  return result;
 }
 
 // ----------------------------------------------------------------------------

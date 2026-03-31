@@ -21,6 +21,7 @@ import {
   SimpleGrid,
   Progress,
   Select,
+  TextInput,
   FileButton,
 } from '@mantine/core';
 import '@mantine/core/styles.css';
@@ -46,9 +47,20 @@ interface ITransaction {
   raw?: { debitCredit?: string };
 }
 
+interface ILot {
+  acquisitionDate: string;
+  remainingQuantity: number;
+  costBasisPerShare: number;
+  source: string;
+  broker: string;
+  currency: string;
+}
+
 interface IHolding {
   symbol: string;
   name: string;
+  brokers?: string[];
+  lots?: ILot[];
   totalQuantity: number;
   averageCostBasis: number;
   totalCostBasis: number;
@@ -126,10 +138,29 @@ interface RsuByYear {
   totalCompensationEur: number;
 }
 
+interface RsuVesting {
+  grantId: string;
+  vestingDate: string;
+  shares: number;
+  fmvAtVesting: number;
+  compensationValue: number;
+  compensationValueEur: number;
+  isSameDaySale: boolean;
+}
+
+interface RsuByGrant {
+  grantId: string;
+  totalShares: number;
+  totalCompensation: number;
+  vestings: RsuVesting[];
+}
+
 interface RsuCompensationSummary {
   totalCompensation: number;
   totalCompensationEur: number;
   byYear: RsuByYear[];
+  byGrant?: RsuByGrant[];
+  cumulative?: Array<{ date: string; cumulativeCompensation: number; cumulativeCompensationEur: number }>;
 }
 
 interface EsppSummary {
@@ -139,6 +170,22 @@ interface EsppSummary {
   totalDiscountCaptured: number;
   totalDiscountCapturedEur: number;
   averageDiscountPercent: number;
+}
+
+interface StockStats {
+  symbol: string;
+  currentQty: number;
+  costBasisEur: number;
+  currentValueEur: number;
+  unrealizedPnlEur: number;
+  realizedPnlEur: number;
+  dividendsEur: number;
+  feesEur: number;
+  totalPnlEur: number;
+  totalInvestedEur: number;
+  tradeCount: number;
+  firstDate: string;
+  isOpen: boolean;
 }
 
 interface InvestmentData {
@@ -155,6 +202,13 @@ interface InvestmentData {
   riskWarnings: RiskWarning[];
   rsuCompensation: RsuCompensationSummary;
   esppSummary: EsppSummary;
+  tickerMeta?: Record<string, { geography: string; sector: string; currencyExposure: string }>;
+  portfolioSummary: { totalCost: number; totalValue: number; unrealizedPnl: number; totalRealizedPnl: number; totalDividends: number; totalInterest: number; totalIncome: number; totalReturn: number; totalReturnPct: number };
+  stockStats: StockStats[];
+  stockStatsTotals: { totalInvested: number; realizedPnl: number; unrealizedPnl: number; dividends: number; totalPnl: number };
+  dividendsByStock: Array<{ symbol: string; count: number; totalEur: number }>;
+  realizedTradeSummary: { totalPnl: number; shortTermPnl: number; longTermPnl: number; shortTermCount: number; longTermCount: number };
+  rsuByYearWithCumulative: Array<{ year: number; totalShares: number; totalCompensation: number; totalCompensationEur: number; cumulativeUsd: number; cumulativeEur: number }>;
 }
 
 type SortDir = 'asc' | 'desc';
@@ -233,22 +287,16 @@ function SortHeader({ label, field, sortField, sortDir, onSort }: {
 }
 
 function PortfolioSummaryCard({ data }: { data: InvestmentData }) {
-  const totalCost = data.holdings.reduce((s, h) => s + h.totalCostBasisEur, 0);
-  const totalValue = data.holdings.reduce((s, h) => s + h.currentValueEur, 0);
-  const unrealizedPnl = data.holdings.reduce((s, h) => s + h.unrealizedPnlEur, 0);
-  const totalIncome = data.totalDividendsEur + data.totalInterestEur;
-  const totalReturn = unrealizedPnl + data.totalRealizedPnlEur + totalIncome;
-  const totalReturnPct = totalCost > 0 ? (totalReturn / totalCost) * 100 : 0;
-
+  const ps = data.portfolioSummary;
   const hasStalePrice = data.holdings.some(h => h.priceLastUpdated === null && h.currentPrice > 0);
 
   const items = [
-    { label: 'Portfolio Value', value: formatEur(totalValue), color: undefined },
-    { label: 'Cost Basis', value: formatEur(totalCost), color: undefined },
-    { label: 'Unrealized P&L', value: formatEur(unrealizedPnl), color: pnlColor(unrealizedPnl) },
-    { label: 'Realized P&L', value: formatEur(data.totalRealizedPnlEur), color: pnlColor(data.totalRealizedPnlEur) },
-    { label: 'Income', value: formatEur(totalIncome), color: '#51cf66' },
-    { label: 'Total Return', value: `${formatEur(totalReturn)} (${formatNum(totalReturnPct)}%)`, color: pnlColor(totalReturn) },
+    { label: 'Portfolio Value', value: formatEur(ps.totalValue), color: undefined },
+    { label: 'Cost Basis', value: formatEur(ps.totalCost), color: undefined },
+    { label: 'Unrealized P&L', value: formatEur(ps.unrealizedPnl), color: pnlColor(ps.unrealizedPnl) },
+    { label: 'Realized P&L', value: formatEur(ps.totalRealizedPnl), color: pnlColor(ps.totalRealizedPnl) },
+    { label: 'Income', value: formatEur(ps.totalIncome), color: '#51cf66' },
+    { label: 'Total Return', value: `${formatEur(ps.totalReturn)} (${formatNum(ps.totalReturnPct)}%)`, color: pnlColor(ps.totalReturn) },
   ];
 
   return (
@@ -273,6 +321,8 @@ function PortfolioSummaryCard({ data }: { data: InvestmentData }) {
 function HoldingsTable({ holdings }: { holdings: IHolding[] }) {
   const [sortField, setSortField] = useState('currentValueEur');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [search, setSearch] = useState('');
+  const [expanded, setExpanded] = useState<string | null>(null);
 
   const onSort = (field: string) => {
     if (sortField === field) {
@@ -283,22 +333,36 @@ function HoldingsTable({ holdings }: { holdings: IHolding[] }) {
     }
   };
 
+  const filtered = useMemo(() => {
+    if (!search) return holdings;
+    const q = search.toLowerCase();
+    return holdings.filter(h => h.symbol.toLowerCase().includes(q) || h.name.toLowerCase().includes(q));
+  }, [holdings, search]);
+
   const sorted = useMemo(() => {
-    return [...holdings].sort((a, b) => {
+    return [...filtered].sort((a, b) => {
       const av = (a as any)[sortField];
       const bv = (b as any)[sortField];
       if (typeof av === 'string') return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
       return sortDir === 'asc' ? av - bv : bv - av;
     });
-  }, [holdings, sortField, sortDir]);
+  }, [filtered, sortField, sortDir]);
 
   const totals = useMemo(() => ({
-    totalCost: holdings.reduce((s, h) => s + h.totalCostBasisEur, 0),
-    totalValue: holdings.reduce((s, h) => s + h.currentValueEur, 0),
-    totalPnl: holdings.reduce((s, h) => s + h.unrealizedPnlEur, 0),
-  }), [holdings]);
+    totalCost: filtered.reduce((s, h) => s + h.totalCostBasisEur, 0),
+    totalValue: filtered.reduce((s, h) => s + h.currentValueEur, 0),
+    totalPnl: filtered.reduce((s, h) => s + h.unrealizedPnlEur, 0),
+  }), [filtered]);
 
   return (
+    <Stack gap="xs">
+      <TextInput
+        placeholder="Search by symbol..."
+        size="xs"
+        value={search}
+        onChange={(e) => setSearch(e.currentTarget.value)}
+        style={{ maxWidth: 250 }}
+      />
     <ScrollArea>
       <Table striped highlightOnHover>
         <Table.Thead>
@@ -314,29 +378,80 @@ function HoldingsTable({ holdings }: { holdings: IHolding[] }) {
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
-          {sorted.map(h => (
-            <Table.Tr key={h.symbol}>
-              <Table.Td>
-                <Group gap={4}>
-                  <Text fw={600}>{h.symbol}</Text>
-                  {h.priceLastUpdated === null && h.currentPrice > 0 && (
-                    <Badge size="xs" color="yellow" variant="dot">stale</Badge>
-                  )}
-                </Group>
-              </Table.Td>
-              <Table.Td style={{ textAlign: 'right' }}>{formatNum(h.totalQuantity, h.totalQuantity % 1 === 0 ? 0 : 4)}</Table.Td>
-              <Table.Td style={{ textAlign: 'right' }}>{formatNum(h.averageCostBasis)}</Table.Td>
-              <Table.Td style={{ textAlign: 'right' }}>{formatEur(h.totalCostBasisEur)}</Table.Td>
-              <Table.Td style={{ textAlign: 'right' }}>{h.currentPrice > 0 ? formatNum(h.currentPrice) : '\u2014'}</Table.Td>
-              <Table.Td style={{ textAlign: 'right' }}>{h.currentPrice > 0 ? formatEur(h.currentValueEur) : '\u2014'}</Table.Td>
-              <Table.Td style={{ textAlign: 'right', color: pnlColor(h.unrealizedPnl) }}>
-                {h.currentPrice > 0 ? formatEur(h.unrealizedPnlEur) : '\u2014'}
-              </Table.Td>
-              <Table.Td style={{ textAlign: 'right', color: pnlColor(h.unrealizedPnlPercent) }}>
-                {h.currentPrice > 0 ? `${formatNum(h.unrealizedPnlPercent)}%` : '\u2014'}
-              </Table.Td>
-            </Table.Tr>
-          ))}
+          {sorted.map(h => {
+            const isExpanded = expanded === h.symbol;
+            const hasLots = h.lots && h.lots.length > 1;
+            return (
+              <>
+                <Table.Tr
+                  key={h.symbol}
+                  onClick={hasLots ? () => setExpanded(isExpanded ? null : h.symbol) : undefined}
+                  style={hasLots ? { cursor: 'pointer' } : undefined}
+                >
+                  <Table.Td>
+                    <Group gap={4}>
+                      {hasLots && <Text size="sm" c="dimmed">{isExpanded ? '\u25BC' : '\u25B6'}</Text>}
+                      <Text fw={600}>{h.symbol}</Text>
+                      {h.brokers?.map(b => (
+                        <Badge key={b} size="xs" variant="light" color="gray">{b}</Badge>
+                      ))}
+                      {h.priceLastUpdated === null && h.currentPrice > 0 && (
+                        <Badge size="xs" color="yellow" variant="dot">stale</Badge>
+                      )}
+                    </Group>
+                  </Table.Td>
+                  <Table.Td style={{ textAlign: 'right' }}>{formatNum(h.totalQuantity, h.totalQuantity % 1 === 0 ? 0 : 4)}</Table.Td>
+                  <Table.Td style={{ textAlign: 'right' }}>{formatNum(h.averageCostBasis)}</Table.Td>
+                  <Table.Td style={{ textAlign: 'right' }}>{formatEur(h.totalCostBasisEur)}</Table.Td>
+                  <Table.Td style={{ textAlign: 'right' }}>{h.currentPrice > 0 ? formatNum(h.currentPrice) : '\u2014'}</Table.Td>
+                  <Table.Td style={{ textAlign: 'right' }}>{h.currentPrice > 0 ? formatEur(h.currentValueEur) : '\u2014'}</Table.Td>
+                  <Table.Td style={{ textAlign: 'right', color: pnlColor(h.unrealizedPnl) }}>
+                    {h.currentPrice > 0 ? formatEur(h.unrealizedPnlEur) : '\u2014'}
+                  </Table.Td>
+                  <Table.Td style={{ textAlign: 'right', color: pnlColor(h.unrealizedPnlPercent) }}>
+                    {h.currentPrice > 0 ? `${formatNum(h.unrealizedPnlPercent)}%` : '\u2014'}
+                  </Table.Td>
+                </Table.Tr>
+                {isExpanded && h.lots && (
+                  <Table.Tr key={h.symbol + '-lots'}>
+                    <Table.Td colSpan={8} style={{ padding: 0, background: 'var(--mantine-color-body)' }}>
+                      <div style={{ padding: '8px 16px' }}>
+                        <Text size="xs" fw={600} c="dimmed" mb="xs">Tax Lots ({h.lots.length})</Text>
+                        <Table striped>
+                          <Table.Thead>
+                            <Table.Tr>
+                              <Table.Th>Acquired</Table.Th>
+                              <Table.Th>Source</Table.Th>
+                              <Table.Th>Broker</Table.Th>
+                              <Table.Th style={{ textAlign: 'right' }}>Qty</Table.Th>
+                              <Table.Th style={{ textAlign: 'right' }}>Cost/Share</Table.Th>
+                              <Table.Th style={{ textAlign: 'right' }}>Total Cost</Table.Th>
+                            </Table.Tr>
+                          </Table.Thead>
+                          <Table.Tbody>
+                            {h.lots.map((lot, i) => (
+                              <Table.Tr key={lot.acquisitionDate + '-' + i}>
+                                <Table.Td>{lot.acquisitionDate}</Table.Td>
+                                <Table.Td>
+                                  <Badge size="xs" variant="light" color={lot.source === 'RSU' ? 'violet' : lot.source === 'ESPP' ? 'grape' : 'blue'}>
+                                    {lot.source}
+                                  </Badge>
+                                </Table.Td>
+                                <Table.Td><Text size="sm">{lot.broker}</Text></Table.Td>
+                                <Table.Td style={{ textAlign: 'right' }}>{formatNum(lot.remainingQuantity, lot.remainingQuantity % 1 === 0 ? 0 : 4)}</Table.Td>
+                                <Table.Td style={{ textAlign: 'right' }}>{formatNum(lot.costBasisPerShare)} {lot.currency}</Table.Td>
+                                <Table.Td style={{ textAlign: 'right' }}>{formatNum(lot.remainingQuantity * lot.costBasisPerShare)} {lot.currency}</Table.Td>
+                              </Table.Tr>
+                            ))}
+                          </Table.Tbody>
+                        </Table>
+                      </div>
+                    </Table.Td>
+                  </Table.Tr>
+                )}
+              </>
+            );
+          })}
         </Table.Tbody>
         <Table.Tfoot>
           <Table.Tr style={{ fontWeight: 700 }}>
@@ -356,12 +471,24 @@ function HoldingsTable({ holdings }: { holdings: IHolding[] }) {
         </Table.Tfoot>
       </Table>
     </ScrollArea>
+    </Stack>
   );
 }
 
 function RealizedTradesTable({ trades }: { trades: IRealizedTrade[] }) {
   const [sortField, setSortField] = useState('sellDate');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [year, setYear] = useState<string>('all');
+
+  const years = useMemo(() => {
+    const yrs = [...new Set(trades.map(t => t.sellDate.slice(0, 4)))].sort().reverse();
+    return [{ value: 'all', label: 'All Years' }, ...yrs.map(y => ({ value: y, label: y }))];
+  }, [trades]);
+
+  const filtered = useMemo(
+    () => year === 'all' ? trades : trades.filter(t => t.sellDate.startsWith(year)),
+    [trades, year]
+  );
 
   const onSort = (field: string) => {
     if (sortField === field) {
@@ -373,76 +500,116 @@ function RealizedTradesTable({ trades }: { trades: IRealizedTrade[] }) {
   };
 
   const sorted = useMemo(() => {
-    return [...trades].sort((a, b) => {
+    return [...filtered].sort((a, b) => {
       const av = (a as any)[sortField];
       const bv = (b as any)[sortField];
       if (typeof av === 'string') return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
       return sortDir === 'asc' ? av - bv : bv - av;
     });
-  }, [trades, sortField, sortDir]);
+  }, [filtered, sortField, sortDir]);
 
-  const totalPnl = trades.reduce((s, t) => s + t.realizedPnlEur, 0);
+  const totals = useMemo(() => {
+    const shortTerm = filtered.filter(t => t.holdPeriod === 'short-term');
+    const longTerm = filtered.filter(t => t.holdPeriod === 'long-term');
+    return {
+      total: filtered.reduce((s, t) => s + t.realizedPnlEur, 0),
+      shortTermPnl: shortTerm.reduce((s, t) => s + t.realizedPnlEur, 0),
+      longTermPnl: longTerm.reduce((s, t) => s + t.realizedPnlEur, 0),
+      shortTermCount: shortTerm.length,
+      longTermCount: longTerm.length,
+    };
+  }, [filtered]);
 
   return (
-    <ScrollArea>
-      <Table striped highlightOnHover>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th><SortHeader label="Date" field="sellDate" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
-            <Table.Th><SortHeader label="Symbol" field="symbol" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
-            <Table.Th style={{ textAlign: 'right' }}><SortHeader label="Qty" field="quantity" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
-            <Table.Th style={{ textAlign: 'right' }}><SortHeader label="Cost Basis" field="totalCostBasisEur" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
-            <Table.Th style={{ textAlign: 'right' }}><SortHeader label="Proceeds" field="proceedsEur" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
-            <Table.Th style={{ textAlign: 'right' }}><SortHeader label="P&L" field="realizedPnlEur" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
-            <Table.Th><SortHeader label="Hold" field="holdPeriod" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {sorted.map((t, i) => (
-            <Table.Tr key={t.sellTransactionId + '-' + i}>
-              <Table.Td>{t.sellDate}</Table.Td>
-              <Table.Td><Text fw={600}>{t.symbol}</Text></Table.Td>
-              <Table.Td style={{ textAlign: 'right' }}>{formatNum(t.quantity, t.quantity % 1 === 0 ? 0 : 4)}</Table.Td>
-              <Table.Td style={{ textAlign: 'right' }}>{formatEur(t.totalCostBasisEur)}</Table.Td>
-              <Table.Td style={{ textAlign: 'right' }}>{formatEur(t.proceedsEur)}</Table.Td>
-              <Table.Td style={{ textAlign: 'right', color: pnlColor(t.realizedPnlEur) }}>
-                {formatEur(t.realizedPnlEur)}
-              </Table.Td>
-              <Table.Td>
-                <Badge size="sm" color={t.holdPeriod === 'long-term' ? 'teal' : 'gray'} variant="light">
-                  {t.holdPeriod}
-                </Badge>
-              </Table.Td>
+    <Stack gap="xs">
+      <Group gap="sm">
+        <Select
+          data={years}
+          value={year}
+          onChange={(v) => v && setYear(v)}
+          size="xs"
+          style={{ width: 140 }}
+        />
+        {year !== 'all' && (
+          <Group gap="md">
+            <Text size="xs" c="dimmed">
+              Short-term ({totals.shortTermCount}): <Text span size="xs" c={pnlColor(totals.shortTermPnl)} fw={600}>{formatEur(totals.shortTermPnl)}</Text>
+            </Text>
+            <Text size="xs" c="dimmed">
+              Long-term ({totals.longTermCount}): <Text span size="xs" c={pnlColor(totals.longTermPnl)} fw={600}>{formatEur(totals.longTermPnl)}</Text>
+            </Text>
+          </Group>
+        )}
+      </Group>
+      <ScrollArea>
+        <Table striped highlightOnHover>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th><SortHeader label="Date" field="sellDate" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
+              <Table.Th><SortHeader label="Symbol" field="symbol" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
+              <Table.Th style={{ textAlign: 'right' }}><SortHeader label="Qty" field="quantity" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
+              <Table.Th style={{ textAlign: 'right' }}><SortHeader label="Cost Basis" field="totalCostBasisEur" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
+              <Table.Th style={{ textAlign: 'right' }}><SortHeader label="Proceeds" field="proceedsEur" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
+              <Table.Th style={{ textAlign: 'right' }}><SortHeader label="P&L" field="realizedPnlEur" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
+              <Table.Th><SortHeader label="Hold" field="holdPeriod" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
             </Table.Tr>
-          ))}
-        </Table.Tbody>
-        <Table.Tfoot>
-          <Table.Tr style={{ fontWeight: 700 }}>
-            <Table.Td>Total</Table.Td>
-            <Table.Td />
-            <Table.Td />
-            <Table.Td />
-            <Table.Td />
-            <Table.Td style={{ textAlign: 'right', color: pnlColor(totalPnl) }}>{formatEur(totalPnl)}</Table.Td>
-            <Table.Td />
-          </Table.Tr>
-        </Table.Tfoot>
-      </Table>
-    </ScrollArea>
+          </Table.Thead>
+          <Table.Tbody>
+            {sorted.map((t, i) => (
+              <Table.Tr key={t.sellTransactionId + '-' + i}>
+                <Table.Td>{t.sellDate}</Table.Td>
+                <Table.Td><Text fw={600}>{t.symbol}</Text></Table.Td>
+                <Table.Td style={{ textAlign: 'right' }}>{formatNum(t.quantity, t.quantity % 1 === 0 ? 0 : 4)}</Table.Td>
+                <Table.Td style={{ textAlign: 'right' }}>{formatEur(t.totalCostBasisEur)}</Table.Td>
+                <Table.Td style={{ textAlign: 'right' }}>{formatEur(t.proceedsEur)}</Table.Td>
+                <Table.Td style={{ textAlign: 'right', color: pnlColor(t.realizedPnlEur) }}>
+                  {formatEur(t.realizedPnlEur)}
+                </Table.Td>
+                <Table.Td>
+                  <Badge size="sm" color={t.holdPeriod === 'long-term' ? 'teal' : 'gray'} variant="light">
+                    {t.holdPeriod}
+                  </Badge>
+                </Table.Td>
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+          <Table.Tfoot>
+            <Table.Tr style={{ fontWeight: 700 }}>
+              <Table.Td>Total ({filtered.length})</Table.Td>
+              <Table.Td />
+              <Table.Td />
+              <Table.Td />
+              <Table.Td />
+              <Table.Td style={{ textAlign: 'right', color: pnlColor(totals.total) }}>{formatEur(totals.total)}</Table.Td>
+              <Table.Td />
+            </Table.Tr>
+          </Table.Tfoot>
+        </Table>
+      </ScrollArea>
+    </Stack>
   );
 }
 
 function IncomeCard({ data }: { data: InvestmentData }) {
   const hasDividends = data.dividends.length > 0;
   const hasInterest = data.interestSummary && data.interestSummary.totalEur > 0;
+  const [showDividendBreakdown, setShowDividendBreakdown] = useState(false);
   if (!hasDividends && !hasInterest) return null;
 
   const totalIncome = data.totalDividendsEur + data.totalInterestEur;
+  const dividendsByStock = data.dividendsByStock;
 
   return (
     <Card padding="sm" mb="md" withBorder>
       <Group justify="space-between">
-        <Text size="sm" fw={600}>Income Summary</Text>
+        <Group gap="xs">
+          <Text size="sm" fw={600}>Income Summary</Text>
+          {hasDividends && dividendsByStock.length > 1 && (
+            <UnstyledButton onClick={() => setShowDividendBreakdown(!showDividendBreakdown)}>
+              <Text size="xs" c="dimmed">{showDividendBreakdown ? '\u25BC' : '\u25B6'} by stock</Text>
+            </UnstyledButton>
+          )}
+        </Group>
         <Group gap="lg">
           {hasDividends && (
             <Stack gap={0} align="flex-end">
@@ -462,6 +629,26 @@ function IncomeCard({ data }: { data: InvestmentData }) {
           </Stack>
         </Group>
       </Group>
+      {showDividendBreakdown && (
+        <Table striped mt="sm">
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Symbol</Table.Th>
+              <Table.Th style={{ textAlign: 'right' }}>Payments</Table.Th>
+              <Table.Th style={{ textAlign: 'right' }}>Total (EUR)</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {dividendsByStock.map(d => (
+              <Table.Tr key={d.symbol}>
+                <Table.Td><Text fw={600}>{d.symbol}</Text></Table.Td>
+                <Table.Td style={{ textAlign: 'right' }}>{d.count}</Table.Td>
+                <Table.Td style={{ textAlign: 'right' }}>{formatEur(d.totalEur)}</Table.Td>
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
+      )}
     </Card>
   );
 }
@@ -469,6 +656,13 @@ function IncomeCard({ data }: { data: InvestmentData }) {
 function TransactionsTable({ transactions }: { transactions: ITransaction[] }) {
   const [sortField, setSortField] = useState('date');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+
+  const types = useMemo(() => {
+    const ts = [...new Set(transactions.map(t => t.type))].sort();
+    return [{ value: 'all', label: 'All Types' }, ...ts.map(t => ({ value: t, label: t }))];
+  }, [transactions]);
 
   const onSort = (field: string) => {
     if (sortField === field) {
@@ -479,58 +673,99 @@ function TransactionsTable({ transactions }: { transactions: ITransaction[] }) {
     }
   };
 
+  const filtered = useMemo(() => {
+    let result = transactions;
+    if (typeFilter !== 'all') {
+      result = result.filter(t => t.type === typeFilter);
+    }
+    if (search) {
+      const q = search.toLowerCase();
+      result = result.filter(t =>
+        t.symbol.toLowerCase().includes(q) ||
+        t.description.toLowerCase().includes(q) ||
+        t.broker.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [transactions, search, typeFilter]);
+
   const sorted = useMemo(() => {
-    return [...transactions].sort((a, b) => {
+    return [...filtered].sort((a, b) => {
       const av = (a as any)[sortField];
       const bv = (b as any)[sortField];
       if (typeof av === 'string') return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
       return sortDir === 'asc' ? av - bv : bv - av;
     });
-  }, [transactions, sortField, sortDir]);
+  }, [filtered, sortField, sortDir]);
 
   return (
-    <ScrollArea>
-      <Table striped highlightOnHover>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th><SortHeader label="Date" field="date" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
-            <Table.Th><SortHeader label="Type" field="type" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
-            <Table.Th><SortHeader label="Symbol" field="symbol" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
-            <Table.Th>Description</Table.Th>
-            <Table.Th style={{ textAlign: 'right' }}><SortHeader label="Qty" field="quantity" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
-            <Table.Th style={{ textAlign: 'right' }}><SortHeader label="Price" field="pricePerUnit" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
-            <Table.Th style={{ textAlign: 'right' }}><SortHeader label="Amount" field="amount" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
-            <Table.Th>D/K</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {sorted.map((t, i) => (
-            <Table.Tr key={t.id + '-' + i}>
-              <Table.Td>{t.date}</Table.Td>
-              <Table.Td>
-                <Badge color={TYPE_COLORS[t.type] || 'gray'} variant="light" size="sm">
-                  {t.type}
-                </Badge>
-              </Table.Td>
-              <Table.Td><Text fw={t.symbol ? 600 : 400}>{t.symbol || '\u2014'}</Text></Table.Td>
-              <Table.Td style={{ maxWidth: 300 }}>
-                <Text size="sm" truncate="end">{t.description}</Text>
-              </Table.Td>
-              <Table.Td style={{ textAlign: 'right' }}>
-                {t.quantity !== 0 ? formatNum(t.quantity, Math.abs(t.quantity) % 1 === 0 ? 0 : 4) : '\u2014'}
-              </Table.Td>
-              <Table.Td style={{ textAlign: 'right' }}>
-                {t.pricePerUnit > 0 ? formatNum(t.pricePerUnit) : '\u2014'}
-              </Table.Td>
-              <Table.Td style={{ textAlign: 'right' }}>
-                {formatNum(t.amount)} {t.currency}
-              </Table.Td>
-              <Table.Td>{(t.raw as any)?.debitCredit || '\u2014'}</Table.Td>
+    <Stack gap="xs">
+      <Group gap="sm">
+        <TextInput
+          placeholder="Search symbol, description..."
+          size="xs"
+          value={search}
+          onChange={(e) => setSearch(e.currentTarget.value)}
+          style={{ width: 250 }}
+        />
+        <Select
+          data={types}
+          value={typeFilter}
+          onChange={(v) => v && setTypeFilter(v)}
+          size="xs"
+          style={{ width: 160 }}
+        />
+        {filtered.length !== transactions.length && (
+          <Text size="xs" c="dimmed">{filtered.length} of {transactions.length}</Text>
+        )}
+      </Group>
+      <ScrollArea>
+        <Table striped highlightOnHover>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th><SortHeader label="Date" field="date" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
+              <Table.Th><SortHeader label="Type" field="type" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
+              <Table.Th><SortHeader label="Symbol" field="symbol" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
+              <Table.Th>Description</Table.Th>
+              <Table.Th style={{ textAlign: 'right' }}><SortHeader label="Qty" field="quantity" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
+              <Table.Th style={{ textAlign: 'right' }}><SortHeader label="Price" field="pricePerUnit" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
+              <Table.Th style={{ textAlign: 'right' }}><SortHeader label="Amount" field="amount" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
+              <Table.Th>Flow</Table.Th>
             </Table.Tr>
-          ))}
-        </Table.Tbody>
-      </Table>
-    </ScrollArea>
+          </Table.Thead>
+          <Table.Tbody>
+            {sorted.map((t, i) => (
+              <Table.Tr key={t.id + '-' + i}>
+                <Table.Td>{t.date}</Table.Td>
+                <Table.Td>
+                  <Badge color={TYPE_COLORS[t.type] || 'gray'} variant="light" size="sm">
+                    {t.type}
+                  </Badge>
+                </Table.Td>
+                <Table.Td><Text fw={t.symbol ? 600 : 400}>{t.symbol || '\u2014'}</Text></Table.Td>
+                <Table.Td style={{ maxWidth: 300 }}>
+                  <Text size="sm" truncate="end">{t.description}</Text>
+                </Table.Td>
+                <Table.Td style={{ textAlign: 'right' }}>
+                  {t.quantity !== 0 ? formatNum(t.quantity, Math.abs(t.quantity) % 1 === 0 ? 0 : 4) : '\u2014'}
+                </Table.Td>
+                <Table.Td style={{ textAlign: 'right' }}>
+                  {t.pricePerUnit > 0 ? formatNum(t.pricePerUnit) : '\u2014'}
+                </Table.Td>
+                <Table.Td style={{ textAlign: 'right' }}>
+                  {formatNum(t.amount)} {t.currency}
+                </Table.Td>
+                <Table.Td>
+                  {(t.raw as any)?.debitCredit
+                    ? <Text size="sm" c={(t.raw as any).debitCredit === 'K' ? '#51cf66' : '#ff6b6b'}>{(t.raw as any).debitCredit === 'K' ? 'In' : 'Out'}</Text>
+                    : '\u2014'}
+                </Table.Td>
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
+      </ScrollArea>
+    </Stack>
   );
 }
 
@@ -565,16 +800,33 @@ function AllocationPanel({ allocation }: { allocation: AllocationBreakdown }) {
   );
 }
 
-function EquityCompPanel({ rsu, espp }: { rsu: RsuCompensationSummary; espp: EsppSummary }) {
+function EquityCompPanel({ rsu, espp, rsuByYearWithCumulative: byYearWithCumulative }: { rsu: RsuCompensationSummary; espp: EsppSummary; rsuByYearWithCumulative: InvestmentData['rsuByYearWithCumulative'] }) {
   const hasRsu = rsu.byYear.length > 0;
   const hasEspp = espp.totalSharesPurchased > 0;
+  const [rsuView, setRsuView] = useState<string>('year');
+  const [expandedGrant, setExpandedGrant] = useState<string | null>(null);
+
   if (!hasRsu && !hasEspp) return <Text c="dimmed">No equity compensation data found.</Text>;
 
   return (
     <Stack gap="md">
       {hasRsu && (
         <Card padding="sm" withBorder>
-          <Text size="sm" fw={600} mb="sm">RSU Compensation</Text>
+          <Group justify="space-between" mb="sm">
+            <Text size="sm" fw={600}>RSU Compensation</Text>
+            {rsu.byGrant && rsu.byGrant.length > 0 && (
+              <Select
+                data={[
+                  { value: 'year', label: 'By Year' },
+                  { value: 'grant', label: 'By Grant' },
+                ]}
+                value={rsuView}
+                onChange={(v) => v && setRsuView(v)}
+                size="xs"
+                style={{ width: 130 }}
+              />
+            )}
+          </Group>
           <Group gap="xl" mb="sm">
             <Stack gap={0}>
               <Text size="xs" c="dimmed">Total (USD)</Text>
@@ -585,26 +837,83 @@ function EquityCompPanel({ rsu, espp }: { rsu: RsuCompensationSummary; espp: Esp
               <Text size="sm" fw={700}>{formatEur(rsu.totalCompensationEur)}</Text>
             </Stack>
           </Group>
-          <Table striped>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Year</Table.Th>
-                <Table.Th style={{ textAlign: 'right' }}>Shares</Table.Th>
-                <Table.Th style={{ textAlign: 'right' }}>Value (USD)</Table.Th>
-                <Table.Th style={{ textAlign: 'right' }}>Value (EUR)</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {rsu.byYear.map(y => (
-                <Table.Tr key={y.year}>
-                  <Table.Td>{y.year}</Table.Td>
-                  <Table.Td style={{ textAlign: 'right' }}>{formatNum(y.totalShares, 0)}</Table.Td>
-                  <Table.Td style={{ textAlign: 'right' }}>${formatNum(y.totalCompensation)}</Table.Td>
-                  <Table.Td style={{ textAlign: 'right' }}>{formatEur(y.totalCompensationEur)}</Table.Td>
+
+          {rsuView === 'year' && (
+            <Table striped>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>Year</Table.Th>
+                  <Table.Th style={{ textAlign: 'right' }}>Shares</Table.Th>
+                  <Table.Th style={{ textAlign: 'right' }}>Value (USD)</Table.Th>
+                  <Table.Th style={{ textAlign: 'right' }}>Value (EUR)</Table.Th>
+                  <Table.Th style={{ textAlign: 'right' }}>Cumulative (EUR)</Table.Th>
                 </Table.Tr>
-              ))}
-            </Table.Tbody>
-          </Table>
+              </Table.Thead>
+              <Table.Tbody>
+                {byYearWithCumulative.map(y => (
+                  <Table.Tr key={y.year}>
+                    <Table.Td>{y.year}</Table.Td>
+                    <Table.Td style={{ textAlign: 'right' }}>{formatNum(y.totalShares, 0)}</Table.Td>
+                    <Table.Td style={{ textAlign: 'right' }}>${formatNum(y.totalCompensation)}</Table.Td>
+                    <Table.Td style={{ textAlign: 'right' }}>{formatEur(y.totalCompensationEur)}</Table.Td>
+                    <Table.Td style={{ textAlign: 'right' }}>{formatEur(y.cumulativeEur)}</Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          )}
+
+          {rsuView === 'grant' && rsu.byGrant && (
+            <Stack gap="xs">
+              {rsu.byGrant.map(g => {
+                const isExpanded = expandedGrant === g.grantId;
+                return (
+                  <Card key={g.grantId} padding="xs" withBorder>
+                    <UnstyledButton onClick={() => setExpandedGrant(isExpanded ? null : g.grantId)} style={{ width: '100%' }}>
+                      <Group justify="space-between">
+                        <Group gap="xs">
+                          <Text size="sm" c="dimmed">{isExpanded ? '\u25BC' : '\u25B6'}</Text>
+                          <Text size="sm" fw={600}>Grant {g.grantId}</Text>
+                        </Group>
+                        <Group gap="md">
+                          <Text size="xs" c="dimmed">{formatNum(g.totalShares, 0)} shares</Text>
+                          <Text size="sm" fw={600}>${formatNum(g.totalCompensation)}</Text>
+                        </Group>
+                      </Group>
+                    </UnstyledButton>
+                    {isExpanded && (
+                      <Table striped mt="xs">
+                        <Table.Thead>
+                          <Table.Tr>
+                            <Table.Th>Vesting Date</Table.Th>
+                            <Table.Th style={{ textAlign: 'right' }}>Shares</Table.Th>
+                            <Table.Th style={{ textAlign: 'right' }}>FMV</Table.Th>
+                            <Table.Th style={{ textAlign: 'right' }}>Value (USD)</Table.Th>
+                            <Table.Th style={{ textAlign: 'right' }}>Value (EUR)</Table.Th>
+                            <Table.Th>Same-Day Sale</Table.Th>
+                          </Table.Tr>
+                        </Table.Thead>
+                        <Table.Tbody>
+                          {g.vestings.map((v, i) => (
+                            <Table.Tr key={v.vestingDate + '-' + i}>
+                              <Table.Td>{v.vestingDate}</Table.Td>
+                              <Table.Td style={{ textAlign: 'right' }}>{formatNum(v.shares, 0)}</Table.Td>
+                              <Table.Td style={{ textAlign: 'right' }}>${formatNum(v.fmvAtVesting)}</Table.Td>
+                              <Table.Td style={{ textAlign: 'right' }}>${formatNum(v.compensationValue)}</Table.Td>
+                              <Table.Td style={{ textAlign: 'right' }}>{formatEur(v.compensationValueEur)}</Table.Td>
+                              <Table.Td>
+                                {v.isSameDaySale && <Badge size="xs" color="orange" variant="light">sold</Badge>}
+                              </Table.Td>
+                            </Table.Tr>
+                          ))}
+                        </Table.Tbody>
+                      </Table>
+                    )}
+                  </Card>
+                );
+              })}
+            </Stack>
+          )}
         </Card>
       )}
       {hasEspp && (
@@ -631,6 +940,180 @@ function EquityCompPanel({ rsu, espp }: { rsu: RsuCompensationSummary; espp: Esp
         </Card>
       )}
     </Stack>
+  );
+}
+
+function StockTransactions({ symbol, transactions }: { symbol: string; transactions: ITransaction[] }) {
+  const filtered = useMemo(
+    () => transactions
+      .filter(t => t.symbol === symbol)
+      .sort((a, b) => b.date.localeCompare(a.date)),
+    [symbol, transactions]
+  );
+
+  if (filtered.length === 0) return <Text size="sm" c="dimmed" p="xs">No transactions.</Text>;
+
+  return (
+    <Table striped>
+      <Table.Thead>
+        <Table.Tr>
+          <Table.Th>Date</Table.Th>
+          <Table.Th>Type</Table.Th>
+          <Table.Th>Description</Table.Th>
+          <Table.Th style={{ textAlign: 'right' }}>Qty</Table.Th>
+          <Table.Th style={{ textAlign: 'right' }}>Price</Table.Th>
+          <Table.Th style={{ textAlign: 'right' }}>Amount</Table.Th>
+          <Table.Th style={{ textAlign: 'right' }}>Fees</Table.Th>
+        </Table.Tr>
+      </Table.Thead>
+      <Table.Tbody>
+        {filtered.map((t, i) => (
+          <Table.Tr key={t.id + '-' + i}>
+            <Table.Td>{t.date}</Table.Td>
+            <Table.Td>
+              <Badge color={TYPE_COLORS[t.type] || 'gray'} variant="light" size="sm">
+                {t.type}
+              </Badge>
+            </Table.Td>
+            <Table.Td style={{ maxWidth: 250 }}>
+              <Text size="sm" truncate="end">{t.description}</Text>
+            </Table.Td>
+            <Table.Td style={{ textAlign: 'right' }}>
+              {t.quantity !== 0 ? formatNum(t.quantity, Math.abs(t.quantity) % 1 === 0 ? 0 : 4) : '\u2014'}
+            </Table.Td>
+            <Table.Td style={{ textAlign: 'right' }}>
+              {t.pricePerUnit > 0 ? `${formatNum(t.pricePerUnit)} ${t.currency}` : '\u2014'}
+            </Table.Td>
+            <Table.Td style={{ textAlign: 'right' }}>
+              {formatNum(t.amount)} {t.currency}
+            </Table.Td>
+            <Table.Td style={{ textAlign: 'right' }}>
+              {t.fees > 0 ? `${formatNum(t.fees)} ${t.currency}` : '\u2014'}
+            </Table.Td>
+          </Table.Tr>
+        ))}
+      </Table.Tbody>
+    </Table>
+  );
+}
+
+function StockBreakdownPanel({ data }: { data: InvestmentData }) {
+  const [sortField, setSortField] = useState('totalPnlEur');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [expanded, setExpanded] = useState<string | null>(null);
+
+  const stats = data.stockStats;
+  const totals = data.stockStatsTotals;
+
+  const onSort = (field: string) => {
+    if (sortField === field) {
+      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDir('desc');
+    }
+  };
+
+  const sorted = useMemo(() => {
+    return [...stats].sort((a, b) => {
+      const av = (a as any)[sortField];
+      const bv = (b as any)[sortField];
+      if (typeof av === 'string') return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+      return sortDir === 'asc' ? av - bv : bv - av;
+    });
+  }, [stats, sortField, sortDir]);
+
+  if (stats.length === 0) return <Text c="dimmed">No stock data found.</Text>;
+
+  const colCount = 8;
+
+  return (
+    <ScrollArea>
+      <Table striped highlightOnHover>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th><SortHeader label="Symbol" field="symbol" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
+            <Table.Th><SortHeader label="Status" field="isOpen" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
+            <Table.Th><SortHeader label="Since" field="firstDate" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
+            <Table.Th style={{ textAlign: 'right' }}><SortHeader label="Invested" field="totalInvestedEur" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
+            <Table.Th style={{ textAlign: 'right' }}><SortHeader label="Realized" field="realizedPnlEur" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
+            <Table.Th style={{ textAlign: 'right' }}><SortHeader label="Unrealized" field="unrealizedPnlEur" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
+            <Table.Th style={{ textAlign: 'right' }}><SortHeader label="Dividends" field="dividendsEur" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
+            <Table.Th style={{ textAlign: 'right' }}><SortHeader label="Total P&L" field="totalPnlEur" sortField={sortField} sortDir={sortDir} onSort={onSort} /></Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {sorted.map(st => {
+            const isExpanded = expanded === st.symbol;
+            return (
+              <>
+                <Table.Tr
+                  key={st.symbol}
+                  onClick={() => setExpanded(isExpanded ? null : st.symbol)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <Table.Td>
+                    <Group gap={4}>
+                      <Text size="sm" c="dimmed">{isExpanded ? '\u25BC' : '\u25B6'}</Text>
+                      <Text fw={600}>{st.symbol}</Text>
+                      {data.tickerMeta?.[st.symbol] && (
+                        <>
+                          <Badge size="xs" variant="light" color="blue">{data.tickerMeta[st.symbol].geography}</Badge>
+                          <Badge size="xs" variant="light" color="teal">{data.tickerMeta[st.symbol].sector}</Badge>
+                        </>
+                      )}
+                    </Group>
+                  </Table.Td>
+                  <Table.Td>
+                    <Badge size="sm" color={st.isOpen ? 'green' : 'gray'} variant="light">
+                      {st.isOpen ? 'Open' : 'Closed'}
+                    </Badge>
+                  </Table.Td>
+                  <Table.Td>{st.firstDate}</Table.Td>
+                  <Table.Td style={{ textAlign: 'right' }}>{formatEur(st.totalInvestedEur)}</Table.Td>
+                  <Table.Td style={{ textAlign: 'right', color: pnlColor(st.realizedPnlEur) }}>
+                    {st.realizedPnlEur !== 0 ? formatEur(st.realizedPnlEur) : '\u2014'}
+                  </Table.Td>
+                  <Table.Td style={{ textAlign: 'right', color: pnlColor(st.unrealizedPnlEur) }}>
+                    {st.isOpen ? formatEur(st.unrealizedPnlEur) : '\u2014'}
+                  </Table.Td>
+                  <Table.Td style={{ textAlign: 'right' }}>
+                    {st.dividendsEur > 0 ? formatEur(st.dividendsEur) : '\u2014'}
+                  </Table.Td>
+                  <Table.Td style={{ textAlign: 'right', color: pnlColor(st.totalPnlEur) }}>
+                    {formatEur(st.totalPnlEur)}
+                  </Table.Td>
+                </Table.Tr>
+                {isExpanded && (
+                  <Table.Tr key={st.symbol + '-txns'}>
+                    <Table.Td colSpan={colCount} style={{ padding: 0, background: 'var(--mantine-color-body)' }}>
+                      <div style={{ padding: '8px 16px' }}>
+                        <Text size="xs" fw={600} c="dimmed" mb="xs">
+                          Transactions for {st.symbol}
+                        </Text>
+                        <StockTransactions symbol={st.symbol} transactions={data.transactions} />
+                      </div>
+                    </Table.Td>
+                  </Table.Tr>
+                )}
+              </>
+            );
+          })}
+        </Table.Tbody>
+        <Table.Tfoot>
+          <Table.Tr style={{ fontWeight: 700 }}>
+            <Table.Td>Total</Table.Td>
+            <Table.Td />
+            <Table.Td />
+            <Table.Td style={{ textAlign: 'right' }}>{formatEur(totals.totalInvested)}</Table.Td>
+            <Table.Td style={{ textAlign: 'right', color: pnlColor(totals.realizedPnl) }}>{formatEur(totals.realizedPnl)}</Table.Td>
+            <Table.Td style={{ textAlign: 'right', color: pnlColor(totals.unrealizedPnl) }}>{formatEur(totals.unrealizedPnl)}</Table.Td>
+            <Table.Td style={{ textAlign: 'right' }}>{formatEur(totals.dividends)}</Table.Td>
+            <Table.Td style={{ textAlign: 'right', color: pnlColor(totals.totalPnl) }}>{formatEur(totals.totalPnl)}</Table.Td>
+          </Table.Tr>
+        </Table.Tfoot>
+      </Table>
+    </ScrollArea>
   );
 }
 
@@ -873,6 +1356,9 @@ function App() {
                 <Tabs.Tab value="equity">
                   Equity Comp
                 </Tabs.Tab>
+                <Tabs.Tab value="stocks">
+                  Stocks
+                </Tabs.Tab>
                 <Tabs.Tab value="transactions">
                   Transactions ({data.transactions.length})
                 </Tabs.Tab>
@@ -903,7 +1389,11 @@ function App() {
               </Tabs.Panel>
 
               <Tabs.Panel value="equity">
-                <EquityCompPanel rsu={data.rsuCompensation} espp={data.esppSummary} />
+                <EquityCompPanel rsu={data.rsuCompensation} espp={data.esppSummary} rsuByYearWithCumulative={data.rsuByYearWithCumulative} />
+              </Tabs.Panel>
+
+              <Tabs.Panel value="stocks">
+                <Card padding="xs"><StockBreakdownPanel data={data} /></Card>
               </Tabs.Panel>
 
               <Tabs.Panel value="transactions">

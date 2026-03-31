@@ -8,8 +8,10 @@ import { computeHoldings } from './holdings.js';
 import { refreshPrices, getKnownTickers, getPriceRefreshTime } from './prices.js';
 import type { ITransaction, IHolding, IRealizedTrade, IDividendPayment, IRsuCompensationSummary } from './types.js';
 import { convertAmount } from './currency.js';
-import { computeAllocation, computeRiskWarnings, type AllocationBreakdown, type RiskWarning } from './analytics.js';
+import { computeAllocation, computeRiskWarnings, buildTickerMetaMap, type AllocationBreakdown, type RiskWarning, type TickerMeta } from './analytics.js';
 import { computeRsuCompensation, computeEsppSummary, type EsppSummary } from './equity-compensation.js';
+import { computeStockStats, computeStockStatsTotals, computePortfolioSummary, computeDividendsByStock, computeRealizedTradeSummary, computeRsuByYearWithCumulative } from './portfolio-analytics.js';
+import type { IStockStats, IPortfolioSummary, IDividendByStock, IRealizedTradeSummary, IStockStatsTotals, IRsuYearWithCumulative } from './types.js';
 
 export interface InvestmentData {
   transactions: ITransaction[];
@@ -33,6 +35,20 @@ export interface InvestmentData {
   rsuCompensation: IRsuCompensationSummary;
   /** ESPP summary */
   esppSummary: EsppSummary;
+  /** Ticker metadata (geography, sector, etc.) */
+  tickerMeta: Record<string, TickerMeta>;
+  /** Pre-computed portfolio summary */
+  portfolioSummary: IPortfolioSummary;
+  /** Per-stock aggregated statistics */
+  stockStats: IStockStats[];
+  /** Stock stats totals */
+  stockStatsTotals: IStockStatsTotals;
+  /** Dividends aggregated by stock */
+  dividendsByStock: IDividendByStock[];
+  /** Realized trade summary (all years) */
+  realizedTradeSummary: IRealizedTradeSummary;
+  /** RSU by-year with cumulative columns */
+  rsuByYearWithCumulative: IRsuYearWithCumulative[];
 }
 
 let cached: InvestmentData | null = null;
@@ -120,6 +136,14 @@ export async function loadInvestmentData(dataDir: string): Promise<InvestmentDat
   const riskWarnings = computeRiskWarnings(holdings);
   const rsuCompensation = computeRsuCompensation(transactions);
   const esppSummary = computeEsppSummary(transactions);
+  const tickerMeta = buildTickerMetaMap(holdings);
+
+  const stockStats = computeStockStats(holdings, realizedTrades, dividends, transactions);
+  const stockStatsTotals = computeStockStatsTotals(stockStats);
+  const portfolioSummary = computePortfolioSummary(holdings, totalRealizedPnlEur, totalDividendsEur, totalInterestEur);
+  const dividendsByStock = computeDividendsByStock(dividends);
+  const realizedTradeSummary = computeRealizedTradeSummary(realizedTrades);
+  const rsuByYearWithCumulative = computeRsuByYearWithCumulative(rsuCompensation.byYear);
 
   console.log(`[Investments] RSU compensation: $${rsuCompensation.totalCompensation} (${rsuCompensation.byYear.length} years)`);
   console.log(`[Investments] ESPP: ${esppSummary.totalSharesPurchased} shares, ${esppSummary.averageDiscountPercent}% avg discount`);
@@ -139,6 +163,13 @@ export async function loadInvestmentData(dataDir: string): Promise<InvestmentDat
     riskWarnings,
     rsuCompensation,
     esppSummary,
+    tickerMeta,
+    portfolioSummary,
+    stockStats,
+    stockStatsTotals,
+    dividendsByStock,
+    realizedTradeSummary,
+    rsuByYearWithCumulative,
   };
   return cached;
 }

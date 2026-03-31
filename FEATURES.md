@@ -148,10 +148,14 @@
 ### Investments Page
 
 - Separate page at `/investments` (independent entry point, not a tab)
-- **Holdings table**: symbol, quantity, average cost, current value, unrealized P&L with totals
+- **Holdings table**: symbol with broker badges, quantity, average cost, current value, unrealized P&L with totals. Expandable rows showing tax lot details (acquisition date, remaining qty, cost/share, source badge MARKET/RSU/ESPP). Search by symbol.
+- **Realized P&L table**: year filter dropdown with short-term vs long-term P&L subtotals per year for tax reporting.
 - **Copy Holdings** button: copies holdings as a markdown table to clipboard for pasting into AI chats
-- **Transactions table**: date, type (color-coded), symbol, description, quantity, price, amount
-- Client-side column sorting
+- **Transactions table**: date, type (color-coded), symbol, description, quantity, price, amount, flow direction. Search by symbol/description/broker plus type filter dropdown. Count indicator when filtered.
+- **Income card**: expandable per-stock dividend breakdown showing payment count and total EUR per symbol.
+- **Equity Comp tab**: RSU view toggles between "By Year" (with cumulative EUR column) and "By Grant" (expandable per-grant vesting details with FMV, same-day sale badges). ESPP summary with discount stats.
+- **Stocks tab**: per-stock breakdown showing total invested, realized P&L, unrealized P&L, dividends, and total P&L for every instrument ever traded. Open/closed status badges, first trade date, geography/sector badges from ticker metadata, and sortable columns with totals row. Expandable rows showing per-stock transaction history.
+- All calculations pre-computed server-side; frontend is presentation-only (client-side sorting, search, and filtering for interactive views)
 - Navigation link from main dashboard
 - **Upload tab**: upload/delete investment files (CSV/TXT) per broker via the web UI — no need for SSH or File Explorer to manage investment data. Files are stored in `/data/Investments/<broker>/` and portfolio data is automatically reloaded after changes.
 
@@ -185,6 +189,25 @@
 - Sales → `SELL` transactions with fees
 - All amounts in USD, converted to EUR base currency
 - Holdings computation supports RSU/ESPP lot sources for FIFO tracking
+
+### Portfolio Analytics Service
+
+- **Single source of truth** — all portfolio calculations computed server-side in `portfolio-analytics.ts`, frontend is presentation-only
+- **Stock statistics**: per-stock aggregation of realized P&L, unrealized P&L, dividends, fees, total invested, and total P&L across all brokers and transaction types
+- **Portfolio summary**: pre-computed totals (cost basis, value, unrealized/realized P&L, income, total return %)
+- **Dividend aggregation**: dividends grouped by stock symbol with count and total EUR
+- **Realized trade summary**: short-term vs long-term P&L breakdown with counts
+- **RSU cumulative timeline**: by-year compensation with running cumulative USD/EUR totals
+
+### Test Suite
+
+- **Vitest** test framework with 114 tests across 9 test files
+- **Holdings tests**: FIFO lot tracking, realized trade P&L, hold period classification, multi-symbol handling
+- **Currency tests**: exchange rate lookups, cross-currency conversion, identity and edge cases
+- **Portfolio analytics tests**: stock stats aggregation, portfolio summary, dividend grouping, realized trade summary, RSU cumulative timeline
+- **Allocation & risk tests**: geographic/sector/currency allocation, concentration warnings, ticker metadata
+- **Equity compensation tests**: RSU compensation by grant/year, same-day sale detection, ESPP discount calculation
+- **Parser tests**: Swedbank (trade classification, dividend formats, ticker aliases), Interactive Brokers (forex filtering, FX rate conversion, date parsing), Wix (RSU/ESPP classification, sell handling), Revolut (synthetic BUY+SELL pairs, crypto transactions)
 
 ### Parser Interface
 

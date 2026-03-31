@@ -588,6 +588,87 @@ export interface IPortfolio {
 }
 
 // ----------------------------------------------------------------------------
+// Portfolio Analytics (pre-computed summaries)
+// ----------------------------------------------------------------------------
+
+/** Per-stock aggregated statistics */
+export interface IStockStats {
+  symbol: string;
+  /** Currently held quantity (0 if fully closed) */
+  currentQty: number;
+  /** Total cost basis of current holding (EUR) */
+  costBasisEur: number;
+  /** Current market value (EUR), 0 if not held */
+  currentValueEur: number;
+  /** Unrealized P&L (EUR) */
+  unrealizedPnlEur: number;
+  /** Sum of realized P&L across all closed trades (EUR) */
+  realizedPnlEur: number;
+  /** Total dividends received (EUR) */
+  dividendsEur: number;
+  /** Total fees paid (EUR) */
+  feesEur: number;
+  /** Total P&L = realized + unrealized + dividends (EUR) */
+  totalPnlEur: number;
+  /** Total invested over time (sum of all BUY amounts in EUR) */
+  totalInvestedEur: number;
+  /** Number of realized trades */
+  tradeCount: number;
+  /** First transaction date */
+  firstDate: string;
+  /** Whether currently held */
+  isOpen: boolean;
+}
+
+/** Portfolio-level summary (all EUR) */
+export interface IPortfolioSummary {
+  totalCost: number;
+  totalValue: number;
+  unrealizedPnl: number;
+  totalRealizedPnl: number;
+  totalDividends: number;
+  totalInterest: number;
+  totalIncome: number;
+  totalReturn: number;
+  totalReturnPct: number;
+}
+
+/** Dividend aggregation by stock symbol */
+export interface IDividendByStock {
+  symbol: string;
+  count: number;
+  totalEur: number;
+}
+
+/** Realized trade summary */
+export interface IRealizedTradeSummary {
+  totalPnl: number;
+  shortTermPnl: number;
+  longTermPnl: number;
+  shortTermCount: number;
+  longTermCount: number;
+}
+
+/** Stock stats totals */
+export interface IStockStatsTotals {
+  totalInvested: number;
+  realizedPnl: number;
+  unrealizedPnl: number;
+  dividends: number;
+  totalPnl: number;
+}
+
+/** RSU by-year entry with cumulative columns */
+export interface IRsuYearWithCumulative {
+  year: number;
+  totalShares: number;
+  totalCompensation: number;
+  totalCompensationEur: number;
+  cumulativeUsd: number;
+  cumulativeEur: number;
+}
+
+// ----------------------------------------------------------------------------
 // Currency
 // ----------------------------------------------------------------------------
 

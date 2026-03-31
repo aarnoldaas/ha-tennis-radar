@@ -636,111 +636,110 @@ function App() {
   );
 
   return (
-    <Container size={860} px="md" py="lg">
-      <Stack gap="lg">
-        <Group gap="sm">
-          <Title order={3}>Life Helper</Title>
-          {screen === 'tennis-radar' && statusBadge}
+    <Container size="xl" py="md">
+      <Stack gap="lg" mb="md">
+        <Group justify="space-between" wrap="wrap">
+          <Group gap="sm">
+            <Title order={3}>Life Helper</Title>
+            {screen === 'tennis-radar' && statusBadge}
+          </Group>
         </Group>
-
-        {screen === 'tennis-radar' && configWarnings.length > 0 && (
-          <Alert color="yellow" variant="light" title="Configuration issues">
-            <ul style={{ margin: 0, paddingLeft: 16 }}>
-              {configWarnings.map((w, i) => (
-                <li key={i}>{w.message}</li>
-              ))}
-            </ul>
-          </Alert>
-        )}
-
-        {screen === 'tennis-radar' && disabledProviders.length > 0 && (
-          <Alert color="red" variant="light" title="Disabled providers">
-            <ul style={{ margin: 0, paddingLeft: 16 }}>
-              {providerErrors.map((e, i) => (
-                <li key={i}>
-                  {e.provider} ({e.date}): {e.error}
-                </li>
-              ))}
-              {disabledProviders
-                .filter(name => !providerErrors.some(e => e.provider === name))
-                .map((name, i) => (
-                  <li key={`d-${i}`}>{name}: disabled due to previous error</li>
-                ))}
-            </ul>
-            <Button
-              variant="light"
-              color="red"
-              size="xs"
-              mt="sm"
-              onClick={handleResume}
-              loading={resuming}
-            >
-              Resume All Providers
-            </Button>
-          </Alert>
-        )}
-
         <Tabs value={screen} onChange={handleScreenChange} variant="pills">
           <Tabs.List>
             <Tabs.Tab value="tennis-radar">Tennis Radar</Tabs.Tab>
             <Tabs.Tab value="settings">Settings</Tabs.Tab>
             <Tabs.Tab value="investments">Investments</Tabs.Tab>
           </Tabs.List>
+        </Tabs>
+      </Stack>
 
-          <Tabs.Panel value="tennis-radar" pt="md">
-            <Tabs value={tennisTab} onChange={setTennisTab} variant="outline">
-              <Tabs.List mb="md">
-                <Tabs.Tab value="courts">Courts</Tabs.Tab>
-                <Tabs.Tab value="bookings">Bookings</Tabs.Tab>
-              </Tabs.List>
+      {screen === 'tennis-radar' && configWarnings.length > 0 && (
+        <Alert color="yellow" variant="light" title="Configuration issues" mb="md">
+          <ul style={{ margin: 0, paddingLeft: 16 }}>
+            {configWarnings.map((w, i) => (
+              <li key={i}>{w.message}</li>
+            ))}
+          </ul>
+        </Alert>
+      )}
 
-              <Tabs.Panel value="courts">
-                <SlotTable slots={status?.availableSlots ?? []} />
-                {status?.lastPoll && (
-                  <Group gap={4} mt="md" wrap="wrap">
+      {screen === 'tennis-radar' && disabledProviders.length > 0 && (
+        <Alert color="red" variant="light" title="Disabled providers" mb="md">
+          <ul style={{ margin: 0, paddingLeft: 16 }}>
+            {providerErrors.map((e, i) => (
+              <li key={i}>
+                {e.provider} ({e.date}): {e.error}
+              </li>
+            ))}
+            {disabledProviders
+              .filter(name => !providerErrors.some(e => e.provider === name))
+              .map((name, i) => (
+                <li key={`d-${i}`}>{name}: disabled due to previous error</li>
+              ))}
+          </ul>
+          <Button
+            variant="light"
+            color="red"
+            size="xs"
+            mt="sm"
+            onClick={handleResume}
+            loading={resuming}
+          >
+            Resume All Providers
+          </Button>
+        </Alert>
+      )}
+
+      {screen === 'tennis-radar' && (
+        <Tabs value={tennisTab} onChange={setTennisTab} variant="outline">
+          <Tabs.List mb="md">
+            <Tabs.Tab value="courts">Courts</Tabs.Tab>
+            <Tabs.Tab value="bookings">Bookings</Tabs.Tab>
+          </Tabs.List>
+
+          <Tabs.Panel value="courts">
+            <SlotTable slots={status?.availableSlots ?? []} />
+            {status?.lastPoll && (
+              <Group gap={4} mt="md" wrap="wrap">
+                <Text size="xs" c="dimmed">
+                  Last poll: {new Date(status.lastPoll).toLocaleTimeString()}
+                </Text>
+                {status.pollStats && (
+                  <>
+                    <Text size="xs" c="dimmed" opacity={0.4}>|</Text>
                     <Text size="xs" c="dimmed">
-                      Last poll: {new Date(status.lastPoll).toLocaleTimeString()}
+                      {status.pollStats.datesChecked} date
+                      {status.pollStats.datesChecked !== 1 ? 's' : ''} checked
                     </Text>
-                    {status.pollStats && (
+                    <Text size="xs" c="dimmed" opacity={0.4}>|</Text>
+                    <Text size="xs" c="dimmed">
+                      {status.totalSlots} total / {(status.availableSlots ?? []).length} matching
+                    </Text>
+                    <Text size="xs" c="dimmed" opacity={0.4}>|</Text>
+                    <Text size="xs" c="dimmed">{status.pollStats.durationMs}ms</Text>
+                    {Object.keys(status.pollStats.providerBreakdown ?? {}).length > 0 && (
                       <>
                         <Text size="xs" c="dimmed" opacity={0.4}>|</Text>
                         <Text size="xs" c="dimmed">
-                          {status.pollStats.datesChecked} date
-                          {status.pollStats.datesChecked !== 1 ? 's' : ''} checked
+                          {Object.entries(status.pollStats.providerBreakdown)
+                            .map(([k, v]) => `${k}: ${v}`)
+                            .join(', ')}
                         </Text>
-                        <Text size="xs" c="dimmed" opacity={0.4}>|</Text>
-                        <Text size="xs" c="dimmed">
-                          {status.totalSlots} total / {(status.availableSlots ?? []).length} matching
-                        </Text>
-                        <Text size="xs" c="dimmed" opacity={0.4}>|</Text>
-                        <Text size="xs" c="dimmed">{status.pollStats.durationMs}ms</Text>
-                        {Object.keys(status.pollStats.providerBreakdown ?? {}).length > 0 && (
-                          <>
-                            <Text size="xs" c="dimmed" opacity={0.4}>|</Text>
-                            <Text size="xs" c="dimmed">
-                              {Object.entries(status.pollStats.providerBreakdown)
-                                .map(([k, v]) => `${k}: ${v}`)
-                                .join(', ')}
-                            </Text>
-                          </>
-                        )}
                       </>
                     )}
-                  </Group>
+                  </>
                 )}
-              </Tabs.Panel>
-
-              <Tabs.Panel value="bookings">
-                <BookingsPanel />
-              </Tabs.Panel>
-            </Tabs>
+              </Group>
+            )}
           </Tabs.Panel>
 
-          <Tabs.Panel value="settings" pt="md">
-            <SettingsPanel />
+          <Tabs.Panel value="bookings">
+            <BookingsPanel />
           </Tabs.Panel>
         </Tabs>
-      </Stack>
+      )}
+
+      {screen === 'settings' && <SettingsPanel />}
     </Container>
   );
 }

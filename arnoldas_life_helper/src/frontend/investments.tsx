@@ -1419,10 +1419,11 @@ function App() {
               <Tabs.Tab value="investments">Investments</Tabs.Tab>
             </Tabs.List>
           </Tabs>
-          {data?.priceRefreshTime && (
-            <Text size="xs" c="dimmed" mt={-8}>Prices: {timeAgo(data.priceRefreshTime)}</Text>
-          )}
         </Stack>
+
+        {data?.priceRefreshTime && (
+          <Text size="xs" c="dimmed" mb="md">Prices: {timeAgo(data.priceRefreshTime)}</Text>
+        )}
 
         {loading && (
           <Center py="xl"><Loader size="sm" /></Center>

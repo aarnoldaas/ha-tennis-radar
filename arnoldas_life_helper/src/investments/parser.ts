@@ -6,7 +6,7 @@
 //
 // Parsers:
 //   - SwedBankParser      → ISwedBankTransaction[]
-//   - IBParser            → IInteractiveBrokersTransaction[]
+//   - IBParser            → IBParsedStatement[] (multi-section Activity Statement)
 //   - RevolutParser       → IRevolutData (multi-section)
 //   - WixParser           → IWixShareIssued[] + IWixShareSold[]
 // ============================================================================

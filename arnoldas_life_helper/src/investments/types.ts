@@ -44,49 +44,108 @@ export interface ISwedBankTransaction {
   docNo: string;
 }
 
+// ---------------------------------------------------------------------------
+// Interactive Brokers Activity Statement — parsed section types
+// ---------------------------------------------------------------------------
+
 /**
- * Raw Interactive Brokers transaction row.
+ * Parsed IB Activity Statement — one per CSV file.
  *
- * ~80-column CSV export covering global equities and forex conversions.
- * Forex rows have AssetClass="CASH" and Symbol like "EUR.USD".
+ * The IB CSV export is a multi-section document (not a flat table).
+ * Each section has its own column layout.
  */
-export interface IInteractiveBrokersTransaction {
-  clientAccountId: string;
-  currencyPrimary: string;
-  /** Forex rate to the account's base currency */
-  fxRateToBase: number;
-  /** "STK" for stocks, "CASH" for forex conversions */
-  assetClass: "STK" | "CASH";
-  subCategory: string;
+export interface IBParsedStatement {
+  accountId: string;
+  baseCurrency: string;
+  period: string;
+  trades: IBTrade[];
+  dividends: IBDividend[];
+  withholdingTax: IBWithholdingTax[];
+  deposits: IBDeposit[];
+  interest: IBInterest[];
+  fees: IBFee[];
+  instruments: Map<string, IBInstrumentInfo>;
+}
+
+/** A single stock trade from the Trades section. */
+export interface IBTrade {
+  currency: string;
   symbol: string;
-  description: string;
-  /** ISIN when available */
-  isin: string;
-  listingExchange: string;
-  tradeId: string;
-  /** Date in MM/DD/YYYY format */
-  tradeDate: string;
-  /** Date+time in MM/DD/YYYY;HHMMSS format */
+  /** "YYYY-MM-DD, HH:MM:SS" */
   dateTime: string;
   /** Positive for buys, negative for sells */
   quantity: number;
   tradePrice: number;
-  tradeMoney: number;
-  /** Negative of tradeMoney for buys, positive for sells */
-  proceeds: number;
-  taxes: number;
-  /** Commission (always negative) */
-  ibCommission: number;
-  ibCommissionCurrency: string;
-  /** Net cash impact of the trade */
-  netCash: number;
   closePrice: number;
-  /** "O" = open, "C" = close */
-  openCloseIndicator: string;
-  costBasis: number;
-  fifoPnlRealized: number;
+  proceeds: number;
+  /** Commission/fee (negative) */
+  commFee: number;
+  basis: number;
+  realizedPnl: number;
   mtmPnl: number;
-  buySell: "BUY" | "SELL";
+  /** Trade codes, e.g. "O;P", "C;SL" */
+  code: string;
+}
+
+/** A dividend payment from the Dividends section. */
+export interface IBDividend {
+  currency: string;
+  /** YYYY-MM-DD */
+  date: string;
+  /** e.g. "ASML(NL0010273215) Cash Dividend EUR 1.60 per Share (Ordinary Dividend)" */
+  description: string;
+  amount: number;
+}
+
+/** A withholding tax entry from the Withholding Tax section. */
+export interface IBWithholdingTax {
+  currency: string;
+  /** YYYY-MM-DD */
+  date: string;
+  description: string;
+  /** Always negative */
+  amount: number;
+  code: string;
+}
+
+/** A deposit or withdrawal from the Deposits & Withdrawals section. */
+export interface IBDeposit {
+  currency: string;
+  /** YYYY-MM-DD */
+  settleDate: string;
+  description: string;
+  /** Positive for deposits, negative for withdrawals */
+  amount: number;
+}
+
+/** An interest payment from the Interest section. */
+export interface IBInterest {
+  currency: string;
+  /** YYYY-MM-DD */
+  date: string;
+  description: string;
+  amount: number;
+}
+
+/** A fee entry from the Fees section. */
+export interface IBFee {
+  currency: string;
+  /** YYYY-MM-DD */
+  date: string;
+  description: string;
+  /** Negative */
+  amount: number;
+}
+
+/** Security reference data from the Financial Instrument Information section. */
+export interface IBInstrumentInfo {
+  symbol: string;
+  description: string;
+  /** ISIN or other security identifier */
+  securityId: string;
+  listingExchange: string;
+  /** e.g. "COMMON", "ADR", "GDR" */
+  type: string;
 }
 
 /**

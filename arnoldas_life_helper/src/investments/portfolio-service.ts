@@ -5,7 +5,8 @@ import { parseAllRevolutFiles, classifyRevolutTransactions, type RevolutInterest
 import { parseAllIBFiles, classifyIBTransactions } from './ib-parser.js';
 import { parseAllWixFiles, classifyWixTransactions } from './wix-parser.js';
 import { computeHoldings } from './holdings.js';
-import { refreshPrices, getKnownTickers, getPriceRefreshTime } from './prices.js';
+import { refreshPrices, getKnownTickers, getPriceRefreshTime, loadPriceHistory, getAllPriceHistory, getAllStockInfo } from './prices.js';
+import type { PriceEntry, StockInfo } from './prices.js';
 import type { ITransaction, IHolding, IRealizedTrade, IDividendPayment, IRsuCompensationSummary } from './types.js';
 import { convertAmount } from './currency.js';
 import { computeAllocation, computeRiskWarnings, buildTickerMetaMap, type AllocationBreakdown, type RiskWarning, type TickerMeta } from './analytics.js';
@@ -49,6 +50,10 @@ export interface InvestmentData {
   realizedTradeSummary: IRealizedTradeSummary;
   /** RSU by-year with cumulative columns */
   rsuByYearWithCumulative: IRsuYearWithCumulative[];
+  /** Price history per ticker (file-based + hardcoded merged) */
+  priceHistory: Record<string, PriceEntry[]>;
+  /** Stock fundamental info (P/E, dividends, etc.) */
+  stockInfo: StockInfo[];
 }
 
 let cached: InvestmentData | null = null;
@@ -72,6 +77,10 @@ function computeDividends(transactions: ITransaction[]): IDividendPayment[] {
 
 export async function loadInvestmentData(dataDir: string): Promise<InvestmentData> {
   lastDataDir = dataDir;
+
+  // Load file-based price history
+  loadPriceHistory(dataDir);
+
   const swedbankDir = join(dataDir, 'Investments', 'swedbank');
   const revolutDir = join(dataDir, 'Investments', 'revolut');
 
@@ -91,10 +100,12 @@ export async function loadInvestmentData(dataDir: string): Promise<InvestmentDat
   // Interactive Brokers
   const ibDir = join(dataDir, 'Investments', 'interactive-brokers');
   if (existsSync(ibDir)) {
-    const rawIB = await parseAllIBFiles(ibDir);
-    const ibTxns = classifyIBTransactions(rawIB);
+    const ibStatements = await parseAllIBFiles(ibDir);
+    const ibTxns = classifyIBTransactions(ibStatements);
     transactions.push(...ibTxns);
-    console.log(`[Investments] Parsed ${ibTxns.length} IB transactions (from ${rawIB.length} raw rows, ${rawIB.length - ibTxns.length} forex skipped)`);
+    const totalTrades = ibStatements.reduce((s, st) => s + st.trades.length, 0);
+    const totalDivs = ibStatements.reduce((s, st) => s + st.dividends.length, 0);
+    console.log(`[Investments] Parsed ${ibTxns.length} IB transactions from ${ibStatements.length} statements (${totalTrades} trades, ${totalDivs} dividends)`);
   } else {
     console.log(`[Investments] No IB data found at ${ibDir}`);
   }
@@ -170,6 +181,8 @@ export async function loadInvestmentData(dataDir: string): Promise<InvestmentDat
     dividendsByStock,
     realizedTradeSummary,
     rsuByYearWithCumulative,
+    priceHistory: getAllPriceHistory(),
+    stockInfo: getAllStockInfo(),
   };
   return cached;
 }

@@ -10,15 +10,18 @@
 
 ### Multi-Broker Support
 - **Swedbank** — Baltic/Lithuanian stock trades, dividends, custody fees, trade tax
-- **Interactive Brokers** — Global equities (EU, US, Asia), forex conversion handling
+- **Interactive Brokers** — IB Activity Statement parser supporting trades, dividends, withholding tax, deposits/withdrawals, interest, and fees across multiple currencies (EUR, USD, CNH, DKK)
 - **Revolut** — Flexible Cash Funds, Savings Accounts, brokerage sells (EUR/USD), crypto sells
 - **Wix** — Employee equity compensation (RSU vesting, ESPP purchases, share sales)
 
 ### Market Data
 - **Live prices** via Yahoo Finance (`yahoo-finance2`) — manual refresh button
 - Ticker mapping for Baltic (XVSE), EU (Amsterdam, Stockholm), China (Shenzhen), and US exchanges
-- Hardcoded historical prices as fallback when fetch fails
+- **Persistent price history** — prices saved to `data/Investments/price-history.json` on each refresh, loaded on startup
+- Hardcoded historical prices as fallback when fetch fails, merged with file-based history
 - Staleness indicators showing when prices were last refreshed
+- **Stock fundamentals** — P/E ratio, forward P/E, EPS, dividend yield/rate, ex-dividend date, market cap, 52-week high/low, beta
+- **Market Data tab** — dedicated tab showing stock fundamentals table and per-ticker price history with change %
 
 ### Exchange Rates
 - **ECB reference rates** fetched at startup — daily rates for all major currencies since 1999
@@ -34,7 +37,7 @@
 - Portfolio summary card: Value, Cost Basis, Unrealized P&L, Realized P&L, Income, Total Return
 
 ### Income Tracking
-- **Dividends** — parsed from Swedbank, aggregated with EUR conversion
+- **Dividends** — parsed from Swedbank and Interactive Brokers, aggregated with EUR conversion
 - **Interest** — Revolut Flexible Cash and Savings account interest (EUR + USD)
 - Unified income summary card
 
@@ -50,7 +53,7 @@
 ### Dashboard
 - React + Mantine UI with dark theme
 - Sortable tables for holdings, realized trades, and transactions
-- Tabs: Holdings, Realized P&L, Allocation, Equity Comp, Transactions
+- Tabs: Holdings, Realized P&L, Allocation, Equity Comp, Stocks, Market Data, Transactions
 - Color-coded P&L (green/red), transaction type badges
 - Home Assistant ingress support
 

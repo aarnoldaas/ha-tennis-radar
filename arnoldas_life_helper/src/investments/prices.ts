@@ -1,12 +1,14 @@
 // ============================================================================
-// Market Prices — Yahoo Finance + Hardcoded Fallback
+// Market Prices — Yahoo Finance + Hardcoded Fallback + File Persistence
 // ============================================================================
 
 import YahooFinance from 'yahoo-finance2';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { join } from 'node:path';
 
 const yf = new (YahooFinance as any)({ suppressNotices: ['yahooSurvey'] });
 
-interface PriceEntry {
+export interface PriceEntry {
   date: string;
   price: number;
   currency: string;
@@ -16,6 +18,130 @@ interface CachedPrice {
   price: number;
   currency: string;
   lastUpdated: string; // ISO 8601 timestamp
+}
+
+// ----------------------------------------------------------------------------
+// Stock fundamental info (P/E, dividends, etc.)
+// ----------------------------------------------------------------------------
+
+export interface StockInfo {
+  ticker: string;
+  name: string;
+  currency: string;
+  currentPrice: number;
+  peRatio: number | null;
+  forwardPeRatio: number | null;
+  epsTrailingTwelveMonths: number | null;
+  dividendYield: number | null;
+  dividendRate: number | null;
+  exDividendDate: string | null;
+  marketCap: number | null;
+  fiftyTwoWeekHigh: number | null;
+  fiftyTwoWeekLow: number | null;
+  fiftyDayAverage: number | null;
+  twoHundredDayAverage: number | null;
+  beta: number | null;
+  earningsDate: string | null;
+  lastUpdated: string;
+}
+
+const stockInfoCache = new Map<string, StockInfo>();
+
+// ----------------------------------------------------------------------------
+// File-based price history
+// ----------------------------------------------------------------------------
+
+let priceHistoryDir = '';
+
+export interface PriceHistoryFile {
+  [ticker: string]: PriceEntry[];
+}
+
+let fileBasedHistory: PriceHistoryFile = {};
+
+/**
+ * Initialize price history from file. Call once at startup with the data directory.
+ */
+export function loadPriceHistory(dataDir: string): void {
+  priceHistoryDir = join(dataDir, 'Investments');
+  const filePath = join(priceHistoryDir, 'price-history.json');
+  if (existsSync(filePath)) {
+    try {
+      fileBasedHistory = JSON.parse(readFileSync(filePath, 'utf-8'));
+      console.log(`[Prices] Loaded price history from file (${Object.keys(fileBasedHistory).length} tickers)`);
+    } catch (e) {
+      console.warn(`[Prices] Failed to parse price-history.json:`, e);
+      fileBasedHistory = {};
+    }
+  }
+}
+
+/**
+ * Save current price history to file.
+ */
+function savePriceHistory(): void {
+  if (!priceHistoryDir) return;
+  mkdirSync(priceHistoryDir, { recursive: true });
+  const filePath = join(priceHistoryDir, 'price-history.json');
+  writeFileSync(filePath, JSON.stringify(fileBasedHistory, null, 2), 'utf-8');
+}
+
+/**
+ * Append a price entry to the file-based history (avoids duplicates for the same date).
+ */
+function appendPriceEntry(ticker: string, entry: PriceEntry): void {
+  if (!fileBasedHistory[ticker]) {
+    fileBasedHistory[ticker] = [];
+  }
+  const existing = fileBasedHistory[ticker].find(e => e.date === entry.date);
+  if (existing) {
+    existing.price = entry.price;
+    existing.currency = entry.currency;
+  } else {
+    fileBasedHistory[ticker].push(entry);
+    fileBasedHistory[ticker].sort((a, b) => a.date.localeCompare(b.date));
+  }
+}
+
+/**
+ * Get the full price history for a ticker (file-based + hardcoded merged).
+ */
+export function getPriceHistory(ticker: string): PriceEntry[] {
+  const hardcoded = HARDCODED_PRICES[ticker] || [];
+  const fileBased = fileBasedHistory[ticker] || [];
+
+  // Merge: file-based takes priority for same dates
+  const map = new Map<string, PriceEntry>();
+  for (const entry of hardcoded) {
+    map.set(entry.date, entry);
+  }
+  for (const entry of fileBased) {
+    map.set(entry.date, entry);
+  }
+
+  return [...map.values()].sort((a, b) => a.date.localeCompare(b.date));
+}
+
+/**
+ * Get all price history across all tickers.
+ */
+export function getAllPriceHistory(): PriceHistoryFile {
+  const allTickers = new Set([
+    ...Object.keys(HARDCODED_PRICES),
+    ...Object.keys(fileBasedHistory),
+  ]);
+  const result: PriceHistoryFile = {};
+  for (const ticker of allTickers) {
+    result[ticker] = getPriceHistory(ticker);
+  }
+  return result;
+}
+
+/**
+ * Get all cached stock info.
+ */
+export function getAllStockInfo(): StockInfo[] {
+  return [...stockInfoCache.values()];
 }
 
 // ----------------------------------------------------------------------------
@@ -61,26 +187,60 @@ const priceCache = new Map<string, CachedPrice>();
 
 /**
  * Fetch live prices for a list of tickers from Yahoo Finance.
- * Updates the in-memory cache. Returns the number of successfully fetched tickers.
+ * Updates the in-memory cache and appends to file-based price history.
+ * Also fetches stock fundamental info (P/E, dividends, etc.).
+ * Returns the number of successfully fetched tickers.
  */
 export async function refreshPrices(tickers: string[]): Promise<{ fetched: number; failed: string[] }> {
   const failed: string[] = [];
   let fetched = 0;
+  const today = new Date().toISOString().slice(0, 10);
 
   for (const ticker of tickers) {
     const yahooTicker = YAHOO_TICKER_MAP[ticker] || ticker;
     try {
-      const quote = await yf.quote(yahooTicker) as { regularMarketPrice?: number; currency?: string };
+      const quote = await yf.quote(yahooTicker) as any;
       if (quote && quote.regularMarketPrice) {
-        // Use explicit override first (for tickers where Yahoo returns wrong/missing currency),
-        // then Yahoo's currency, then hardcoded fallback, then USD.
         const overrideCurrency = TICKER_CURRENCY_OVERRIDE[ticker];
         const knownCurrency = HARDCODED_PRICES[ticker]?.[0]?.currency;
+        const currency = overrideCurrency || quote.currency || knownCurrency || 'USD';
+        const now = new Date().toISOString();
+
         priceCache.set(ticker, {
           price: quote.regularMarketPrice,
-          currency: overrideCurrency || quote.currency || knownCurrency || 'USD',
-          lastUpdated: new Date().toISOString(),
+          currency,
+          lastUpdated: now,
         });
+
+        // Append to file-based price history
+        appendPriceEntry(ticker, {
+          date: today,
+          price: quote.regularMarketPrice,
+          currency,
+        });
+
+        // Build stock info from quote data
+        stockInfoCache.set(ticker, {
+          ticker,
+          name: quote.shortName || quote.longName || ticker,
+          currency,
+          currentPrice: quote.regularMarketPrice,
+          peRatio: quote.trailingPE ?? null,
+          forwardPeRatio: quote.forwardPE ?? null,
+          epsTrailingTwelveMonths: quote.epsTrailingTwelveMonths ?? null,
+          dividendYield: quote.dividendYield != null ? quote.dividendYield * 100 : null,
+          dividendRate: quote.dividendRate ?? quote.trailingAnnualDividendRate ?? null,
+          exDividendDate: quote.exDividendDate ? new Date(quote.exDividendDate).toISOString().slice(0, 10) : null,
+          marketCap: quote.marketCap ?? null,
+          fiftyTwoWeekHigh: quote.fiftyTwoWeekHigh ?? null,
+          fiftyTwoWeekLow: quote.fiftyTwoWeekLow ?? null,
+          fiftyDayAverage: quote.fiftyDayAverage ?? null,
+          twoHundredDayAverage: quote.twoHundredDayAverage ?? null,
+          beta: quote.beta ?? null,
+          earningsDate: quote.earningsTimestamp ? new Date(quote.earningsTimestamp * 1000).toISOString().slice(0, 10) : null,
+          lastUpdated: now,
+        });
+
         fetched++;
       } else {
         failed.push(ticker);
@@ -89,6 +249,9 @@ export async function refreshPrices(tickers: string[]): Promise<{ fetched: numbe
       failed.push(ticker);
     }
   }
+
+  // Persist price history to file
+  savePriceHistory();
 
   return { fetched, failed };
 }
@@ -277,18 +440,18 @@ function findClosestEntry(
 
 /**
  * Get the market price for a ticker on (or closest to) a given date.
- * Uses hardcoded historical data only (for cost basis and historical lookups).
+ * Uses file-based history + hardcoded historical data (merged).
  */
 export function getPrice(
   ticker: string,
   date: string,
 ): { price: number; currency: string } | null {
-  const entries = HARDCODED_PRICES[ticker];
-  if (!entries) {
-    console.warn(`No hardcoded price for ticker "${ticker}"`);
+  const allEntries = getPriceHistory(ticker);
+  if (allEntries.length === 0) {
+    console.warn(`No price data for ticker "${ticker}"`);
     return null;
   }
-  const entry = findClosestEntry(entries, date);
+  const entry = findClosestEntry(allEntries, date);
   return entry ? { price: entry.price, currency: entry.currency } : null;
 }
 
@@ -310,21 +473,29 @@ export function getCurrentPrice(
     return { price: cached.price, currency: cached.currency, lastUpdated: cached.lastUpdated };
   }
 
-  // Fall back to hardcoded
+  // Fall back to file-based + hardcoded history
   const today = new Date().toISOString().slice(0, 10);
-  const fallback = getPrice(ticker, today);
-  if (fallback) {
-    return { price: fallback.price, currency: fallback.currency, lastUpdated: null };
+  const allEntries = getPriceHistory(ticker);
+  if (allEntries.length > 0) {
+    const entry = findClosestEntry(allEntries, today);
+    if (entry) {
+      // If the entry is from file-based history (recent), mark it as such
+      const isFromFile = fileBasedHistory[ticker]?.some(e => e.date === entry.date);
+      return { price: entry.price, currency: entry.currency, lastUpdated: isFromFile ? entry.date : null };
+    }
   }
 
   return null;
 }
 
 /**
- * Get all known ticker symbols (from hardcoded data + cache).
+ * Get all known ticker symbols (from hardcoded data + file history + cache).
  */
 export function getKnownTickers(): string[] {
   const tickers = new Set<string>(Object.keys(HARDCODED_PRICES));
+  for (const ticker of Object.keys(fileBasedHistory)) {
+    tickers.add(ticker);
+  }
   for (const ticker of priceCache.keys()) {
     tickers.add(ticker);
   }

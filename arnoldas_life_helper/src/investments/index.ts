@@ -4,7 +4,8 @@
 
 export * from "./types.js";
 export { getExchangeRate, convertAmount, loadEcbRates, isEcbLoaded } from "./currency.js";
-export { getPrice, getCurrentPrice, refreshPrices, getKnownTickers, getPriceRefreshTime } from "./prices.js";
+export { getPrice, getCurrentPrice, refreshPrices, getKnownTickers, getPriceRefreshTime, loadPriceHistory, getAllPriceHistory, getAllStockInfo, getPriceHistory } from "./prices.js";
+export type { PriceEntry, PriceHistoryFile, StockInfo } from "./prices.js";
 export type { IDataParser, IRevolutData, IRevolutParser } from "./parser.js";
 export { SwedBankParser, parseAllSwedbankFiles, classifySwedbankTransaction, classifySwedbankTransactions } from "./parser.js";
 export { parseRevolutFile, parseAllRevolutFiles, classifyRevolutTransactions } from "./parser.js";

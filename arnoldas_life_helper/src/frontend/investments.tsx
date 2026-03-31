@@ -188,6 +188,33 @@ interface StockStats {
   isOpen: boolean;
 }
 
+interface StockInfo {
+  ticker: string;
+  name: string;
+  currency: string;
+  currentPrice: number;
+  peRatio: number | null;
+  forwardPeRatio: number | null;
+  epsTrailingTwelveMonths: number | null;
+  dividendYield: number | null;
+  dividendRate: number | null;
+  exDividendDate: string | null;
+  marketCap: number | null;
+  fiftyTwoWeekHigh: number | null;
+  fiftyTwoWeekLow: number | null;
+  fiftyDayAverage: number | null;
+  twoHundredDayAverage: number | null;
+  beta: number | null;
+  earningsDate: string | null;
+  lastUpdated: string;
+}
+
+interface PriceHistoryEntry {
+  date: string;
+  price: number;
+  currency: string;
+}
+
 interface AiSuggestions {
   suggestions: string | null;
   generatedAt: string | null;
@@ -214,6 +241,8 @@ interface InvestmentData {
   dividendsByStock: Array<{ symbol: string; count: number; totalEur: number }>;
   realizedTradeSummary: { totalPnl: number; shortTermPnl: number; longTermPnl: number; shortTermCount: number; longTermCount: number };
   rsuByYearWithCumulative: Array<{ year: number; totalShares: number; totalCompensation: number; totalCompensationEur: number; cumulativeUsd: number; cumulativeEur: number }>;
+  priceHistory: Record<string, PriceHistoryEntry[]>;
+  stockInfo: StockInfo[];
 }
 
 type SortDir = 'asc' | 'desc';
@@ -1325,6 +1354,147 @@ function AiSuggestionsPanel() {
   );
 }
 
+function formatMarketCap(n: number): string {
+  if (n >= 1e12) return `$${(n / 1e12).toFixed(2)}T`;
+  if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
+  if (n >= 1e6) return `$${(n / 1e6).toFixed(1)}M`;
+  return `$${formatNum(n, 0)}`;
+}
+
+function MarketDataPanel({ data }: { data: InvestmentData }) {
+  const [selectedTicker, setSelectedTicker] = useState<string | null>(null);
+  const stockInfo = data.stockInfo || [];
+  const priceHistory = data.priceHistory || {};
+
+  const tickers = useMemo(() => {
+    const held = data.holdings.map(h => h.symbol);
+    const all = [...new Set([...held, ...Object.keys(priceHistory)])];
+    return all.sort();
+  }, [data.holdings, priceHistory]);
+
+  const selectedHistory = selectedTicker ? (priceHistory[selectedTicker] || []) : [];
+
+  return (
+    <Stack gap="md">
+      {/* Stock Info Cards */}
+      {stockInfo.length > 0 ? (
+        <Card padding="md" withBorder>
+          <Text size="sm" fw={600} mb="sm">Stock Fundamentals</Text>
+          <ScrollArea>
+            <Table striped highlightOnHover>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>Ticker</Table.Th>
+                  <Table.Th>Name</Table.Th>
+                  <Table.Th style={{ textAlign: 'right' }}>Price</Table.Th>
+                  <Table.Th style={{ textAlign: 'right' }}>P/E</Table.Th>
+                  <Table.Th style={{ textAlign: 'right' }}>Fwd P/E</Table.Th>
+                  <Table.Th style={{ textAlign: 'right' }}>EPS</Table.Th>
+                  <Table.Th style={{ textAlign: 'right' }}>Div Yield</Table.Th>
+                  <Table.Th style={{ textAlign: 'right' }}>Div Rate</Table.Th>
+                  <Table.Th>Ex-Div Date</Table.Th>
+                  <Table.Th style={{ textAlign: 'right' }}>Market Cap</Table.Th>
+                  <Table.Th style={{ textAlign: 'right' }}>52w High</Table.Th>
+                  <Table.Th style={{ textAlign: 'right' }}>52w Low</Table.Th>
+                  <Table.Th style={{ textAlign: 'right' }}>Beta</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {stockInfo.map(si => {
+                  const pctFrom52High = si.fiftyTwoWeekHigh ? ((si.currentPrice - si.fiftyTwoWeekHigh) / si.fiftyTwoWeekHigh) * 100 : null;
+                  return (
+                    <Table.Tr key={si.ticker}>
+                      <Table.Td><Text fw={600}>{si.ticker}</Text></Table.Td>
+                      <Table.Td style={{ maxWidth: 180 }}><Text size="sm" truncate="end">{si.name}</Text></Table.Td>
+                      <Table.Td style={{ textAlign: 'right' }}>{formatNum(si.currentPrice)} {si.currency}</Table.Td>
+                      <Table.Td style={{ textAlign: 'right' }}>{si.peRatio != null ? formatNum(si.peRatio, 1) : '\u2014'}</Table.Td>
+                      <Table.Td style={{ textAlign: 'right' }}>{si.forwardPeRatio != null ? formatNum(si.forwardPeRatio, 1) : '\u2014'}</Table.Td>
+                      <Table.Td style={{ textAlign: 'right' }}>{si.epsTrailingTwelveMonths != null ? formatNum(si.epsTrailingTwelveMonths) : '\u2014'}</Table.Td>
+                      <Table.Td style={{ textAlign: 'right', color: si.dividendYield != null && si.dividendYield > 0 ? '#51cf66' : undefined }}>
+                        {si.dividendYield != null ? `${formatNum(si.dividendYield, 1)}%` : '\u2014'}
+                      </Table.Td>
+                      <Table.Td style={{ textAlign: 'right' }}>{si.dividendRate != null ? `${formatNum(si.dividendRate)} ${si.currency}` : '\u2014'}</Table.Td>
+                      <Table.Td>{si.exDividendDate || '\u2014'}</Table.Td>
+                      <Table.Td style={{ textAlign: 'right' }}>{si.marketCap != null ? formatMarketCap(si.marketCap) : '\u2014'}</Table.Td>
+                      <Table.Td style={{ textAlign: 'right' }}>
+                        {si.fiftyTwoWeekHigh != null ? (
+                          <span>
+                            {formatNum(si.fiftyTwoWeekHigh)}
+                            {pctFrom52High != null && (
+                              <Text span size="xs" c={pctFrom52High >= 0 ? '#51cf66' : '#ff6b6b'}> ({formatNum(pctFrom52High, 1)}%)</Text>
+                            )}
+                          </span>
+                        ) : '\u2014'}
+                      </Table.Td>
+                      <Table.Td style={{ textAlign: 'right' }}>{si.fiftyTwoWeekLow != null ? formatNum(si.fiftyTwoWeekLow) : '\u2014'}</Table.Td>
+                      <Table.Td style={{ textAlign: 'right' }}>{si.beta != null ? formatNum(si.beta, 2) : '\u2014'}</Table.Td>
+                    </Table.Tr>
+                  );
+                })}
+              </Table.Tbody>
+            </Table>
+          </ScrollArea>
+        </Card>
+      ) : (
+        <Alert color="blue" variant="light">
+          Click "Refresh Prices" to fetch stock fundamentals (P/E, dividends, market cap, etc.).
+        </Alert>
+      )}
+
+      {/* Price History */}
+      <Card padding="md" withBorder>
+        <Group justify="space-between" mb="sm">
+          <Text size="sm" fw={600}>Price History</Text>
+          <Select
+            data={tickers.map(t => ({ value: t, label: t }))}
+            value={selectedTicker}
+            onChange={(v) => setSelectedTicker(v)}
+            placeholder="Select ticker..."
+            size="xs"
+            style={{ width: 180 }}
+            clearable
+          />
+        </Group>
+
+        {selectedTicker && selectedHistory.length > 0 ? (
+          <ScrollArea>
+            <Table striped>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>Date</Table.Th>
+                  <Table.Th style={{ textAlign: 'right' }}>Price</Table.Th>
+                  <Table.Th>Currency</Table.Th>
+                  <Table.Th style={{ textAlign: 'right' }}>Change</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {[...selectedHistory].reverse().map((entry, i, arr) => {
+                  const prev = arr[i + 1];
+                  const change = prev ? ((entry.price - prev.price) / prev.price) * 100 : null;
+                  return (
+                    <Table.Tr key={entry.date}>
+                      <Table.Td>{entry.date}</Table.Td>
+                      <Table.Td style={{ textAlign: 'right' }}>{formatNum(entry.price)}</Table.Td>
+                      <Table.Td>{entry.currency}</Table.Td>
+                      <Table.Td style={{ textAlign: 'right', color: change != null ? pnlColor(change) : undefined }}>
+                        {change != null ? `${change >= 0 ? '+' : ''}${formatNum(change, 1)}%` : '\u2014'}
+                      </Table.Td>
+                    </Table.Tr>
+                  );
+                })}
+              </Table.Tbody>
+            </Table>
+          </ScrollArea>
+        ) : selectedTicker ? (
+          <Text size="sm" c="dimmed">No price history for {selectedTicker}.</Text>
+        ) : (
+          <Text size="sm" c="dimmed">Select a ticker to view price history.</Text>
+        )}
+      </Card>
+    </Stack>
+  );
+}
+
 /** Simple markdown-to-HTML renderer for AI suggestions */
 function renderMarkdown(md: string): string {
   return md
@@ -1469,6 +1639,9 @@ function App() {
                 <Tabs.Tab value="transactions">
                   Transactions ({data.transactions.length})
                 </Tabs.Tab>
+                <Tabs.Tab value="market-data">
+                  Market Data
+                </Tabs.Tab>
                 <Tabs.Tab value="upload">
                   Upload
                 </Tabs.Tab>
@@ -1511,6 +1684,10 @@ function App() {
                   ? <Card padding="xs"><TransactionsTable transactions={data.transactions} /></Card>
                   : <Text c="dimmed">No transactions found.</Text>
                 }
+              </Tabs.Panel>
+
+              <Tabs.Panel value="market-data">
+                <Card padding="md"><MarketDataPanel data={data} /></Card>
               </Tabs.Panel>
 
               <Tabs.Panel value="upload">

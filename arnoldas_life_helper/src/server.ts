@@ -11,6 +11,7 @@ import { loadOptions, saveOptions, validateConfig } from './utils/config.js';
 import { getInvestmentData, loadInvestmentData, refreshInvestmentPrices } from './investments/portfolio-service.js';
 import { loadEcbRates } from './investments/currency.js';
 import { loadSavedSuggestions, generateAiSuggestions } from './investments/ai-suggestions.js';
+import { TodoService } from './todos/service.js';
 
 // Shared state — updated by the polling loop
 export interface PollStats {
@@ -61,6 +62,7 @@ export function createServer(options: { port: number; dataDir: string; getOption
   const appDir = resolve(process.env.APP_DIR || '/app');
   const publicDir = join(appDir, 'public');
   const investmentsDir = join(options.dataDir, 'Investments');
+  const todoService = new TodoService(options.getOptions().todo_entity_id);
 
   // Discover hashed asset filenames produced by esbuild
   const appJs = findAsset(publicDir, 'app', 'js');
@@ -267,6 +269,50 @@ export function createServer(options: { port: number; dataDir: string; getOption
     try {
       const result = await generateAiSuggestions(config.anthropic_api_key, data);
       return { success: true, ...result };
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  });
+
+  // API: get todo items
+  app.get('/api/todos', async () => {
+    try {
+      const items = await todoService.getItems();
+      return { items };
+    } catch (err) {
+      return { items: [], error: err instanceof Error ? err.message : String(err) };
+    }
+  });
+
+  // API: add todo item
+  app.post('/api/todos', async (request) => {
+    const { summary, description } = request.body as { summary: string; description?: string };
+    try {
+      await todoService.addItem(summary, description);
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  });
+
+  // API: update todo item
+  app.patch('/api/todos/:uid', async (request) => {
+    const { uid } = request.params as { uid: string };
+    const updates = request.body as { rename?: string; status?: 'needs_action' | 'completed'; description?: string };
+    try {
+      await todoService.updateItem(uid, updates);
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  });
+
+  // API: remove todo item
+  app.delete('/api/todos/:uid', async (request) => {
+    const { uid } = request.params as { uid: string };
+    try {
+      await todoService.removeItem(uid);
+      return { success: true };
     } catch (err) {
       return { success: false, error: err instanceof Error ? err.message : String(err) };
     }

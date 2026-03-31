@@ -16,12 +16,16 @@ import {
   Title,
   Button,
   TextInput,
+  Textarea,
   NumberInput,
   PasswordInput,
   Switch,
   Alert,
   Loader,
   UnstyledButton,
+  Checkbox,
+  ActionIcon,
+  Progress,
 } from '@mantine/core';
 import '@mantine/core/styles.css';
 import './custom.css';
@@ -53,6 +57,7 @@ interface Config {
   baltic_tennis_password: string;
   debug: boolean;
   anthropic_api_key: string;
+  todo_entity_id: string;
 }
 
 interface BookingItem {
@@ -96,6 +101,48 @@ async function fetchBookings() {
 
 async function resumeProviders(): Promise<boolean> {
   const res = await fetch(`${BASE}/api/resume`, { method: 'POST' });
+  const result = await res.json();
+  return result.success;
+}
+
+// --- Todo API ---
+interface TodoItem {
+  uid: string;
+  summary: string;
+  status: 'needs_action' | 'completed';
+  description?: string;
+}
+
+async function fetchTodos(): Promise<{ items: TodoItem[]; error?: string }> {
+  const res = await fetch(`${BASE}/api/todos`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+async function addTodo(summary: string, description?: string): Promise<boolean> {
+  const res = await fetch(`${BASE}/api/todos`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ summary, description }),
+  });
+  const result = await res.json();
+  return result.success;
+}
+
+async function updateTodo(uid: string, updates: { rename?: string; status?: string; description?: string }): Promise<boolean> {
+  const res = await fetch(`${BASE}/api/todos/${encodeURIComponent(uid)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updates),
+  });
+  const result = await res.json();
+  return result.success;
+}
+
+async function removeTodo(uid: string): Promise<boolean> {
+  const res = await fetch(`${BASE}/api/todos/${encodeURIComponent(uid)}`, {
+    method: 'DELETE',
+  });
   const result = await res.json();
   return result.success;
 }
@@ -396,6 +443,22 @@ function SettingsPanel() {
 
       <Card withBorder radius="md">
         <Card.Section withBorder inheritPadding py="xs">
+          <Text fw={600} size="sm">Home Building</Text>
+        </Card.Section>
+        <Card.Section inheritPadding py="md">
+          <TextInput
+            label="Todo Entity ID"
+            description="Home Assistant todo entity ID for the home building task list"
+            placeholder="todo.01kn1rvcbxskmfdrqfdry7xvkq"
+            value={config.todo_entity_id}
+            onChange={e => update('todo_entity_id', e.currentTarget.value)}
+            size="sm"
+          />
+        </Card.Section>
+      </Card>
+
+      <Card withBorder radius="md">
+        <Card.Section withBorder inheritPadding py="xs">
           <Text fw={600} size="sm">Advanced</Text>
         </Card.Section>
         <Card.Section inheritPadding py="md">
@@ -567,6 +630,210 @@ function BookingsPanel() {
   );
 }
 
+function TodoPanel() {
+  const [items, setItems] = useState<TodoItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [newItem, setNewItem] = useState('');
+  const [newDescription, setNewDescription] = useState('');
+  const [adding, setAdding] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      const data = await fetchTodos();
+      setItems(data.items ?? []);
+      setError(data.error ?? null);
+    } catch {
+      setError('Failed to fetch todo items');
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const handleAdd = async () => {
+    if (!newItem.trim()) return;
+    setAdding(true);
+    try {
+      await addTodo(newItem.trim(), newDescription.trim() || undefined);
+      setNewItem('');
+      setNewDescription('');
+      await load();
+    } catch {
+      setError('Failed to add item');
+    }
+    setAdding(false);
+  };
+
+  const handleToggle = async (item: TodoItem) => {
+    const newStatus = item.status === 'completed' ? 'needs_action' : 'completed';
+    try {
+      await updateTodo(item.uid, { status: newStatus });
+      await load();
+    } catch {
+      setError('Failed to update item');
+    }
+  };
+
+  const handleRemove = async (uid: string) => {
+    try {
+      await removeTodo(uid);
+      await load();
+    } catch {
+      setError('Failed to remove item');
+    }
+  };
+
+  if (loading) {
+    return (
+      <Center py="xl">
+        <Loader size="sm" />
+      </Center>
+    );
+  }
+
+  const pending = items.filter(i => i.status === 'needs_action');
+  const completed = items.filter(i => i.status === 'completed');
+  const total = items.length;
+  const completedCount = completed.length;
+  const progressPct = total > 0 ? Math.round((completedCount / total) * 100) : 0;
+
+  return (
+    <Stack gap="md">
+      {error && (
+        <Alert color="red" variant="light" title="Error">
+          {error}
+        </Alert>
+      )}
+
+      <Card withBorder radius="md">
+        <Card.Section withBorder inheritPadding py="xs">
+          <Group justify="space-between">
+            <Text fw={600} size="sm">Progress</Text>
+            <Badge variant="light" color={progressPct === 100 ? 'green' : 'blue'}>
+              {completedCount} / {total} done ({progressPct}%)
+            </Badge>
+          </Group>
+        </Card.Section>
+        <Card.Section inheritPadding py="md">
+          <Progress value={progressPct} color={progressPct === 100 ? 'green' : 'blue'} size="lg" radius="xl" />
+        </Card.Section>
+      </Card>
+
+      <Card withBorder radius="md">
+        <Card.Section withBorder inheritPadding py="xs">
+          <Text fw={600} size="sm">Add Task</Text>
+        </Card.Section>
+        <Card.Section inheritPadding py="md">
+          <Stack gap="sm">
+            <TextInput
+              placeholder="Task name"
+              value={newItem}
+              onChange={e => setNewItem(e.currentTarget.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleAdd(); }}
+              size="sm"
+            />
+            <Textarea
+              placeholder="Description (optional)"
+              value={newDescription}
+              onChange={e => setNewDescription(e.currentTarget.value)}
+              size="sm"
+              autosize
+              minRows={1}
+              maxRows={3}
+            />
+            <Button onClick={handleAdd} loading={adding} size="sm" disabled={!newItem.trim()}>
+              Add Task
+            </Button>
+          </Stack>
+        </Card.Section>
+      </Card>
+
+      {pending.length > 0 && (
+        <Card withBorder radius="md">
+          <Card.Section withBorder inheritPadding py="xs">
+            <Group justify="space-between">
+              <Text fw={600} size="sm">To Do</Text>
+              <Badge size="sm" variant="default" radius="xl">{pending.length}</Badge>
+            </Group>
+          </Card.Section>
+          <Card.Section inheritPadding py="sm">
+            <Stack gap={4}>
+              {pending.map(item => (
+                <Group key={item.uid} gap="sm" wrap="nowrap" py={4} style={{ borderBottom: '1px solid var(--mantine-color-dark-6)' }}>
+                  <Checkbox
+                    checked={false}
+                    onChange={() => handleToggle(item)}
+                    size="sm"
+                  />
+                  <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
+                    <Text size="sm">{item.summary}</Text>
+                    {item.description && (
+                      <Text size="xs" c="dimmed" lineClamp={2}>{item.description}</Text>
+                    )}
+                  </Stack>
+                  <ActionIcon variant="subtle" color="red" size="sm" onClick={() => handleRemove(item.uid)}>
+                    <Text size="xs">&#10005;</Text>
+                  </ActionIcon>
+                </Group>
+              ))}
+            </Stack>
+          </Card.Section>
+        </Card>
+      )}
+
+      {completed.length > 0 && (
+        <Card withBorder radius="md">
+          <Card.Section withBorder inheritPadding py="xs">
+            <Group justify="space-between">
+              <Text fw={600} size="sm">Completed</Text>
+              <Badge size="sm" variant="default" radius="xl">{completed.length}</Badge>
+            </Group>
+          </Card.Section>
+          <Card.Section inheritPadding py="sm">
+            <Stack gap={4}>
+              {completed.map(item => (
+                <Group key={item.uid} gap="sm" wrap="nowrap" py={4} style={{ borderBottom: '1px solid var(--mantine-color-dark-6)' }}>
+                  <Checkbox
+                    checked={true}
+                    onChange={() => handleToggle(item)}
+                    size="sm"
+                  />
+                  <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
+                    <Text size="sm" td="line-through" c="dimmed">{item.summary}</Text>
+                    {item.description && (
+                      <Text size="xs" c="dimmed" lineClamp={2} td="line-through">{item.description}</Text>
+                    )}
+                  </Stack>
+                  <ActionIcon variant="subtle" color="red" size="sm" onClick={() => handleRemove(item.uid)}>
+                    <Text size="xs">&#10005;</Text>
+                  </ActionIcon>
+                </Group>
+              ))}
+            </Stack>
+          </Card.Section>
+        </Card>
+      )}
+
+      {items.length === 0 && (
+        <Center py={48}>
+          <Stack align="center" gap="xs">
+            <Text size="2.5rem" opacity={0.7}>&#127968;</Text>
+            <Text fw={600} size="md">No tasks yet</Text>
+            <Text size="sm" c="dimmed">Add your first home building task above.</Text>
+          </Stack>
+        </Center>
+      )}
+
+      <Button variant="default" size="xs" onClick={load}>
+        Refresh
+      </Button>
+    </Stack>
+  );
+}
+
 function App() {
   const params = new URLSearchParams(window.location.search);
   const initialScreen = params.get('screen') || 'tennis-radar';
@@ -647,6 +914,7 @@ function App() {
         <Tabs value={screen} onChange={handleScreenChange} variant="pills">
           <Tabs.List>
             <Tabs.Tab value="tennis-radar">Tennis Radar</Tabs.Tab>
+            <Tabs.Tab value="home-building">Home Building</Tabs.Tab>
             <Tabs.Tab value="settings">Settings</Tabs.Tab>
             <Tabs.Tab value="investments">Investments</Tabs.Tab>
           </Tabs.List>
@@ -739,6 +1007,7 @@ function App() {
         </Tabs>
       )}
 
+      {screen === 'home-building' && <TodoPanel />}
       {screen === 'settings' && <SettingsPanel />}
     </Container>
   );

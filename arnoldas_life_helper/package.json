@@ -12,6 +12,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.79.0",
     "@fastify/multipart": "^9.4.0",
     "@fastify/static": "^8.0.0",
     "@mantine/core": "^7.0.0",

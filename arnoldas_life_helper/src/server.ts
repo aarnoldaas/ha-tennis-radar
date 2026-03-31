@@ -10,6 +10,7 @@ import type { AddonOptions, ConfigWarning } from './utils/config.js';
 import { loadOptions, saveOptions, validateConfig } from './utils/config.js';
 import { getInvestmentData, loadInvestmentData, refreshInvestmentPrices } from './investments/portfolio-service.js';
 import { loadEcbRates } from './investments/currency.js';
+import { loadSavedSuggestions, generateAiSuggestions } from './investments/ai-suggestions.js';
 
 // Shared state — updated by the polling loop
 export interface PollStats {
@@ -246,6 +247,29 @@ export function createServer(options: { port: number; dataDir: string; getOption
     await loadInvestmentData(options.dataDir);
 
     return { success: true };
+  });
+
+  // API: get saved AI suggestions
+  app.get('/api/investments/ai-suggestions', async () => {
+    return loadSavedSuggestions() || { suggestions: null, generatedAt: null };
+  });
+
+  // API: generate new AI suggestions
+  app.post('/api/investments/ai-suggestions', async () => {
+    const config = options.getOptions();
+    if (!config.anthropic_api_key) {
+      return { success: false, error: 'Anthropic API key not configured. Add it in the Settings screen.' };
+    }
+    const data = getInvestmentData();
+    if (!data || data.holdings.length === 0) {
+      return { success: false, error: 'No portfolio data available. Upload investment files first.' };
+    }
+    try {
+      const result = await generateAiSuggestions(config.anthropic_api_key, data);
+      return { success: true, ...result };
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : String(err) };
+    }
   });
 
   app.listen({ port: options.port, host: '0.0.0.0' });

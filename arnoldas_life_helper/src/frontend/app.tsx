@@ -52,6 +52,7 @@ interface Config {
   baltic_tennis_username: string;
   baltic_tennis_password: string;
   debug: boolean;
+  anthropic_api_key: string;
 }
 
 interface BookingItem {
@@ -398,12 +399,22 @@ function SettingsPanel() {
           <Text fw={600} size="sm">Advanced</Text>
         </Card.Section>
         <Card.Section inheritPadding py="md">
-          <Switch
-            label="Debug Mode"
-            checked={config.debug}
-            onChange={e => update('debug', e.currentTarget.checked)}
-            size="sm"
-          />
+          <Stack gap="sm">
+            <Switch
+              label="Debug Mode"
+              checked={config.debug}
+              onChange={e => update('debug', e.currentTarget.checked)}
+              size="sm"
+            />
+            <PasswordInput
+              label="Anthropic API Key"
+              description="Required for AI portfolio insights on the Investments page"
+              placeholder="sk-ant-..."
+              value={config.anthropic_api_key}
+              onChange={e => update('anthropic_api_key', e.currentTarget.value)}
+              size="sm"
+            />
+          </Stack>
         </Card.Section>
       </Card>
 
@@ -557,7 +568,10 @@ function BookingsPanel() {
 }
 
 function App() {
-  const [tab, setTab] = useState<string | null>('courts');
+  const params = new URLSearchParams(window.location.search);
+  const initialScreen = params.get('screen') || 'tennis-radar';
+  const [screen, setScreen] = useState<string | null>(initialScreen);
+  const [tennisTab, setTennisTab] = useState<string | null>('courts');
   const [status, setStatus] = useState<any>(null);
   const [error, setError] = useState(false);
 
@@ -590,6 +604,21 @@ function App() {
     setResuming(false);
   }, [refresh]);
 
+  const handleScreenChange = useCallback((value: string | null) => {
+    if (value === 'investments') {
+      window.location.href = `${BASE}/investments`;
+      return;
+    }
+    setScreen(value);
+    const url = new URL(window.location.href);
+    if (value === 'tennis-radar') {
+      url.searchParams.delete('screen');
+    } else {
+      url.searchParams.set('screen', value || '');
+    }
+    window.history.replaceState({}, '', url.toString());
+  }, []);
+
   const configWarnings: { field: string; message: string }[] = status?.configWarnings ?? [];
   const providerErrors: { provider: string; date: string; error: string; time: string }[] =
     status?.providerErrors ?? [];
@@ -609,16 +638,12 @@ function App() {
   return (
     <Container size={860} px="md" py="lg">
       <Stack gap="lg">
-        <Group justify="space-between" wrap="wrap">
-          <Group gap="sm">
-            <Title order={3}>Arnoldas Life Helper</Title>
-            {statusBadge}
-          </Group>
-          <Button variant="subtle" component="a" href={`${BASE}/investments`} size="xs">
-            Investments
-          </Button>
+        <Group gap="sm">
+          <Title order={3}>Life Helper</Title>
+          {screen === 'tennis-radar' && statusBadge}
         </Group>
-        {configWarnings.length > 0 && (
+
+        {screen === 'tennis-radar' && configWarnings.length > 0 && (
           <Alert color="yellow" variant="light" title="Configuration issues">
             <ul style={{ margin: 0, paddingLeft: 16 }}>
               {configWarnings.map((w, i) => (
@@ -628,7 +653,7 @@ function App() {
           </Alert>
         )}
 
-        {disabledProviders.length > 0 && (
+        {screen === 'tennis-radar' && disabledProviders.length > 0 && (
           <Alert color="red" variant="light" title="Disabled providers">
             <ul style={{ margin: 0, paddingLeft: 16 }}>
               {providerErrors.map((e, i) => (
@@ -655,51 +680,60 @@ function App() {
           </Alert>
         )}
 
-        <Tabs value={tab} onChange={setTab} variant="pills">
+        <Tabs value={screen} onChange={handleScreenChange} variant="pills">
           <Tabs.List>
-            <Tabs.Tab value="courts">Courts</Tabs.Tab>
-            <Tabs.Tab value="bookings">Bookings</Tabs.Tab>
+            <Tabs.Tab value="tennis-radar">Tennis Radar</Tabs.Tab>
             <Tabs.Tab value="settings">Settings</Tabs.Tab>
+            <Tabs.Tab value="investments">Investments</Tabs.Tab>
           </Tabs.List>
 
-          <Tabs.Panel value="courts" pt="md">
-            <SlotTable slots={status?.availableSlots ?? []} />
-            {status?.lastPoll && (
-              <Group gap={4} mt="md" wrap="wrap">
-                <Text size="xs" c="dimmed">
-                  Last poll: {new Date(status.lastPoll).toLocaleTimeString()}
-                </Text>
-                {status.pollStats && (
-                  <>
-                    <Text size="xs" c="dimmed" opacity={0.4}>|</Text>
+          <Tabs.Panel value="tennis-radar" pt="md">
+            <Tabs value={tennisTab} onChange={setTennisTab} variant="outline">
+              <Tabs.List mb="md">
+                <Tabs.Tab value="courts">Courts</Tabs.Tab>
+                <Tabs.Tab value="bookings">Bookings</Tabs.Tab>
+              </Tabs.List>
+
+              <Tabs.Panel value="courts">
+                <SlotTable slots={status?.availableSlots ?? []} />
+                {status?.lastPoll && (
+                  <Group gap={4} mt="md" wrap="wrap">
                     <Text size="xs" c="dimmed">
-                      {status.pollStats.datesChecked} date
-                      {status.pollStats.datesChecked !== 1 ? 's' : ''} checked
+                      Last poll: {new Date(status.lastPoll).toLocaleTimeString()}
                     </Text>
-                    <Text size="xs" c="dimmed" opacity={0.4}>|</Text>
-                    <Text size="xs" c="dimmed">
-                      {status.totalSlots} total / {(status.availableSlots ?? []).length} matching
-                    </Text>
-                    <Text size="xs" c="dimmed" opacity={0.4}>|</Text>
-                    <Text size="xs" c="dimmed">{status.pollStats.durationMs}ms</Text>
-                    {Object.keys(status.pollStats.providerBreakdown ?? {}).length > 0 && (
+                    {status.pollStats && (
                       <>
                         <Text size="xs" c="dimmed" opacity={0.4}>|</Text>
                         <Text size="xs" c="dimmed">
-                          {Object.entries(status.pollStats.providerBreakdown)
-                            .map(([k, v]) => `${k}: ${v}`)
-                            .join(', ')}
+                          {status.pollStats.datesChecked} date
+                          {status.pollStats.datesChecked !== 1 ? 's' : ''} checked
                         </Text>
+                        <Text size="xs" c="dimmed" opacity={0.4}>|</Text>
+                        <Text size="xs" c="dimmed">
+                          {status.totalSlots} total / {(status.availableSlots ?? []).length} matching
+                        </Text>
+                        <Text size="xs" c="dimmed" opacity={0.4}>|</Text>
+                        <Text size="xs" c="dimmed">{status.pollStats.durationMs}ms</Text>
+                        {Object.keys(status.pollStats.providerBreakdown ?? {}).length > 0 && (
+                          <>
+                            <Text size="xs" c="dimmed" opacity={0.4}>|</Text>
+                            <Text size="xs" c="dimmed">
+                              {Object.entries(status.pollStats.providerBreakdown)
+                                .map(([k, v]) => `${k}: ${v}`)
+                                .join(', ')}
+                            </Text>
+                          </>
+                        )}
                       </>
                     )}
-                  </>
+                  </Group>
                 )}
-              </Group>
-            )}
-          </Tabs.Panel>
+              </Tabs.Panel>
 
-          <Tabs.Panel value="bookings" pt="md">
-            <BookingsPanel />
+              <Tabs.Panel value="bookings">
+                <BookingsPanel />
+              </Tabs.Panel>
+            </Tabs>
           </Tabs.Panel>
 
           <Tabs.Panel value="settings" pt="md">

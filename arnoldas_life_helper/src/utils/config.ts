@@ -13,6 +13,7 @@ export interface AddonOptions {
   baltic_tennis_username: string;
   baltic_tennis_password: string;
   debug: boolean;
+  anthropic_api_key: string;
 }
 
 const DATA_DIR = process.env.DATA_DIR || '/data';
@@ -31,6 +32,7 @@ const DEFAULTS: AddonOptions = {
   baltic_tennis_username: '',
   baltic_tennis_password: '',
   debug: false,
+  anthropic_api_key: '',
 };
 
 // Migrate old teniso_pasaulis_* keys to seb_*

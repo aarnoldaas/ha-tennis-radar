@@ -188,6 +188,11 @@ interface StockStats {
   isOpen: boolean;
 }
 
+interface AiSuggestions {
+  suggestions: string | null;
+  generatedAt: string | null;
+}
+
 interface InvestmentData {
   transactions: ITransaction[];
   holdings: IHolding[];
@@ -1244,6 +1249,100 @@ function FileUploadPanel({ onDataChange }: { onDataChange: () => void }) {
   );
 }
 
+function AiSuggestionsPanel() {
+  const [suggestions, setSuggestions] = useState<AiSuggestions | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch(`${BASE}/api/investments/ai-suggestions`)
+      .then(r => r.json())
+      .then(d => { setSuggestions(d.suggestions ? d : null); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    setError(null);
+    try {
+      const res = await fetch(`${BASE}/api/investments/ai-suggestions`, { method: 'POST' });
+      const result = await res.json();
+      if (result.success) {
+        setSuggestions({ suggestions: result.suggestions, generatedAt: result.generatedAt });
+      } else {
+        setError(result.error);
+      }
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  return (
+    <Stack gap="md">
+      <Group justify="space-between">
+        <Group gap="sm">
+          <Text fw={600}>AI Portfolio Insights</Text>
+          {suggestions?.generatedAt && (
+            <Text size="xs" c="dimmed">Last updated: {timeAgo(suggestions.generatedAt)}</Text>
+          )}
+        </Group>
+        <Button
+          variant="light"
+          size="xs"
+          color="violet"
+          loading={generating}
+          onClick={handleGenerate}
+        >
+          {suggestions ? 'Refresh Insights' : 'Generate Insights'}
+        </Button>
+      </Group>
+
+      {error && (
+        <Alert color="red" variant="light" title="Error">{error}</Alert>
+      )}
+
+      {loading && <Center><Loader size="sm" /></Center>}
+
+      {!loading && !suggestions && !error && (
+        <Alert color="blue" variant="light">
+          Click "Generate Insights" to get AI-powered portfolio analysis and suggestions.
+          Requires an Anthropic API key configured in the Tennis Radar Settings tab.
+        </Alert>
+      )}
+
+      {suggestions?.suggestions && (
+        <Card padding="md" withBorder>
+          <div
+            className="ai-suggestions-content"
+            dangerouslySetInnerHTML={{ __html: renderMarkdown(suggestions.suggestions) }}
+          />
+        </Card>
+      )}
+    </Stack>
+  );
+}
+
+/** Simple markdown-to-HTML renderer for AI suggestions */
+function renderMarkdown(md: string): string {
+  return md
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^### (.+)$/gm, '<h4 style="margin: 12px 0 4px">$1</h4>')
+    .replace(/^## (.+)$/gm, '<h3 style="margin: 16px 0 8px">$1</h3>')
+    .replace(/^# (.+)$/gm, '<h2 style="margin: 16px 0 8px">$1</h2>')
+    .replace(/^- (.+)$/gm, '<li style="margin-left: 16px">$1</li>')
+    .replace(/^\d+\. \*\*(.+?)\*\*(.*)$/gm, '<li style="margin-left: 16px; margin-top: 8px"><strong>$1</strong>$2</li>')
+    .replace(/^\d+\. (.+)$/gm, '<li style="margin-left: 16px; margin-top: 8px">$1</li>')
+    .replace(/\n\n/g, '<br/><br/>')
+    .replace(/\n/g, '\n');
+}
+
 // --- App ---
 
 const theme = createTheme({ primaryColor: 'blue', defaultRadius: 'md' });
@@ -1282,41 +1381,48 @@ function App() {
   return (
     <MantineProvider theme={theme} defaultColorScheme="dark">
       <Container size="xl" py="md">
-        <Group justify="space-between" mb="md">
-          <Group gap="sm">
-            <Title order={3}>Investments</Title>
-            {data?.priceRefreshTime && (
-              <Text size="xs" c="dimmed">Prices: {timeAgo(data.priceRefreshTime)}</Text>
-            )}
-          </Group>
-          <Group gap="sm">
-            <Button
-              variant="light"
-              size="xs"
-              loading={refreshing}
-              onClick={handleRefresh}
-            >
-              Refresh Prices
-            </Button>
-            {data && data.holdings.length > 0 && (
+        <Stack gap="lg" mb="md">
+          <Group justify="space-between" wrap="wrap">
+            <Title order={3}>Life Helper</Title>
+            <Group gap="sm">
               <Button
                 variant="light"
                 size="xs"
-                color={copied ? 'green' : 'gray'}
-                onClick={() => {
-                  navigator.clipboard.writeText(formatHoldingsForClipboard(data.holdings));
-                  setCopied(true);
-                  setTimeout(() => setCopied(false), 2000);
-                }}
+                loading={refreshing}
+                onClick={handleRefresh}
               >
-                {copied ? 'Copied!' : 'Copy Holdings'}
+                Refresh Prices
               </Button>
-            )}
-            <Button variant="subtle" component="a" href={`${BASE}/`} size="xs">
-              Back to Life Helper
-            </Button>
+              {data && data.holdings.length > 0 && (
+                <Button
+                  variant="light"
+                  size="xs"
+                  color={copied ? 'green' : 'gray'}
+                  onClick={() => {
+                    navigator.clipboard.writeText(formatHoldingsForClipboard(data.holdings));
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  }}
+                >
+                  {copied ? 'Copied!' : 'Copy Holdings'}
+                </Button>
+              )}
+            </Group>
           </Group>
-        </Group>
+          <Tabs value="investments" variant="pills" onChange={(value) => {
+            if (value === 'tennis-radar') window.location.href = `${BASE}/`;
+            if (value === 'settings') window.location.href = `${BASE}/?screen=settings`;
+          }}>
+            <Tabs.List>
+              <Tabs.Tab value="tennis-radar">Tennis Radar</Tabs.Tab>
+              <Tabs.Tab value="settings">Settings</Tabs.Tab>
+              <Tabs.Tab value="investments">Investments</Tabs.Tab>
+            </Tabs.List>
+          </Tabs>
+          {data?.priceRefreshTime && (
+            <Text size="xs" c="dimmed" mt={-8}>Prices: {timeAgo(data.priceRefreshTime)}</Text>
+          )}
+        </Stack>
 
         {loading && (
           <Center py="xl"><Loader size="sm" /></Center>
@@ -1365,6 +1471,9 @@ function App() {
                 <Tabs.Tab value="upload">
                   Upload
                 </Tabs.Tab>
+                <Tabs.Tab value="ai-insights">
+                  AI Insights
+                </Tabs.Tab>
               </Tabs.List>
 
               <Tabs.Panel value="holdings">
@@ -1405,6 +1514,12 @@ function App() {
 
               <Tabs.Panel value="upload">
                 <FileUploadPanel onDataChange={loadData} />
+              </Tabs.Panel>
+
+              <Tabs.Panel value="ai-insights">
+                <Card padding="md">
+                  <AiSuggestionsPanel />
+                </Card>
               </Tabs.Panel>
             </Tabs>
           </>

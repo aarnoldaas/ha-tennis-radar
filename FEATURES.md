@@ -50,33 +50,46 @@
 - **Deduplication** — suppresses duplicate alerts for the same slot within 1 hour
 - **Error alerts** when a provider is disabled due to failures
 
-### Tennis Radar — Web Dashboard
+### Web UI — Navigation
 
-#### Courts Tab
+Three top-level screens accessible via pill-style tabs on every page:
+
+1. **Tennis Radar** — court availability and bookings (default)
+2. **Settings** — shared configuration for all features
+3. **Investments** — portfolio tracker (separate page with full-width layout)
+
+URL-based screen switching (`?screen=settings`) with browser history support.
+
+### Tennis Radar Screen
+
+Sub-tabs (outline style) within the Tennis Radar screen:
+
+#### Courts Sub-tab
 
 - Available slots grouped by date
 - Cards showing court name, time range, duration, and provider
 - Summary of total matching courts
 - Poll statistics: last poll time, dates checked, slots found, query duration, per-provider breakdown
 
-#### Bookings Tab
+#### Bookings Sub-tab
 
 - User's existing bookings from all providers, grouped by date
 - Displays court name, time, duration, provider, price, and status
 - Manual refresh button
 - Error handling for booking fetch failures
 
-#### Settings Tab
+### Settings Screen
 
 - **Date picker** — select from next 14 days with weekend indicators
 - **Poll interval**, **start/end time**, **min duration**, **notify device**
 - **Provider credentials** — SEB session token, Baltic Tennis username/password
+- **Anthropic API key** — for AI portfolio insights
 - **Debug mode** toggle
 - Save with immediate effect and validation feedback
 
-#### Status & Errors
+#### Status & Errors (Tennis Radar)
 
-- Status badge: Running / Issues / Error / Loading
+- Status badge: Running / Issues / Error / Loading (shown on Tennis Radar screen)
 - Configuration warnings (invalid times, missing credentials, no providers enabled)
 - Provider error banner with details and resume button
 
@@ -208,6 +221,15 @@
 - **Allocation & risk tests**: geographic/sector/currency allocation, concentration warnings, ticker metadata
 - **Equity compensation tests**: RSU compensation by grant/year, same-day sale detection, ESPP discount calculation
 - **Parser tests**: Swedbank (trade classification, dividend formats, ticker aliases), Interactive Brokers (forex filtering, FX rate conversion, date parsing), Wix (RSU/ESPP classification, sell handling), Revolut (synthetic BUY+SELL pairs, crypto transactions)
+
+### AI Portfolio Insights
+
+- **AI-powered analysis** — generates portfolio suggestions and insights using Claude (Anthropic API)
+- **Anthropic API key** — configured in the Tennis Radar Settings tab (Advanced section)
+- **Persistent storage** — AI suggestions saved to `/data/ai-suggestions.json` and persist across restarts
+- **On-demand generation** — click "Generate Insights" button in the AI Insights tab to request fresh analysis
+- **Portfolio context** — sends holdings, allocation, risk warnings, realized P&L, and per-stock performance to the AI
+- **Structured output** — portfolio health assessment, key strengths, concerns, actionable suggestions, and tax considerations
 
 ### Parser Interface
 

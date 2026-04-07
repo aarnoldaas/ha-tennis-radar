@@ -133,9 +133,10 @@ export function computePortfolioSummary(
   totalDividendsEur: number,
   totalInterestEur: number,
 ): IPortfolioSummary {
-  const totalCost = holdings.reduce((s, h) => s + h.totalCostBasisEur, 0);
-  const totalValue = holdings.reduce((s, h) => s + h.currentValueEur, 0);
-  const unrealizedPnl = holdings.reduce((s, h) => s + h.unrealizedPnlEur, 0);
+  const nonWixHoldings = holdings.filter(h => h.symbol !== 'WIX');
+  const totalCost = nonWixHoldings.reduce((s, h) => s + h.totalCostBasisEur, 0);
+  const totalValue = nonWixHoldings.reduce((s, h) => s + h.currentValueEur, 0);
+  const unrealizedPnl = nonWixHoldings.reduce((s, h) => s + h.unrealizedPnlEur, 0);
   const totalIncome = totalDividendsEur + totalInterestEur;
   const totalReturn = unrealizedPnl + totalRealizedPnlEur + totalIncome;
   const totalReturnPct = totalCost > 0 ? (totalReturn / totalCost) * 100 : 0;

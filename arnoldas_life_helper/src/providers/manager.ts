@@ -126,6 +126,10 @@ export class CourtProviderManager {
     return this.providers.length;
   }
 
+  get hasActiveProviders(): boolean {
+    return this.providers.some(p => !this.disabledProviders.has(p.name));
+  }
+
   disposeAll(): void {
     this.providers = [];
     this.disabledProviders.clear();

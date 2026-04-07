@@ -141,7 +141,7 @@ export async function loadInvestmentData(dataDir: string): Promise<InvestmentDat
   console.log(`[Investments] Computed ${holdings.length} holdings, ${realizedTrades.length} realized trades`);
 
   const dividends = computeDividends(transactions);
-  const totalRealizedPnlEur = realizedTrades.reduce((s, rt) => s + rt.realizedPnlEur, 0);
+  const totalRealizedPnlEur = realizedTrades.filter(rt => rt.symbol !== 'WIX').reduce((s, rt) => s + rt.realizedPnlEur, 0);
   const totalDividendsEur = dividends.reduce((s, d) => s + d.amountEur, 0);
   const totalInterestEur = interestSummary?.totalEur ?? 0;
 
@@ -152,7 +152,7 @@ export async function loadInvestmentData(dataDir: string): Promise<InvestmentDat
   const tickerMeta = buildTickerMetaMap(holdings);
 
   const stockStats = computeStockStats(holdings, realizedTrades, dividends, transactions);
-  const stockStatsTotals = computeStockStatsTotals(stockStats);
+  const stockStatsTotals = computeStockStatsTotals(stockStats.filter(s => s.symbol !== 'WIX'));
   const portfolioSummary = computePortfolioSummary(holdings, totalRealizedPnlEur, totalDividendsEur, totalInterestEur);
   const dividendsByStock = computeDividendsByStock(dividends);
   const realizedTradeSummary = computeRealizedTradeSummary(realizedTrades);

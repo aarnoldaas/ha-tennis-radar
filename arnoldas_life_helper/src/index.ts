@@ -29,6 +29,11 @@ const notifiedErrors = new Set<string>();
 
 const poller = new PollingManager(
   async () => {
+    if (!providerManager.hasActiveProviders) {
+      console.log('[TennisRadar] Skipping poll — no active providers');
+      return;
+    }
+
     const dates = getEffectiveDates(options.scan_dates);
     console.log(`[TennisRadar] Polling for dates: ${dates.join(', ')}`);
 

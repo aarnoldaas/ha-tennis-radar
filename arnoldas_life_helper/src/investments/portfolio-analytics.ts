@@ -8,6 +8,7 @@ import type {
   IDividendPayment,
   ITransaction,
   IStockStats,
+  IStockTradeAnalysis,
   IPortfolioSummary,
   IDividendByStock,
   IRealizedTradeSummary,
@@ -206,4 +207,127 @@ export function computeRsuByYearWithCumulative(
       cumulativeEur: round2(cumEur),
     };
   });
+}
+
+// ----------------------------------------------------------------------------
+// Per-stock trade analysis (buy/sell price stats)
+// ----------------------------------------------------------------------------
+
+export function computeStockTradeAnalysis(
+  transactions: ITransaction[],
+  holdings: IHolding[],
+  realizedTrades: IRealizedTrade[],
+): IStockTradeAnalysis[] {
+  const symbols = new Set<string>();
+  for (const t of transactions) {
+    if (t.symbol && (t.type === 'BUY' || t.type === 'SELL')) symbols.add(t.symbol);
+  }
+
+  const holdingMap = new Map<string, IHolding>();
+  for (const h of holdings) holdingMap.set(h.symbol, h);
+
+  const realizedBySymbol = new Map<string, IRealizedTrade[]>();
+  for (const rt of realizedTrades) {
+    const arr = realizedBySymbol.get(rt.symbol) || [];
+    arr.push(rt);
+    realizedBySymbol.set(rt.symbol, arr);
+  }
+
+  const result: IStockTradeAnalysis[] = [];
+
+  for (const symbol of symbols) {
+    const buys = transactions.filter(t => t.symbol === symbol && t.type === 'BUY');
+    const sells = transactions.filter(t => t.symbol === symbol && t.type === 'SELL');
+
+    if (buys.length === 0 && sells.length === 0) continue;
+
+    // Weighted average buy price
+    let totalBoughtQty = 0;
+    let totalBoughtCost = 0;
+    let lastBuyDate: string | null = null;
+    let lastBuyPrice: number | null = null;
+    let currency = '';
+
+    for (const b of buys) {
+      totalBoughtQty += Math.abs(b.quantity);
+      totalBoughtCost += Math.abs(b.quantity) * b.pricePerUnit;
+      if (!currency) currency = b.currency;
+      if (!lastBuyDate || b.date > lastBuyDate) {
+        lastBuyDate = b.date;
+        lastBuyPrice = b.pricePerUnit;
+      }
+    }
+    const avgBuyPrice = totalBoughtQty > 0 ? round2(totalBoughtCost / totalBoughtQty) : 0;
+
+    // Weighted average sell price
+    let totalSoldQty = 0;
+    let totalSoldProceeds = 0;
+    let lastSellDate: string | null = null;
+    let lastSellPrice: number | null = null;
+
+    for (const s of sells) {
+      totalSoldQty += Math.abs(s.quantity);
+      totalSoldProceeds += Math.abs(s.quantity) * s.pricePerUnit;
+      if (!currency) currency = s.currency;
+      if (!lastSellDate || s.date > lastSellDate) {
+        lastSellDate = s.date;
+        lastSellPrice = s.pricePerUnit;
+      }
+    }
+    const avgSellPrice = totalSoldQty > 0 ? round2(totalSoldProceeds / totalSoldQty) : null;
+
+    // Current price from holding
+    const holding = holdingMap.get(symbol);
+    const currentPrice = holding ? holding.currentPrice : null;
+
+    // Win rate and best/worst trade from realized trades
+    const trades = realizedBySymbol.get(symbol) || [];
+    let winRate: number | null = null;
+    let bestTradeEur: number | null = null;
+    let worstTradeEur: number | null = null;
+    let avgHoldDays: number | null = null;
+
+    if (trades.length > 0) {
+      const wins = trades.filter(t => t.realizedPnlEur > 0).length;
+      winRate = round2((wins / trades.length) * 100);
+      bestTradeEur = round2(Math.max(...trades.map(t => t.realizedPnlEur)));
+      worstTradeEur = round2(Math.min(...trades.map(t => t.realizedPnlEur)));
+
+      // Average hold days
+      let totalDays = 0;
+      let count = 0;
+      for (const t of trades) {
+        if (t.lotsConsumed && t.lotsConsumed.length > 0) {
+          const acquDate = t.lotsConsumed[0].lot.acquisitionDate;
+          const diff = (new Date(t.sellDate).getTime() - new Date(acquDate).getTime()) / (1000 * 60 * 60 * 24);
+          totalDays += diff;
+          count++;
+        }
+      }
+      avgHoldDays = count > 0 ? Math.round(totalDays / count) : null;
+    }
+
+    result.push({
+      symbol,
+      avgBuyPrice,
+      avgSellPrice,
+      lastBuyDate,
+      lastBuyPrice: lastBuyPrice !== null ? round2(lastBuyPrice) : null,
+      lastSellDate,
+      lastSellPrice: lastSellPrice !== null ? round2(lastSellPrice) : null,
+      totalBoughtQty: round2(totalBoughtQty),
+      totalSoldQty: round2(totalSoldQty),
+      buyCount: buys.length,
+      sellCount: sells.length,
+      currency,
+      currentPrice: currentPrice !== null ? round2(currentPrice!) : null,
+      winRate,
+      bestTradeEur,
+      worstTradeEur,
+      avgHoldDays,
+      isOpen: !!holding,
+    });
+  }
+
+  return result.sort((a, b) => b.totalBoughtQty - a.totalBoughtQty);
 }

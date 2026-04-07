@@ -50,10 +50,18 @@
 - **RSU compensation summary** — total value by year and by grant, cumulative timeline
 - **ESPP summary** — shares purchased, cost basis, discount captured, average discount %
 
+### Trade Analysis
+- **Per-stock buy/sell analysis tab** — avg buy price, avg sell price, current price, last buy/sell date and price
+- Total bought/sold quantities and transaction counts per stock
+- **Win rate** — percentage of profitable realized sells per stock
+- **Best/worst trade** — best and worst single realized trade P&L (EUR)
+- **Average hold period** — mean days held for realized trades
+- Filterable by open/closed positions, sortable by all columns
+
 ### Dashboard
 - React + Mantine UI with dark theme
 - Sortable tables for holdings, realized trades, and transactions
-- Tabs: Holdings, Realized P&L, Allocation, Equity Comp, Stocks, Market Data, Transactions
+- Tabs: Holdings, Realized P&L, Allocation, Equity Comp, Trade Analysis, Stocks, Market Data, Transactions
 - Color-coded P&L (green/red), transaction type badges
 - Home Assistant ingress support
 

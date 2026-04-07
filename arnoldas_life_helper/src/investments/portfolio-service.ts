@@ -11,8 +11,8 @@ import type { ITransaction, IHolding, IRealizedTrade, IDividendPayment, IRsuComp
 import { convertAmount } from './currency.js';
 import { computeAllocation, computeRiskWarnings, buildTickerMetaMap, type AllocationBreakdown, type RiskWarning, type TickerMeta } from './analytics.js';
 import { computeRsuCompensation, computeEsppSummary, type EsppSummary } from './equity-compensation.js';
-import { computeStockStats, computeStockStatsTotals, computePortfolioSummary, computeDividendsByStock, computeRealizedTradeSummary, computeRsuByYearWithCumulative } from './portfolio-analytics.js';
-import type { IStockStats, IPortfolioSummary, IDividendByStock, IRealizedTradeSummary, IStockStatsTotals, IRsuYearWithCumulative } from './types.js';
+import { computeStockStats, computeStockStatsTotals, computePortfolioSummary, computeDividendsByStock, computeRealizedTradeSummary, computeRsuByYearWithCumulative, computeStockTradeAnalysis } from './portfolio-analytics.js';
+import type { IStockStats, IStockTradeAnalysis, IPortfolioSummary, IDividendByStock, IRealizedTradeSummary, IStockStatsTotals, IRsuYearWithCumulative } from './types.js';
 
 export interface InvestmentData {
   transactions: ITransaction[];
@@ -54,6 +54,8 @@ export interface InvestmentData {
   priceHistory: Record<string, PriceEntry[]>;
   /** Stock fundamental info (P/E, dividends, etc.) */
   stockInfo: StockInfo[];
+  /** Per-stock trade analysis (buy/sell price stats) */
+  stockTradeAnalysis: IStockTradeAnalysis[];
 }
 
 let cached: InvestmentData | null = null;
@@ -155,6 +157,7 @@ export async function loadInvestmentData(dataDir: string): Promise<InvestmentDat
   const dividendsByStock = computeDividendsByStock(dividends);
   const realizedTradeSummary = computeRealizedTradeSummary(realizedTrades);
   const rsuByYearWithCumulative = computeRsuByYearWithCumulative(rsuCompensation.byYear);
+  const stockTradeAnalysis = computeStockTradeAnalysis(transactions, holdings, realizedTrades);
 
   console.log(`[Investments] RSU compensation: $${rsuCompensation.totalCompensation} (${rsuCompensation.byYear.length} years)`);
   console.log(`[Investments] ESPP: ${esppSummary.totalSharesPurchased} shares, ${esppSummary.averageDiscountPercent}% avg discount`);
@@ -183,6 +186,7 @@ export async function loadInvestmentData(dataDir: string): Promise<InvestmentDat
     rsuByYearWithCumulative,
     priceHistory: getAllPriceHistory(),
     stockInfo: getAllStockInfo(),
+    stockTradeAnalysis,
   };
   return cached;
 }

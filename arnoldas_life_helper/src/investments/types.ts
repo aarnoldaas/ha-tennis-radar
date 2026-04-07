@@ -708,6 +708,45 @@ export interface IRealizedTradeSummary {
   longTermCount: number;
 }
 
+/** Per-stock trade analysis — buy/sell price stats */
+export interface IStockTradeAnalysis {
+  symbol: string;
+  /** Weighted average buy price (original currency) */
+  avgBuyPrice: number;
+  /** Weighted average sell price (original currency) */
+  avgSellPrice: number | null;
+  /** Last buy date */
+  lastBuyDate: string | null;
+  /** Last buy price per share */
+  lastBuyPrice: number | null;
+  /** Last sell date */
+  lastSellDate: string | null;
+  /** Last sell price per share */
+  lastSellPrice: number | null;
+  /** Total shares bought */
+  totalBoughtQty: number;
+  /** Total shares sold */
+  totalSoldQty: number;
+  /** Number of buy transactions */
+  buyCount: number;
+  /** Number of sell transactions */
+  sellCount: number;
+  /** Original currency */
+  currency: string;
+  /** Current price (if still held) */
+  currentPrice: number | null;
+  /** % of sells that were profitable (sell price > avg cost at time) */
+  winRate: number | null;
+  /** Best single realized trade P&L (EUR) */
+  bestTradeEur: number | null;
+  /** Worst single realized trade P&L (EUR) */
+  worstTradeEur: number | null;
+  /** Average hold period in days for realized trades */
+  avgHoldDays: number | null;
+  /** Currently held */
+  isOpen: boolean;
+}
+
 /** Stock stats totals */
 export interface IStockStatsTotals {
   totalInvested: number;

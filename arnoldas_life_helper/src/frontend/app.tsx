@@ -57,6 +57,7 @@ interface Config {
   baltic_tennis_password: string;
   debug: boolean;
   anthropic_api_key: string;
+  alpha_vantage_api_key: string;
   todo_entity_id: string;
 }
 
@@ -475,6 +476,14 @@ function SettingsPanel() {
               placeholder="sk-ant-..."
               value={config.anthropic_api_key}
               onChange={e => update('anthropic_api_key', e.currentTarget.value)}
+              size="sm"
+            />
+            <PasswordInput
+              label="Alpha Vantage API Key"
+              description="Fallback stock price provider (25 free calls/day). Used when Yahoo Finance fails."
+              placeholder="Your Alpha Vantage API key"
+              value={config.alpha_vantage_api_key}
+              onChange={e => update('alpha_vantage_api_key', e.currentTarget.value)}
               size="sm"
             />
           </Stack>

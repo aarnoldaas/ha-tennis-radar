@@ -8,6 +8,34 @@ import { join } from 'node:path';
 
 const yf = new (YahooFinance as any)({ suppressNotices: ['yahooSurvey'] });
 
+// Alpha Vantage state
+let alphaVantageApiKey: string | null = null;
+let alphaVantageCallsToday = 0;
+let alphaVantageCallDate = '';
+const ALPHA_VANTAGE_DAILY_LIMIT = 25;
+
+export function setAlphaVantageApiKey(key: string): void {
+  alphaVantageApiKey = key || null;
+}
+
+function canCallAlphaVantage(): boolean {
+  if (!alphaVantageApiKey) return false;
+  const today = new Date().toISOString().slice(0, 10);
+  if (alphaVantageCallDate !== today) {
+    alphaVantageCallDate = today;
+    alphaVantageCallsToday = 0;
+  }
+  return alphaVantageCallsToday < ALPHA_VANTAGE_DAILY_LIMIT;
+}
+
+function trackAlphaVantageCall(): void {
+  alphaVantageCallsToday++;
+}
+
+export function getAlphaVantageStatus(): { key: boolean; callsToday: number; limit: number } {
+  return { key: !!alphaVantageApiKey, callsToday: alphaVantageCallsToday, limit: ALPHA_VANTAGE_DAILY_LIMIT };
+}
+
 export interface PriceEntry {
   date: string;
   price: number;
@@ -42,6 +70,8 @@ export interface StockInfo {
   twoHundredDayAverage: number | null;
   beta: number | null;
   earningsDate: string | null;
+  /** 5-year dividend per-share CAGR in percent (from Yahoo Finance historical dividends) */
+  divGrowthRate5Y: number | null;
   lastUpdated: string;
 }
 
@@ -179,6 +209,142 @@ const TICKER_CURRENCY_OVERRIDE: Record<string, string> = {
   '002594': 'CNY',  // BYD on Shenzhen — Yahoo may omit currency, price is in CNY
 };
 
+// Alpha Vantage ticker mapping (internal → AV symbol)
+// AV uses standard US tickers and exchange suffixes for international stocks
+const ALPHA_VANTAGE_TICKER_MAP: Record<string, string> = {
+  APG1L: 'APG1L.TL',   // Tallinn/Vilnius exchange
+  IGN1L: 'IGN1L.TL',
+  TEL1L: 'TEL1L.TL',
+  KNF1L: 'KNF1L.TL',
+  SAB1L: 'SAB1L.TL',
+  LNA1L: 'LNA1L.TL',
+  ROE1L: 'ROE1L.TL',
+  ASML: 'ASML',        // US ADR on NASDAQ
+  E3G1: 'EVO.ST',      // Evolution AB on Stockholm
+  BABA: 'BABA',
+  WIX: 'WIX',
+  GOOG: 'GOOG',
+  PBR: 'PBR',
+  NOVA: 'NVO',
+  '002594': '002594.SHZ',
+};
+
+/**
+ * Fetch stock quote from Alpha Vantage GLOBAL_QUOTE endpoint.
+ * Returns price and currency, or null on failure.
+ */
+async function fetchAlphaVantageQuote(ticker: string): Promise<{
+  price: number;
+  currency: string;
+  name?: string;
+  peRatio?: number | null;
+  eps?: number | null;
+  dividendYield?: number | null;
+  fiftyTwoWeekHigh?: number | null;
+  fiftyTwoWeekLow?: number | null;
+  marketCap?: number | null;
+} | null> {
+  if (!canCallAlphaVantage()) return null;
+
+  const avTicker = ALPHA_VANTAGE_TICKER_MAP[ticker] || ticker;
+
+  try {
+    // GLOBAL_QUOTE for current price
+    trackAlphaVantageCall();
+    const quoteUrl = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${encodeURIComponent(avTicker)}&apikey=${alphaVantageApiKey}`;
+    const quoteRes = await fetch(quoteUrl);
+    const quoteData = await quoteRes.json();
+
+    const gq = quoteData['Global Quote'];
+    if (!gq || !gq['05. price']) {
+      console.warn(`[AlphaVantage] No quote data for ${avTicker}`);
+      return null;
+    }
+
+    const price = parseFloat(gq['05. price']);
+    const knownCurrency = TICKER_CURRENCY_OVERRIDE[ticker] || HARDCODED_PRICES[ticker]?.[0]?.currency || 'USD';
+
+    const result: any = { price, currency: knownCurrency };
+
+    // OVERVIEW for fundamentals (costs another API call)
+    if (canCallAlphaVantage()) {
+      trackAlphaVantageCall();
+      const overviewUrl = `https://www.alphavantage.co/query?function=OVERVIEW&symbol=${encodeURIComponent(avTicker)}&apikey=${alphaVantageApiKey}`;
+      const overviewRes = await fetch(overviewUrl);
+      const overview = await overviewRes.json();
+
+      if (overview && overview.Name) {
+        result.name = overview.Name;
+        result.peRatio = overview.PERatio && overview.PERatio !== 'None' ? parseFloat(overview.PERatio) : null;
+        result.eps = overview.EPS && overview.EPS !== 'None' ? parseFloat(overview.EPS) : null;
+        result.dividendYield = overview.DividendYield && overview.DividendYield !== 'None' && overview.DividendYield !== '0'
+          ? parseFloat(overview.DividendYield) : null;
+        result.fiftyTwoWeekHigh = overview['52WeekHigh'] && overview['52WeekHigh'] !== 'None'
+          ? parseFloat(overview['52WeekHigh']) : null;
+        result.fiftyTwoWeekLow = overview['52WeekLow'] && overview['52WeekLow'] !== 'None'
+          ? parseFloat(overview['52WeekLow']) : null;
+        result.marketCap = overview.MarketCapitalization && overview.MarketCapitalization !== 'None'
+          ? parseFloat(overview.MarketCapitalization) : null;
+      }
+    }
+
+    console.log(`[AlphaVantage] Fetched ${ticker} (${avTicker}): ${price} ${knownCurrency} (calls today: ${alphaVantageCallsToday}/${ALPHA_VANTAGE_DAILY_LIMIT})`);
+    return result;
+  } catch (e) {
+    console.warn(`[AlphaVantage] Failed for ${ticker}:`, e);
+    return null;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Per-share 5-year dividend growth rate from Yahoo Finance historical data
+// ----------------------------------------------------------------------------
+
+/**
+ * Fetches historical per-share dividend data from Yahoo Finance and computes
+ * the 5-year CAGR of annual dividends per share.
+ * Returns null if insufficient data (< 2 years with dividends).
+ */
+async function fetchDivGrowthRate5Y(yahooTicker: string): Promise<number | null> {
+  try {
+    const fiveYearsAgo = new Date();
+    fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+    const history = await (yf as any).historical(yahooTicker, {
+      period1: fiveYearsAgo.toISOString().slice(0, 10),
+      events: 'dividends',
+    }) as Array<{ date: Date; dividends: number }>;
+
+    if (!history || history.length === 0) return null;
+
+    // Sum dividends per calendar year
+    const byYear = new Map<number, number>();
+    for (const entry of history) {
+      const year = entry.date.getFullYear();
+      byYear.set(year, (byYear.get(year) ?? 0) + entry.dividends);
+    }
+
+    const currentYear = new Date().getFullYear();
+    const years = [...byYear.keys()]
+      .filter(y => y < currentYear) // exclude current partial year
+      .sort((a, b) => a - b);
+
+    if (years.length < 2) return null;
+
+    const baseYear = years[0];
+    const latestYear = years[years.length - 1];
+    const baseAmount = byYear.get(baseYear)!;
+    const latestAmount = byYear.get(latestYear)!;
+    const n = latestYear - baseYear;
+
+    if (baseAmount <= 0 || n === 0) return null;
+
+    const cagr = Math.pow(latestAmount / baseAmount, 1 / n) - 1;
+    return Math.round(cagr * 10000) / 100; // percent, 2 decimal places
+  } catch {
+    return null;
+  }
+}
+
 // ----------------------------------------------------------------------------
 // In-memory price cache (populated by manual refresh)
 // ----------------------------------------------------------------------------
@@ -187,16 +353,30 @@ const priceCache = new Map<string, CachedPrice>();
 
 /**
  * Fetch live prices for a list of tickers from Yahoo Finance.
+ * Falls back to Alpha Vantage for tickers that Yahoo fails on.
+ * Prioritizes tickers with the oldest (or no) cached prices.
  * Updates the in-memory cache and appends to file-based price history.
  * Also fetches stock fundamental info (P/E, dividends, etc.).
  * Returns the number of successfully fetched tickers.
  */
-export async function refreshPrices(tickers: string[]): Promise<{ fetched: number; failed: string[] }> {
+export async function refreshPrices(tickers: string[]): Promise<{ fetched: number; failed: string[]; alphaVantageCalls: number }> {
   const failed: string[] = [];
   let fetched = 0;
   const today = new Date().toISOString().slice(0, 10);
 
-  for (const ticker of tickers) {
+  // Sort tickers: prioritize those without cached prices, then oldest cached
+  const sortedTickers = [...tickers].sort((a, b) => {
+    const aCache = priceCache.get(a);
+    const bCache = priceCache.get(b);
+    if (!aCache && !bCache) return 0;
+    if (!aCache) return -1;
+    if (!bCache) return 1;
+    return aCache.lastUpdated.localeCompare(bCache.lastUpdated);
+  });
+
+  const yahooFailed: string[] = [];
+
+  for (const ticker of sortedTickers) {
     const yahooTicker = YAHOO_TICKER_MAP[ticker] || ticker;
     try {
       const quote = await yf.quote(yahooTicker) as any;
@@ -212,14 +392,17 @@ export async function refreshPrices(tickers: string[]): Promise<{ fetched: numbe
           lastUpdated: now,
         });
 
-        // Append to file-based price history
         appendPriceEntry(ticker, {
           date: today,
           price: quote.regularMarketPrice,
           currency,
         });
 
-        // Build stock info from quote data
+        const existingDgr = stockInfoCache.get(ticker)?.divGrowthRate5Y ?? null;
+        const divGrowthRate5Y = quote.dividendRate
+          ? await fetchDivGrowthRate5Y(yahooTicker) ?? existingDgr
+          : existingDgr;
+
         stockInfoCache.set(ticker, {
           ticker,
           name: quote.shortName || quote.longName || ticker,
@@ -238,22 +421,75 @@ export async function refreshPrices(tickers: string[]): Promise<{ fetched: numbe
           twoHundredDayAverage: quote.twoHundredDayAverage ?? null,
           beta: quote.beta ?? null,
           earningsDate: quote.earningsTimestamp ? new Date(quote.earningsTimestamp * 1000).toISOString().slice(0, 10) : null,
+          divGrowthRate5Y,
           lastUpdated: now,
         });
 
         fetched++;
       } else {
-        failed.push(ticker);
+        yahooFailed.push(ticker);
       }
     } catch {
+      yahooFailed.push(ticker);
+    }
+  }
+
+  // Alpha Vantage fallback for Yahoo failures
+  const avCallsBefore = alphaVantageCallsToday;
+  for (const ticker of yahooFailed) {
+    if (!canCallAlphaVantage()) {
+      failed.push(ticker);
+      continue;
+    }
+
+    const avResult = await fetchAlphaVantageQuote(ticker);
+    if (avResult) {
+      const now = new Date().toISOString();
+      priceCache.set(ticker, {
+        price: avResult.price,
+        currency: avResult.currency,
+        lastUpdated: now,
+      });
+
+      appendPriceEntry(ticker, {
+        date: today,
+        price: avResult.price,
+        currency: avResult.currency,
+      });
+
+      // Build stock info from AV data
+      const existing = stockInfoCache.get(ticker);
+      stockInfoCache.set(ticker, {
+        ticker,
+        name: avResult.name || existing?.name || ticker,
+        currency: avResult.currency,
+        currentPrice: avResult.price,
+        peRatio: avResult.peRatio ?? existing?.peRatio ?? null,
+        forwardPeRatio: existing?.forwardPeRatio ?? null,
+        epsTrailingTwelveMonths: avResult.eps ?? existing?.epsTrailingTwelveMonths ?? null,
+        dividendYield: avResult.dividendYield ?? existing?.dividendYield ?? null,
+        dividendRate: existing?.dividendRate ?? null,
+        exDividendDate: existing?.exDividendDate ?? null,
+        marketCap: avResult.marketCap ?? existing?.marketCap ?? null,
+        fiftyTwoWeekHigh: avResult.fiftyTwoWeekHigh ?? existing?.fiftyTwoWeekHigh ?? null,
+        fiftyTwoWeekLow: avResult.fiftyTwoWeekLow ?? existing?.fiftyTwoWeekLow ?? null,
+        fiftyDayAverage: existing?.fiftyDayAverage ?? null,
+        twoHundredDayAverage: existing?.twoHundredDayAverage ?? null,
+        beta: existing?.beta ?? null,
+        earningsDate: existing?.earningsDate ?? null,
+        divGrowthRate5Y: existing?.divGrowthRate5Y ?? null,
+        lastUpdated: now,
+      });
+
+      fetched++;
+    } else {
       failed.push(ticker);
     }
   }
 
-  // Persist price history to file
   savePriceHistory();
 
-  return { fetched, failed };
+  return { fetched, failed, alphaVantageCalls: alphaVantageCallsToday - avCallsBefore };
 }
 
 /**

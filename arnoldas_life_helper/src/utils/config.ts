@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 
 export interface AddonOptions {
   poll_interval_seconds: number;
+  night_poll_interval_seconds: number;
   scan_dates: string[];
   preferred_start_time: string;
   preferred_end_time: string;
@@ -14,6 +15,7 @@ export interface AddonOptions {
   baltic_tennis_password: string;
   debug: boolean;
   anthropic_api_key: string;
+  alpha_vantage_api_key: string;
   todo_entity_id: string;
 }
 
@@ -22,6 +24,7 @@ const CONFIG_PATH = `${DATA_DIR}/config.json`;
 
 const DEFAULTS: AddonOptions = {
   poll_interval_seconds: 30,
+  night_poll_interval_seconds: 900,
   scan_dates: [],
   preferred_start_time: '17:00',
   preferred_end_time: '21:00',
@@ -34,6 +37,7 @@ const DEFAULTS: AddonOptions = {
   baltic_tennis_password: '',
   debug: false,
   anthropic_api_key: '',
+  alpha_vantage_api_key: '',
   todo_entity_id: 'todo.01kn1rvcbxskmfdrqfdry7xvkq',
 };
 
@@ -122,6 +126,21 @@ export function validateConfig(opts: AddonOptions): ConfigWarning[] {
 export function saveOptions(options: AddonOptions): void {
   mkdirSync(DATA_DIR, { recursive: true });
   writeFileSync(CONFIG_PATH, JSON.stringify(options, null, 2));
+}
+
+/**
+ * Returns true if the current local hour is in the night window (23:00–08:00).
+ */
+export function isNightHours(): boolean {
+  const hour = new Date().getHours();
+  return hour >= 23 || hour < 8;
+}
+
+/**
+ * Returns the effective poll interval in ms based on time of day.
+ */
+export function getEffectiveIntervalMs(opts: AddonOptions): number {
+  return (isNightHours() ? opts.night_poll_interval_seconds : opts.poll_interval_seconds) * 1000;
 }
 
 /**

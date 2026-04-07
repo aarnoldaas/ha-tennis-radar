@@ -1,4 +1,4 @@
-import { loadOptions, getEffectiveDates, validateConfig, type AddonOptions } from './utils/config.js';
+import { loadOptions, getEffectiveDates, validateConfig, getEffectiveIntervalMs, type AddonOptions } from './utils/config.js';
 import { createServer, globalState } from './server.js';
 import { PollingManager } from './polling.js';
 import { CourtProviderManager } from './providers/manager.js';
@@ -74,11 +74,14 @@ const poller = new PollingManager(
 
     console.log(`[TennisRadar] Found ${results.length} total slots, ${matching.length} matching preferences (${durationMs}ms).`);
 
+    // Adjust interval for night hours (23:00–08:00)
+    poller.updateInterval(getEffectiveIntervalMs(options));
+
     if (matching.length > 0) {
       await notifier.sendCourtAlert(matching, options.notify_device || undefined);
     }
   },
-  { intervalMs: options.poll_interval_seconds * 1000 },
+  { intervalMs: getEffectiveIntervalMs(options) },
 );
 
 function onConfigChange(newOptions: AddonOptions) {
@@ -89,7 +92,7 @@ function onConfigChange(newOptions: AddonOptions) {
   globalState.providerErrors = [];
   globalState.disabledProviders = [];
   notifiedErrors.clear();
-  poller.updateInterval(options.poll_interval_seconds * 1000);
+  poller.updateInterval(getEffectiveIntervalMs(options));
   poller.start();
 }
 

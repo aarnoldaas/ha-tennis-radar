@@ -171,6 +171,59 @@ export function computeDividendsByStock(dividends: IDividendPayment[]): IDividen
 }
 
 // ----------------------------------------------------------------------------
+// 5-year dividend growth rate (CAGR) per stock
+// ----------------------------------------------------------------------------
+
+/**
+ * Computes the 5-year dividend CAGR per stock from recorded dividend history.
+ * Groups dividends by stock and calendar year, then calculates:
+ *   CAGR = (latestYearTotal / baseYearTotal)^(1/years) - 1
+ * Returns null when fewer than 2 years of data are available.
+ */
+export function computeDividendGrowth5Y(dividends: IDividendPayment[]): Record<string, number | null> {
+  const bySymbolYear = new Map<string, Map<number, number>>();
+
+  for (const d of dividends) {
+    const year = parseInt(d.date.slice(0, 4), 10);
+    if (!bySymbolYear.has(d.symbol)) bySymbolYear.set(d.symbol, new Map());
+    const yearMap = bySymbolYear.get(d.symbol)!;
+    yearMap.set(year, (yearMap.get(year) ?? 0) + d.amountEur);
+  }
+
+  const result: Record<string, number | null> = {};
+  const currentYear = new Date().getFullYear();
+  const lookbackStart = currentYear - 5;
+
+  for (const [symbol, yearMap] of bySymbolYear) {
+    // Only consider years within the 5-year window (excluding current partial year)
+    const years = [...yearMap.keys()]
+      .filter(y => y >= lookbackStart && y < currentYear)
+      .sort((a, b) => a - b);
+
+    if (years.length < 2) {
+      result[symbol] = null;
+      continue;
+    }
+
+    const baseYear = years[0];
+    const latestYear = years[years.length - 1];
+    const baseAmount = yearMap.get(baseYear)!;
+    const latestAmount = yearMap.get(latestYear)!;
+    const n = latestYear - baseYear;
+
+    if (baseAmount <= 0 || n === 0) {
+      result[symbol] = null;
+      continue;
+    }
+
+    const cagr = Math.pow(latestAmount / baseAmount, 1 / n) - 1;
+    result[symbol] = Math.round(cagr * 10000) / 100; // percent, 2 decimal places
+  }
+
+  return result;
+}
+
+// ----------------------------------------------------------------------------
 // Realized trade summary
 // ----------------------------------------------------------------------------
 

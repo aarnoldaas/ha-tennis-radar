@@ -97,7 +97,7 @@ export async function generateAiSuggestions(apiKey: string, data: InvestmentData
   const portfolioContext = buildPortfolioContext(data);
 
   const message = await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-opus-4-6',
     max_tokens: 2048,
     messages: [
       {

@@ -11,6 +11,8 @@ import { loadOptions, saveOptions, validateConfig } from './utils/config.js';
 import { getInvestmentData, loadInvestmentData, refreshInvestmentPrices } from './investments/portfolio-service.js';
 import { loadEcbRates } from './investments/currency.js';
 import { loadSavedSuggestions, generateAiSuggestions } from './investments/ai-suggestions.js';
+import { loadPlan, savePlan, refinePlanWithAi } from './investments/plan-service.js';
+import { setAlphaVantageApiKey, getAlphaVantageStatus } from './investments/prices.js';
 import { TodoService } from './todos/service.js';
 
 // Shared state — updated by the polling loop
@@ -122,10 +124,12 @@ export function createServer(options: { port: number; dataDir: string; getOption
   // API: refresh investment prices and ECB rates
   app.post('/api/investments/refresh', async () => {
     try {
+      const config = options.getOptions();
+      setAlphaVantageApiKey(config.alpha_vantage_api_key);
       await loadEcbRates();
       const result = await refreshInvestmentPrices();
       const data = getInvestmentData();
-      return { success: true, ...result, data };
+      return { success: true, ...result, alphaVantage: getAlphaVantageStatus(), data };
     } catch (err) {
       return { success: false, error: err instanceof Error ? err.message : String(err) };
     }
@@ -268,6 +272,40 @@ export function createServer(options: { port: number; dataDir: string; getOption
     }
     try {
       const result = await generateAiSuggestions(config.anthropic_api_key, data);
+      return { success: true, ...result };
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  });
+
+  // API: get investment plan
+  app.get('/api/investments/plan', async () => {
+    return loadPlan() || { content: '', updatedAt: null };
+  });
+
+  // API: save investment plan
+  app.post('/api/investments/plan', async (request) => {
+    const { content } = request.body as { content: string };
+    const plan = savePlan(content);
+    return { success: true, ...plan };
+  });
+
+  // API: refine plan with AI
+  app.post('/api/investments/plan/refine', async () => {
+    const config = options.getOptions();
+    if (!config.anthropic_api_key) {
+      return { success: false, error: 'Anthropic API key not configured. Add it in the Settings screen.' };
+    }
+    const data = getInvestmentData();
+    if (!data || data.holdings.length === 0) {
+      return { success: false, error: 'No portfolio data available. Upload investment files first.' };
+    }
+    const plan = loadPlan();
+    if (!plan?.content?.trim()) {
+      return { success: false, error: 'Write your plan first before refining it with AI.' };
+    }
+    try {
+      const result = await refinePlanWithAi(config.anthropic_api_key, data, plan.content);
       return { success: true, ...result };
     } catch (err) {
       return { success: false, error: err instanceof Error ? err.message : String(err) };

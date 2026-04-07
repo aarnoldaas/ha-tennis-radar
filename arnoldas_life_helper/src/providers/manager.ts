@@ -15,9 +15,12 @@ export interface CheckResult {
   errors: ProviderErrorInfo[];
 }
 
+const MAX_CONSECUTIVE_FAILURES = 10;
+
 export class CourtProviderManager {
   private providers: ICourtProvider[] = [];
   private disabledProviders = new Set<string>();
+  private consecutiveFailures = new Map<string, number>();
 
   constructor(options: AddonOptions) {
     if (options.seb_enabled && options.seb_session_token) {
@@ -54,11 +57,18 @@ export class CourtProviderManager {
       const provider = activeProviders[i];
       if (result.status === 'fulfilled') {
         console.log(`[ProviderManager] ${provider.name} returned ${result.value.length} slot(s)`);
+        this.consecutiveFailures.set(provider.name, 0);
         allSlots.push(...result.value);
       } else {
         const errMsg = result.reason instanceof Error ? result.reason.message : String(result.reason);
-        console.error(`[ProviderManager] ${provider.name} failed: ${errMsg} — disabling provider`);
-        this.disabledProviders.add(provider.name);
+        const failures = (this.consecutiveFailures.get(provider.name) ?? 0) + 1;
+        this.consecutiveFailures.set(provider.name, failures);
+        if (failures >= MAX_CONSECUTIVE_FAILURES) {
+          console.error(`[ProviderManager] ${provider.name} failed ${failures}x in a row — disabling provider`);
+          this.disabledProviders.add(provider.name);
+        } else {
+          console.warn(`[ProviderManager] ${provider.name} failed: ${errMsg} (${failures}/${MAX_CONSECUTIVE_FAILURES})`);
+        }
         errors.push({
           provider: provider.name,
           date: dates.join(', '),
@@ -75,6 +85,7 @@ export class CourtProviderManager {
   resumeProvider(name: string): boolean {
     if (this.disabledProviders.has(name)) {
       this.disabledProviders.delete(name);
+      this.consecutiveFailures.set(name, 0);
       console.log(`[ProviderManager] Resumed provider: ${name}`);
       return true;
     }
@@ -83,6 +94,7 @@ export class CourtProviderManager {
 
   resumeAll(): void {
     this.disabledProviders.clear();
+    this.consecutiveFailures.clear();
     console.log(`[ProviderManager] Resumed all providers`);
   }
 

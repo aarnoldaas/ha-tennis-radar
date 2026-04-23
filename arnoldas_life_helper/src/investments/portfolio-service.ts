@@ -194,13 +194,13 @@ export async function loadInvestmentData(dataDir: string): Promise<InvestmentDat
 /**
  * Refresh live prices for all held tickers, then recompute holdings.
  */
-export async function refreshInvestmentPrices(): Promise<{ fetched: number; failed: string[] }> {
+export async function refreshInvestmentPrices(): Promise<{ fetched: number; failed: string[]; skipped: string[] }> {
   // Collect tickers from current holdings
   const heldTickers = cached ? cached.holdings.map(h => h.symbol) : [];
   const allTickers = [...new Set([...heldTickers, ...getKnownTickers()])];
 
   const result = await refreshPrices(allTickers);
-  console.log(`[Investments] Price refresh: ${result.fetched} fetched, ${result.failed.length} failed${result.failed.length > 0 ? ` (${result.failed.join(', ')})` : ''}`);
+  console.log(`[Investments] Price refresh: ${result.fetched} fetched, ${result.failed.length} failed${result.failed.length > 0 ? ` (${result.failed.join(', ')})` : ''}, ${result.skipped.length} skipped (manual-only)`);
 
   // Recompute holdings with fresh prices
   if (lastDataDir) {

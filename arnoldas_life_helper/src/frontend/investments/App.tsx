@@ -35,8 +35,26 @@ import { StockDetailView } from './StockDetailView';
 import { UploadTab } from './UploadTab';
 import { PlanTab } from './PlanTab';
 import { AiInsightsTab } from './AiInsightsTab';
+import { PriceHistoryTab } from './PriceHistoryTab';
 
-const theme = createTheme({ primaryColor: 'blue', defaultRadius: 'md' });
+const theme = createTheme({
+  primaryColor: 'yellow',
+  defaultRadius: 'md',
+  fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+  headings: {
+    fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+    fontWeight: '700',
+  },
+  colors: {
+    yellow: [
+      '#fff9e6', '#fff0bf', '#ffe699', '#ffd966', '#ffcc33',
+      '#f5a623', '#d48c1a', '#a87216', '#7a5310', '#4d340a',
+    ],
+  },
+  other: {
+    fontMono: "'JetBrains Mono', 'Fira Code', monospace",
+  },
+});
 
 export function App() {
   const [data, setData] = useState<InvestmentData | null>(null);
@@ -181,6 +199,9 @@ export function App() {
                 <Tabs.Tab value="ai-insights">
                   AI Insights
                 </Tabs.Tab>
+                <Tabs.Tab value="price-history">
+                  Price History
+                </Tabs.Tab>
               </Tabs.List>
 
               <Tabs.Panel value="holdings">
@@ -239,6 +260,10 @@ export function App() {
                 <Card padding="md">
                   <AiInsightsTab />
                 </Card>
+              </Tabs.Panel>
+
+              <Tabs.Panel value="price-history">
+                <PriceHistoryTab allTickers={Object.keys(data.priceHistory)} />
               </Tabs.Panel>
             </Tabs>
             )}

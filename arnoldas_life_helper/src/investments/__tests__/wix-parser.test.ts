@@ -93,7 +93,7 @@ describe('classifyWixTransactions', () => {
   });
 
   it('sets broker to wix', () => {
-    const result = classifyWixTransactions(makeData([makeIssued()]));
+    const result = classifyWixTransactions(makeData([makeIssued({})]));
     expect(result[0].broker).toBe('wix');
   });
 });

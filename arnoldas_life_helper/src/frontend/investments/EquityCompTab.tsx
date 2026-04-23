@@ -39,7 +39,7 @@ export function EquityCompTab({ rsu, espp, rsuByYearWithCumulative }: EquityComp
             />
             <Tooltip
               {...tooltipStyle}
-              formatter={(value: number, name: string) => [formatEur(value), name]}
+              formatter={(value, name) => [formatEur(value as number), name as string]}
             />
             <Legend wrapperStyle={{ color: '#c1c2c5', fontSize: 12 }} />
             <Bar yAxisId="left" dataKey="totalCompensationEur" name="Annual (EUR)" fill={CHART_COLORS[0]} radius={[4, 4, 0, 0]} />

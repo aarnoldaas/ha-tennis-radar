@@ -8,7 +8,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import type { InvestmentData } from './types';
-import { formatNum, formatEur, formatMarketCap, pnlColor, TYPE_COLORS, IR_URLS } from './utils';
+import { formatNum, formatEur, pnlColor, TYPE_COLORS, IR_URLS } from './utils';
 import { CHART_COLORS, tooltipStyle } from './chart-theme';
 
 function StatCard({ label, value, color }: { label: string; value: string; color?: string }) {
@@ -98,27 +98,6 @@ export function StockDetailView({
         </SimpleGrid>
       )}
 
-      {/* Fundamentals */}
-      {info && (
-        <Card padding="md" withBorder>
-          <Text size="sm" fw={600} mb="sm">Fundamentals</Text>
-          <SimpleGrid cols={{ base: 2, sm: 4, md: 6 }}>
-            <StatCard label="P/E" value={info.peRatio != null ? formatNum(info.peRatio, 1) : '—'} />
-            <StatCard label="Fwd P/E" value={info.forwardPeRatio != null ? formatNum(info.forwardPeRatio, 1) : '—'} />
-            <StatCard label="EPS" value={info.epsTrailingTwelveMonths != null ? `${formatNum(info.epsTrailingTwelveMonths)} ${info.currency}` : '—'} />
-            <StatCard label="Div Yield" value={info.dividendYield != null && !isNaN(info.dividendYield) ? `${formatNum(info.dividendYield, 2)}%` : '—'} color={info.dividendYield != null && info.dividendYield > 0 ? '#51cf66' : undefined} />
-            <StatCard label="5Y Div Growth" value={info.divGrowthRate5Y != null ? `${info.divGrowthRate5Y >= 0 ? '+' : ''}${formatNum(info.divGrowthRate5Y, 1)}%` : '—'} color={info.divGrowthRate5Y != null ? (info.divGrowthRate5Y >= 0 ? '#51cf66' : '#ff6b6b') : undefined} />
-            <StatCard label="Div Rate" value={info.dividendRate != null ? `${formatNum(info.dividendRate)} ${info.currency}` : '—'} />
-            <StatCard label="Ex-Div" value={info.exDividendDate || '—'} />
-            <StatCard label="Market Cap" value={info.marketCap != null ? formatMarketCap(info.marketCap) : '—'} />
-            <StatCard label="52w High" value={info.fiftyTwoWeekHigh != null ? `${formatNum(info.fiftyTwoWeekHigh)} ${info.currency}` : '—'} />
-            <StatCard label="52w Low" value={info.fiftyTwoWeekLow != null ? `${formatNum(info.fiftyTwoWeekLow)} ${info.currency}` : '—'} />
-            <StatCard label="Beta" value={info.beta != null ? formatNum(info.beta, 2) : '—'} />
-            {info.earningsDate && <StatCard label="Earnings" value={info.earningsDate} />}
-          </SimpleGrid>
-        </Card>
-      )}
-
       {/* Trade Analysis */}
       {tradeAnalysis && (
         <Card padding="md" withBorder>
@@ -198,8 +177,8 @@ export function StockDetailView({
                 tickFormatter={(v: number) => formatNum(v, 0)}
               />
               <Tooltip
-                formatter={(value: number) => [formatNum(value), 'Price']}
-                labelFormatter={(label: string) => `Date: ${label}`}
+                formatter={(value) => [formatNum(value as number), 'Price']}
+                labelFormatter={(label) => `Date: ${label as string}`}
                 {...tooltipStyle}
               />
               <Line type="monotone" dataKey="price" stroke={CHART_COLORS[0]} strokeWidth={2} dot={false} activeDot={{ r: 4 }} />

@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Table, Text, Group, Badge, Stack, TextInput, Select, ScrollArea } from '@mantine/core';
 import type { ITransaction, SortDir } from './types';
-import { formatNum, pnlColor, TYPE_COLORS } from './utils';
+import { formatNum, TYPE_COLORS } from './utils';
 import { SortHeader } from './HoldingsTab';
 
 export function TransactionsTab({ transactions }: { transactions: ITransaction[] }) {

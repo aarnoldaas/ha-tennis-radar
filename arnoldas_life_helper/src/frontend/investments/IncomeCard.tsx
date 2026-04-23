@@ -66,7 +66,7 @@ export function IncomeCard({ data }: { data: InvestmentData }) {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: number) => formatEur(value)}
+                    formatter={(value) => formatEur(value as number)}
                     {...tooltipStyle}
                   />
                 </PieChart>

@@ -3,7 +3,7 @@ import type { ICourtProvider, TimeSlot, Booking } from './types.js';
 
 export class BalticTennisProvider implements ICourtProvider {
   readonly name = 'Baltic Tennis';
-  readonly key = 'baltic_tennis' as const;
+  readonly key = 'BT' as const;
 
   private static readonly PLACE_ID = 1;
   private sessionToken: string | null = null;

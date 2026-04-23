@@ -95,7 +95,7 @@ export function RealizedPnlTab({ trades }: { trades: IRealizedTrade[] }) {
             <YAxis tick={{ fill: '#c1c2c5', fontSize: 11 }} tickFormatter={v => `€${(v / 1000).toFixed(0)}k`} />
             <Tooltip
               {...tooltipStyle}
-              formatter={(value: number) => [formatEur(value), 'P&L']}
+              formatter={(value) => [formatEur(value as number), 'P&L']}
             />
             <Bar dataKey="pnl" radius={[4, 4, 0, 0]}>
               {monthlyPnl.map((entry, i) => (

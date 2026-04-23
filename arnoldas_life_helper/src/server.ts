@@ -6,14 +6,13 @@ import { join, resolve } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { createWriteStream } from 'node:fs';
 import type { TimeSlot } from './providers/types.js';
-import type { AddonOptions, ConfigWarning } from './utils/config.js';
+import type { AddonOptions } from './utils/config.js';
 import { loadOptions, saveOptions, validateConfig } from './utils/config.js';
 import { getInvestmentData, loadInvestmentData, refreshInvestmentPrices } from './investments/portfolio-service.js';
 import { loadEcbRates } from './investments/currency.js';
 import { loadSavedSuggestions, generateAiSuggestions } from './investments/ai-suggestions.js';
 import { loadPlan, savePlan, refinePlanWithAi } from './investments/plan-service.js';
-import { setAlphaVantageApiKey, getAlphaVantageStatus } from './investments/prices.js';
-import { TodoService } from './todos/service.js';
+import { getFileBasedPriceHistory, updatePriceEntry, deletePriceEntry } from './investments/prices.js';
 
 // Shared state — updated by the polling loop
 export interface PollStats {
@@ -64,13 +63,10 @@ export function createServer(options: { port: number; dataDir: string; getOption
   const appDir = resolve(process.env.APP_DIR || '/app');
   const publicDir = join(appDir, 'public');
   const investmentsDir = join(options.dataDir, 'Investments');
-  const todoService = new TodoService(options.getOptions().todo_entity_id);
 
   // Discover hashed asset filenames produced by esbuild
   const appJs = findAsset(publicDir, 'app', 'js');
   const appCss = findAsset(publicDir, 'app', 'css');
-  const investJs = findAsset(publicDir, 'investments', 'js');
-  const investCss = findAsset(publicDir, 'investments', 'css');
 
   // Disable caching on all responses
   app.addHook('onSend', async (_request, reply) => {
@@ -102,17 +98,9 @@ export function createServer(options: { port: number; dataDir: string; getOption
   app.get('/', serveIndex);
   app.get('//', serveIndex);
 
-  // Serve investments page
-  const serveInvestments = async (request: any, reply: any) => {
-    const ingressPath = (request.headers['x-ingress-path'] as string) || '';
-    const html = readFileSync(join(publicDir, 'investments.html'), 'utf-8')
-      .replace(/\{\{INGRESS_PATH\}\}/g, ingressPath)
-      .replace(/\{\{INVEST_JS\}\}/g, investJs)
-      .replace(/\{\{INVEST_CSS\}\}/g, investCss);
-    reply.type('text/html').send(html);
-  };
-  app.get('/investments', serveInvestments);
-  app.get('/investments/', serveInvestments);
+  // Serve investments page (same unified SPA)
+  app.get('/investments', serveIndex);
+  app.get('/investments/', serveIndex);
 
   // API: investment data
   app.get('/api/investments', async () => {
@@ -124,12 +112,10 @@ export function createServer(options: { port: number; dataDir: string; getOption
   // API: refresh investment prices and ECB rates
   app.post('/api/investments/refresh', async () => {
     try {
-      const config = options.getOptions();
-      setAlphaVantageApiKey(config.alpha_vantage_api_key);
       await loadEcbRates();
       const result = await refreshInvestmentPrices();
       const data = getInvestmentData();
-      return { success: true, ...result, alphaVantage: getAlphaVantageStatus(), data };
+      return { success: true, ...result, data };
     } catch (err) {
       return { success: false, error: err instanceof Error ? err.message : String(err) };
     }
@@ -312,48 +298,25 @@ export function createServer(options: { port: number; dataDir: string; getOption
     }
   });
 
-  // API: get todo items
-  app.get('/api/todos', async () => {
-    try {
-      const items = await todoService.getItems();
-      return { items };
-    } catch (err) {
-      return { items: [], error: err instanceof Error ? err.message : String(err) };
-    }
+  // API: get file-based price history (editable entries only)
+  app.get('/api/investments/price-history', async () => {
+    return getFileBasedPriceHistory();
   });
 
-  // API: add todo item
-  app.post('/api/todos', async (request) => {
-    const { summary, description } = request.body as { summary: string; description?: string };
-    try {
-      await todoService.addItem(summary, description);
-      return { success: true };
-    } catch (err) {
-      return { success: false, error: err instanceof Error ? err.message : String(err) };
-    }
+  // API: upsert a price entry for a ticker
+  app.put('/api/investments/price-history/:ticker', async (request) => {
+    const { ticker } = request.params as { ticker: string };
+    const { date, price } = request.body as { date: string; price: number };
+    if (!date || typeof price !== 'number') return { success: false, error: 'date and price are required' };
+    updatePriceEntry(ticker.toUpperCase(), date, price);
+    return { success: true };
   });
 
-  // API: update todo item
-  app.patch('/api/todos/:uid', async (request) => {
-    const { uid } = request.params as { uid: string };
-    const updates = request.body as { rename?: string; status?: 'needs_action' | 'completed'; description?: string };
-    try {
-      await todoService.updateItem(uid, updates);
-      return { success: true };
-    } catch (err) {
-      return { success: false, error: err instanceof Error ? err.message : String(err) };
-    }
-  });
-
-  // API: remove todo item
-  app.delete('/api/todos/:uid', async (request) => {
-    const { uid } = request.params as { uid: string };
-    try {
-      await todoService.removeItem(uid);
-      return { success: true };
-    } catch (err) {
-      return { success: false, error: err instanceof Error ? err.message : String(err) };
-    }
+  // API: delete a price entry for a ticker by date
+  app.delete('/api/investments/price-history/:ticker/:date', async (request) => {
+    const { ticker, date } = request.params as { ticker: string; date: string };
+    deletePriceEntry(ticker.toUpperCase(), date);
+    return { success: true };
   });
 
   app.listen({ port: options.port, host: '0.0.0.0' });

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Card, Text, Group, Badge, Stack, Select, ScrollArea, Table, UnstyledButton } from '@mantine/core';
+import { Card, Text, Group, Badge, Select, ScrollArea, Table, UnstyledButton } from '@mantine/core';
 import type { InvestmentData, SortDir } from './types';
 import { formatNum, formatEur, pnlColor } from './utils';
 import { SortHeader } from './HoldingsTab';

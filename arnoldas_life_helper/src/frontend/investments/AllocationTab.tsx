@@ -26,7 +26,7 @@ function AllocationDonut({ title, data }: { title: string; data: AllocationEntry
             ))}
           </Pie>
           <Tooltip
-            formatter={(value: number) => formatEur(value)}
+            formatter={(value) => formatEur(value as number)}
             contentStyle={tooltipStyle.contentStyle}
             itemStyle={tooltipStyle.itemStyle}
             labelStyle={tooltipStyle.labelStyle}

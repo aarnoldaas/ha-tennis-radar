@@ -181,20 +181,6 @@ export interface StockInfo {
   name: string;
   currency: string;
   currentPrice: number;
-  peRatio: number | null;
-  forwardPeRatio: number | null;
-  epsTrailingTwelveMonths: number | null;
-  dividendYield: number | null;
-  dividendRate: number | null;
-  exDividendDate: string | null;
-  marketCap: number | null;
-  fiftyTwoWeekHigh: number | null;
-  fiftyTwoWeekLow: number | null;
-  fiftyDayAverage: number | null;
-  twoHundredDayAverage: number | null;
-  beta: number | null;
-  earningsDate: string | null;
-  divGrowthRate5Y: number | null;
   lastUpdated: string;
 }
 

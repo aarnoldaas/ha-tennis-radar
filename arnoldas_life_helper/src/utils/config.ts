@@ -15,8 +15,6 @@ export interface AddonOptions {
   baltic_tennis_password: string;
   debug: boolean;
   anthropic_api_key: string;
-  alpha_vantage_api_key: string;
-  todo_entity_id: string;
 }
 
 const DATA_DIR = process.env.DATA_DIR || '/data';
@@ -37,8 +35,6 @@ const DEFAULTS: AddonOptions = {
   baltic_tennis_password: '',
   debug: false,
   anthropic_api_key: '',
-  alpha_vantage_api_key: '',
-  todo_entity_id: 'todo.01kn1rvcbxskmfdrqfdry7xvkq',
 };
 
 // Migrate old teniso_pasaulis_* keys to seb_*
@@ -61,6 +57,8 @@ function migrateKeys(obj: Record<string, any>): Record<string, any> {
   delete result['seb_sale_point'];
   delete result['seb_places'];
   delete result['baltic_tennis_place_ids'];
+  delete result['alpha_vantage_api_key'];
+  delete result['todo_entity_id'];
   return result;
 }
 

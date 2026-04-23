@@ -4,7 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts';
 import type { InvestmentData, SortDir } from './types';
-import { formatNum, formatEur, pnlColor } from './utils';
+import { formatEur, pnlColor } from './utils';
 import { SortHeader } from './HoldingsTab';
 import { CHART_GREEN, CHART_RED, tooltipStyle } from './chart-theme';
 
@@ -58,7 +58,7 @@ export function StocksTab({ data, onSelectStock }: { data: InvestmentData; onSel
               <XAxis type="number" tick={{ fill: '#c1c2c5', fontSize: 12 }} />
               <YAxis type="category" dataKey="symbol" tick={{ fill: '#c1c2c5', fontSize: 12 }} width={70} />
               <Tooltip
-                formatter={(value: number) => [formatEur(value), 'Total P&L']}
+                formatter={(value) => [formatEur(value as number), 'Total P&L']}
                 {...tooltipStyle}
               />
               <Bar dataKey="totalPnlEur" radius={[0, 4, 4, 0]}>

@@ -107,7 +107,6 @@ function parseTrades(sections: Map<string, RawSection>): IBTrade[] {
   if (!section) return [];
 
   const trades: IBTrade[] = [];
-  let inForexSection = false;
 
   // Track header transitions — when we see a second Header row, we've entered the Forex section
   // But headers are stored separately, so we need to detect Forex from the data rows themselves.
@@ -407,7 +406,6 @@ export function classifyIBTransactions(statements: IBParsedStatement[]): ITransa
       const count = (divCounters.get(key) ?? 0) + 1;
       divCounters.set(key, count);
 
-      const info = instrumentMap.get(symbol);
       // Parse per-share rate from description
       const rateMatch = div.description.match(/([\d.]+)\s+per Share/);
       const perShareRate = rateMatch ? parseFloat(rateMatch[1]) : 0;

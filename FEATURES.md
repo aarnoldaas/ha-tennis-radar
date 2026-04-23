@@ -50,16 +50,20 @@
 - **Deduplication** — suppresses duplicate alerts for the same slot within 1 hour
 - **Error alerts** when a provider is disabled due to failures
 
-### Web UI — Navigation
+### Web UI — Navigation & Design System
 
-Four top-level screens accessible via pill-style tabs on every page:
+**Single-page application** with a persistent sidebar navigation (desktop) and bottom tab bar (mobile). All features accessible from one unified interface — no separate pages.
 
-1. **Tennis Radar** — court availability and bookings (default)
-2. **Home Building** — todo list for home building tasks
-3. **Settings** — shared configuration for all features
-4. **Investments** — portfolio tracker (separate page with full-width layout)
+**Design system**: "Refined Utility" — warm dark theme with amber/gold accent color, DM Sans typography for UI, JetBrains Mono for financial data. CSS custom properties for consistent tokens across surfaces, borders, and semantic colors.
 
-URL-based screen switching (`?screen=settings`) with browser history support.
+**Sidebar sections** (desktop, sticky, 220px):
+1. **Tennis Radar** — Courts, Bookings
+2. **Investments** — Overview, Holdings, Allocation, Stocks, Realized P&L, Trade Analysis, Equity Comp, Market Data (includes Price History), Transactions, Plan, AI Insights, Upload
+3. **Settings**
+
+Active item highlighted with amber accent bar. URL-based screen switching with browser history support.
+
+**Mobile** (<768px): Bottom tab bar with 3 main sections (Tennis, Invest, Settings). Investment sub-pages accessible via horizontal pill-style sub-navigation within content area.
 
 ### Tennis Radar Screen
 
@@ -81,12 +85,11 @@ Sub-tabs (outline style) within the Tennis Radar screen:
 
 ### Settings Screen
 
-- **Date picker** — select from next 14 days with weekend indicators
-- **Poll interval**, **start/end time**, **min duration**, **notify device**
-- **Provider credentials** — SEB session token, Baltic Tennis username/password
-- **Anthropic API key** — for AI portfolio insights
-- **Debug mode** toggle
-- Save with immediate effect and validation feedback
+- **Date picker** — select from next 14 days with weekend indicators (accent-bordered card)
+- **General** — poll interval, start/end time, min duration, notify device
+- **Accordion sections** for provider credentials (SEB Arena, Baltic Tennis) and Advanced settings
+- **Advanced** — Debug mode toggle, Anthropic API key
+- Save with immediate effect and validation feedback (sticky bottom bar with backdrop blur)
 
 #### Status & Errors (Tennis Radar)
 
@@ -100,39 +103,6 @@ Sub-tabs (outline style) within the Tennis Radar screen:
 - Provider isolation — one failure doesn't affect others
 - Automatic session reconnection (Baltic Tennis)
 - Graceful shutdown on SIGTERM/SIGINT
-
----
-
-## Home Building TODO List
-
-Task tracking for home building projects, powered by a Home Assistant todo entity (`todo.01kn1rvcbxskmfdrqfdry7xvkq`).
-
-### Features
-
-- **HA-backed storage** — all tasks stored in a Home Assistant todo entity, synced via the Supervisor API
-- **Add tasks** with name and optional description
-- **Toggle completion** — mark tasks as done or reopen them
-- **Remove tasks** — delete tasks from the list
-- **Progress tracking** — visual progress bar showing completion percentage
-- **Organized display** — pending and completed tasks shown in separate sections
-
-### Web UI
-
-Accessible via the **Home Building** tab on the main dashboard:
-
-- Progress card with completion count and percentage bar
-- Add task form with name and description fields
-- Pending tasks section with checkboxes to mark complete
-- Completed tasks section (strikethrough styling) with option to reopen
-- Delete button on each task
-- Manual refresh button
-
-### API Endpoints
-
-- `GET /api/todos` — fetch all todo items from HA
-- `POST /api/todos` — add a new todo item (summary, description)
-- `PATCH /api/todos/:uid` — update a todo item (rename, status, description)
-- `DELETE /api/todos/:uid` — remove a todo item
 
 ---
 
@@ -172,10 +142,12 @@ Accessible via the **Home Building** tab on the main dashboard:
 
 ### Market Prices
 
-- **Live price refresh** — fetches current prices from Yahoo Finance via "Refresh Prices" button; also refreshes ECB exchange rates
+- **Live price refresh** — fetches current prices from Stooq (free keyless CSV) via "Refresh Prices" button; also refreshes ECB exchange rates
+- Stooq covers US tickers (BABA, WIX, GOOG, PBR, NOVA/NVO) and ASML (Amsterdam). Tickers without Stooq coverage — Baltic (APG1L, IGN1L, TEL1L, KNF1L, SAB1L, LNA1L, ROE1L), BYD (002594), and E3G1 (Frankfurt) — are updated via manual entry through the Price History tab
+- **One-time history backfill** — on the first refresh the server fetches ~5 years of daily history from Stooq for covered tickers and merges it into `price-history.json`. A `stooq-backfilled.json` flag file prevents repeat backfills
 - Date-based price lookup via `getPrice(ticker, date)` — returns the closest available price snapshot for any date
 - `getCurrentPrice(ticker)` convenience wrapper uses today's date, preferring live-fetched prices over hardcoded data
-- Hardcoded price history (2020–2026) for all tracked tickers: Baltic (APG1L, IGN1L, TEL1L, KNF1L, SAB1L, LNA1L, ROE1L), EU (ASML), US/HK (BABA, WIX, GOOG, NOVA, BYD/002594, PBR), and Revolut (E3G1/Evolution AB)
+- Hardcoded price history (2020–2026) remains as a fallback for all tracked tickers
 - Stale price indicator on holdings that haven't been refreshed
 
 ### Swedbank CSV Parser
@@ -194,29 +166,34 @@ Accessible via the **Home Building** tab on the main dashboard:
 - Multi-currency P&L: cost basis and current value converted to EUR using date-based exchange rates
 - EUR base currency values displayed with € prefix
 
-### Investments Page
+### Investments Section
 
-- Separate page at `/investments` (independent entry point, not a tab)
-- **Portfolio summary card**: total value, cost basis, unrealized/realized P&L, income, total return percentage — all pre-computed server-side
+- Integrated into the unified SPA via sidebar navigation (no separate page)
+- **Portfolio summary card**: hero metric layout — large amber portfolio value with secondary metrics strip (cost basis, unrealized/realized P&L, income, return %)
+- **Dashboard overview**: bento grid with holdings treemap, geographic donut chart, and sector horizontal bar chart
 - **Risk warnings**: concentration and currency exposure alerts displayed as banners
 - **Income card**: expandable per-stock dividend breakdown showing payment count and total EUR per symbol
-- **Refresh Prices** button: fetches live prices from Yahoo Finance and ECB exchange rates, then recomputes all portfolio data
+- **Refresh Prices** button: fetches live prices from Stooq and ECB exchange rates, then recomputes all portfolio data
 - **Copy Holdings** button: copies holdings as a markdown table to clipboard for pasting into AI chats
 - **Price staleness indicator**: shows when prices were last refreshed; stale badge on individual holdings using hardcoded fallback data
 
-Eight sub-tabs:
+Eleven sidebar pages (with horizontal sub-nav on mobile):
 
-1. **Holdings**: symbol with broker badges, quantity, average cost, current value, unrealized P&L with totals. Expandable rows showing tax lot details (acquisition date, remaining qty, cost/share, source badge MARKET/RSU/ESPP). Search by symbol.
-2. **Realized P&L**: year filter dropdown with short-term vs long-term P&L subtotals per year for tax reporting.
-3. **Allocation**: geography, currency exposure, and sector breakdowns with progress bars — computed from ticker metadata.
-4. **Equity Comp**: RSU view toggles between "By Year" (with cumulative EUR column) and "By Grant" (expandable per-grant vesting details with FMV, same-day sale badges). ESPP summary with discount stats.
-5. **Stocks**: per-stock breakdown showing total invested, realized P&L, unrealized P&L, dividends, and total P&L for every instrument ever traded. Open/closed status badges, first trade date, geography/sector badges from ticker metadata, and sortable columns with totals row. Expandable rows showing per-stock transaction history.
-6. **Transactions**: date, type (color-coded), symbol, description, quantity, price, amount, flow direction. Search by symbol/description/broker plus type filter dropdown. Count indicator when filtered.
-7. **Upload**: upload/delete investment files (CSV/TXT) per broker via the web UI — no need for SSH or File Explorer to manage investment data. Files are stored in `/data/Investments/<broker>/` and portfolio data is automatically reloaded after changes.
-8. **AI Insights**: AI-powered portfolio analysis (see AI Portfolio Insights section).
+1. **Overview**: portfolio summary, dashboard charts, risk warnings, income
+2. **Holdings**: symbol with broker badges, quantity, average cost, current value, unrealized P&L with totals. Expandable rows showing tax lot details. Search by symbol.
+3. **Allocation**: geography, currency exposure, and sector breakdowns with donut charts — computed from ticker metadata.
+4. **Stocks**: per-stock breakdown showing total invested, realized P&L, unrealized P&L, dividends, and total P&L. Expandable rows showing per-stock transaction history.
+5. **Realized P&L**: year filter dropdown with short-term vs long-term P&L subtotals per year for tax reporting.
+6. **Trade Analysis**: per-stock buy/sell analysis with avg prices, win rate, hold period stats.
+7. **Equity Comp**: RSU view (by year / by grant) and ESPP summary with discount stats.
+8. **Market Data**: live-price table (ticker / name / price / IR link) + file-based price history editor (merged from separate Price History tab).
+9. **Transactions**: date, type (color-coded), symbol, description, quantity, price, amount. Search and type filter.
+10. **Plan**: editable investment plan with AI refinement.
+11. **AI Insights**: AI-powered portfolio analysis (see AI Portfolio Insights section).
+12. **Upload**: upload/delete investment files (CSV/TXT) per broker.
 
-- All calculations pre-computed server-side; frontend is presentation-only (client-side sorting, search, and filtering for interactive views)
-- Navigation link from main dashboard
+- All calculations pre-computed server-side; frontend is presentation-only
+- Investment data loaded lazily on first navigation to investments section
 
 ### Revolut Parser
 
@@ -298,10 +275,8 @@ Eight sub-tabs:
 - `/api/bookings` — user's existing court bookings from all providers
 - `/api/config` — read/update configuration
 - `/api/resume` — re-enable disabled providers
-- `/api/todos` — GET all todo items, POST to add new item
-- `/api/todos/:uid` — PATCH to update, DELETE to remove a todo item
 - `/api/investments` — parsed transactions, computed holdings, and all pre-computed analytics
-- `/api/investments/refresh` — refresh live prices (Yahoo Finance) and exchange rates (ECB), recompute portfolio
+- `/api/investments/refresh` — refresh live prices (Stooq) and exchange rates (ECB), recompute portfolio. Response includes `{ fetched, failed, skipped }` — `skipped` lists tickers without Stooq coverage (manual-entry only)
 - `/api/investments/files` — list uploaded investment files per broker
 - `/api/investments/upload` — upload investment files (multipart)
 - `/api/investments/files/:broker/:filename` — delete an investment file
@@ -309,7 +284,8 @@ Eight sub-tabs:
 
 ## Tech Stack
 
-- **Frontend**: Preact, TypeScript, Mantine UI, esbuild
+- **Frontend**: React 18, TypeScript, Mantine UI v7, Recharts, esbuild
+- **Design system**: DM Sans + JetBrains Mono fonts, amber/gold accent, warm dark theme, CSS custom properties for design tokens
 - **Backend**: Fastify, Node.js 20+, Cheerio
 - **Deployment**: Docker (Alpine Linux), s6-overlay, port 8099
 - **Build system**: esbuild with content-hashed filenames (`app-[HASH].js`) for automatic cache busting; server discovers hashed asset filenames at startup

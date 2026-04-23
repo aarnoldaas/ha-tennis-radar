@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { parseIBFile, classifyIBTransactions } from '../ib-parser.js';
 import type { IBParsedStatement } from '../types.js';
-import { writeFileSync, mkdirSync, rmSync } from 'node:fs';
+import { writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 

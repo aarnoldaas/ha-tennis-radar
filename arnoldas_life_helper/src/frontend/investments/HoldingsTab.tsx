@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import {
   Table, Text, Group, Badge, Stack, TextInput,
-  ScrollArea, UnstyledButton, Card, SimpleGrid, ActionIcon,
+  ScrollArea, UnstyledButton, Card, ActionIcon,
 } from '@mantine/core';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import type { IHolding, SortDir } from './types';
@@ -87,7 +87,7 @@ export function HoldingsTab({ holdings, onSelectStock }: { holdings: IHolding[];
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: number) => formatEur(value)}
+              formatter={(value) => formatEur(value as number)}
               contentStyle={{
                 backgroundColor: '#25262b',
                 border: '1px solid #373A40',

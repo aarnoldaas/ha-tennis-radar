@@ -1,4 +1,4 @@
-import { Card, SimpleGrid, Stack, Text, Alert } from '@mantine/core';
+import { Card, Alert } from '@mantine/core';
 import type { InvestmentData } from './types';
 import { formatNum, formatEur, pnlColor } from './utils';
 
@@ -6,30 +6,37 @@ export function PortfolioSummaryCard({ data }: { data: InvestmentData }) {
   const ps = data.portfolioSummary;
   const hasStalePrice = data.holdings.some(h => h.priceLastUpdated === null && h.currentPrice > 0);
 
-  const items = [
-    { label: 'Portfolio Value', value: formatEur(ps.totalValue), color: undefined },
+  const metrics = [
     { label: 'Cost Basis', value: formatEur(ps.totalCost), color: undefined },
-    { label: 'Unrealized P&L', value: formatEur(ps.unrealizedPnl), color: pnlColor(ps.unrealizedPnl) },
-    { label: 'Realized P&L', value: formatEur(ps.totalRealizedPnl), color: pnlColor(ps.totalRealizedPnl) },
-    { label: 'Income', value: formatEur(ps.totalIncome), color: '#51cf66' },
-    { label: 'Total Return', value: `${formatEur(ps.totalReturn)} (${formatNum(ps.totalReturnPct)}%)`, color: pnlColor(ps.totalReturn) },
+    { label: 'Unrealized', value: formatEur(ps.unrealizedPnl), color: pnlColor(ps.unrealizedPnl) },
+    { label: 'Realized', value: formatEur(ps.totalRealizedPnl), color: pnlColor(ps.totalRealizedPnl) },
+    { label: 'Income', value: formatEur(ps.totalIncome), color: 'var(--lh-positive)' },
+    { label: 'Return', value: `${formatNum(ps.totalReturnPct)}%`, color: pnlColor(ps.totalReturn) },
   ];
 
   return (
-    <Card padding="md" mb="md" withBorder>
+    <Card padding="md" mb="md" withBorder className="lh-card-accent">
       {hasStalePrice && (
         <Alert color="yellow" mb="sm" variant="light" title="Stale prices">
           Some holdings use hardcoded fallback prices. Click "Refresh Prices" for live data.
         </Alert>
       )}
-      <SimpleGrid cols={{ base: 2, sm: 3, md: 6 }} spacing="xs">
-        {items.map(item => (
-          <Stack key={item.label} gap={2} align="center">
-            <Text size="xs" c="dimmed">{item.label}</Text>
-            <Text size="sm" fw={700} c={item.color}>{item.value}</Text>
-          </Stack>
+
+      {/* Hero metric */}
+      <div className="lh-hero-metric">
+        <div className="lh-hero-metric-value">{formatEur(ps.totalValue)}</div>
+        <div className="lh-hero-metric-label">Portfolio Value</div>
+      </div>
+
+      {/* Secondary metrics strip */}
+      <div className="lh-metric-strip lh-stagger">
+        {metrics.map(m => (
+          <div key={m.label} className="lh-metric-item">
+            <div className="lh-metric-item-value lh-mono" style={{ color: m.color }}>{m.value}</div>
+            <div className="lh-metric-item-label">{m.label}</div>
+          </div>
         ))}
-      </SimpleGrid>
+      </div>
     </Card>
   );
 }

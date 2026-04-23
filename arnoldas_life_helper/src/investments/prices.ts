@@ -1,40 +1,9 @@
 // ============================================================================
-// Market Prices — Yahoo Finance + Hardcoded Fallback + File Persistence
+// Market Prices — Stooq (CSV) + Hardcoded Fallback + File Persistence
 // ============================================================================
 
-import YahooFinance from 'yahoo-finance2';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-
-const yf = new (YahooFinance as any)({ suppressNotices: ['yahooSurvey'] });
-
-// Alpha Vantage state
-let alphaVantageApiKey: string | null = null;
-let alphaVantageCallsToday = 0;
-let alphaVantageCallDate = '';
-const ALPHA_VANTAGE_DAILY_LIMIT = 25;
-
-export function setAlphaVantageApiKey(key: string): void {
-  alphaVantageApiKey = key || null;
-}
-
-function canCallAlphaVantage(): boolean {
-  if (!alphaVantageApiKey) return false;
-  const today = new Date().toISOString().slice(0, 10);
-  if (alphaVantageCallDate !== today) {
-    alphaVantageCallDate = today;
-    alphaVantageCallsToday = 0;
-  }
-  return alphaVantageCallsToday < ALPHA_VANTAGE_DAILY_LIMIT;
-}
-
-function trackAlphaVantageCall(): void {
-  alphaVantageCallsToday++;
-}
-
-export function getAlphaVantageStatus(): { key: boolean; callsToday: number; limit: number } {
-  return { key: !!alphaVantageApiKey, callsToday: alphaVantageCallsToday, limit: ALPHA_VANTAGE_DAILY_LIMIT };
-}
 
 export interface PriceEntry {
   date: string;
@@ -48,30 +17,12 @@ interface CachedPrice {
   lastUpdated: string; // ISO 8601 timestamp
 }
 
-// ----------------------------------------------------------------------------
-// Stock fundamental info (P/E, dividends, etc.)
-// ----------------------------------------------------------------------------
-
+// Slim StockInfo — Stooq provides price only, not fundamentals.
 export interface StockInfo {
   ticker: string;
   name: string;
   currency: string;
   currentPrice: number;
-  peRatio: number | null;
-  forwardPeRatio: number | null;
-  epsTrailingTwelveMonths: number | null;
-  dividendYield: number | null;
-  dividendRate: number | null;
-  exDividendDate: string | null;
-  marketCap: number | null;
-  fiftyTwoWeekHigh: number | null;
-  fiftyTwoWeekLow: number | null;
-  fiftyDayAverage: number | null;
-  twoHundredDayAverage: number | null;
-  beta: number | null;
-  earningsDate: string | null;
-  /** 5-year dividend per-share CAGR in percent (from Yahoo Finance historical dividends) */
-  divGrowthRate5Y: number | null;
   lastUpdated: string;
 }
 
@@ -89,9 +40,6 @@ export interface PriceHistoryFile {
 
 let fileBasedHistory: PriceHistoryFile = {};
 
-/**
- * Initialize price history from file. Call once at startup with the data directory.
- */
 export function loadPriceHistory(dataDir: string): void {
   priceHistoryDir = join(dataDir, 'Investments');
   const filePath = join(priceHistoryDir, 'price-history.json');
@@ -106,9 +54,6 @@ export function loadPriceHistory(dataDir: string): void {
   }
 }
 
-/**
- * Save current price history to file.
- */
 function savePriceHistory(): void {
   if (!priceHistoryDir) return;
   mkdirSync(priceHistoryDir, { recursive: true });
@@ -116,9 +61,6 @@ function savePriceHistory(): void {
   writeFileSync(filePath, JSON.stringify(fileBasedHistory, null, 2), 'utf-8');
 }
 
-/**
- * Append a price entry to the file-based history (avoids duplicates for the same date).
- */
 function appendPriceEntry(ticker: string, entry: PriceEntry): void {
   if (!fileBasedHistory[ticker]) {
     fileBasedHistory[ticker] = [];
@@ -133,14 +75,10 @@ function appendPriceEntry(ticker: string, entry: PriceEntry): void {
   }
 }
 
-/**
- * Get the full price history for a ticker (file-based + hardcoded merged).
- */
 export function getPriceHistory(ticker: string): PriceEntry[] {
   const hardcoded = HARDCODED_PRICES[ticker] || [];
   const fileBased = fileBasedHistory[ticker] || [];
 
-  // Merge: file-based takes priority for same dates
   const map = new Map<string, PriceEntry>();
   for (const entry of hardcoded) {
     map.set(entry.date, entry);
@@ -152,9 +90,22 @@ export function getPriceHistory(ticker: string): PriceEntry[] {
   return [...map.values()].sort((a, b) => a.date.localeCompare(b.date));
 }
 
-/**
- * Get all price history across all tickers.
- */
+export function updatePriceEntry(ticker: string, date: string, price: number): void {
+  appendPriceEntry(ticker, { date, price, currency: (fileBasedHistory[ticker]?.[0]?.currency ?? HARDCODED_PRICES[ticker]?.[0]?.currency ?? 'USD') });
+  savePriceHistory();
+}
+
+export function deletePriceEntry(ticker: string, date: string): void {
+  if (!fileBasedHistory[ticker]) return;
+  fileBasedHistory[ticker] = fileBasedHistory[ticker].filter(e => e.date !== date);
+  if (fileBasedHistory[ticker].length === 0) delete fileBasedHistory[ticker];
+  savePriceHistory();
+}
+
+export function getFileBasedPriceHistory(): PriceHistoryFile {
+  return fileBasedHistory;
+}
+
 export function getAllPriceHistory(): PriceHistoryFile {
   const allTickers = new Set([
     ...Object.keys(HARDCODED_PRICES),
@@ -167,182 +118,170 @@ export function getAllPriceHistory(): PriceHistoryFile {
   return result;
 }
 
-/**
- * Get all cached stock info.
- */
 export function getAllStockInfo(): StockInfo[] {
   return [...stockInfoCache.values()];
 }
 
 // ----------------------------------------------------------------------------
-// Ticker mapping: internal symbol → Yahoo Finance symbol
+// Ticker mapping: internal symbol → Stooq symbol
+// Tickers not in this map are skipped during refresh (manual entry only).
 // ----------------------------------------------------------------------------
 
-const YAHOO_TICKER_MAP: Record<string, string> = {
-  // Baltic stocks (Vilnius Stock Exchange)
-  APG1L: 'APG1L.VS',
-  IGN1L: 'IGN1L.VS',
-  TEL1L: 'TEL1L.VS',
-  KNF1L: 'KNF1L.VS',
-  SAB1L: 'SAB1L.VS',
-  LNA1L: 'LNA1L.VS',
-  ROE1L: 'ROE1L.VS',
-  // EU stocks
-  ASML: 'ASML.AS',
-  // China
-  '002594': '002594.SZ',
-  // Revolut brokerage
-  E3G1: 'E3G1.F',   // Evolution AB on Frankfurt/GETTEX (EUR) — matches IB trading venue
-  // US stocks — same ticker on Yahoo
-  BABA: 'BABA',
-  WIX: 'WIX',
-  GOOG: 'GOOG',
-  PBR: 'PBR',
-  NOVA: 'NVO', // Novo Nordisk ADR
+const STOOQ_TICKER_MAP: Record<string, string> = {
+  ASML: 'asml.nl',
+  BABA: 'baba.us',
+  WIX: 'wix.us',
+  GOOG: 'goog.us',
+  PBR: 'pbr.us',
+  NOVA: 'nvo.us',
 };
 
 /**
- * Override map for tickers where Yahoo Finance returns a missing or incorrect currency.
- * The value is the correct trading currency for the ticker.
+ * Override map for tickers where the price source does not return a currency.
  */
 const TICKER_CURRENCY_OVERRIDE: Record<string, string> = {
-  '002594': 'CNY',  // BYD on Shenzhen — Yahoo may omit currency, price is in CNY
+  '002594': 'CNY',
 };
 
-// Alpha Vantage ticker mapping (internal → AV symbol)
-// AV uses standard US tickers and exchange suffixes for international stocks
-const ALPHA_VANTAGE_TICKER_MAP: Record<string, string> = {
-  APG1L: 'APG1L.TL',   // Tallinn/Vilnius exchange
-  IGN1L: 'IGN1L.TL',
-  TEL1L: 'TEL1L.TL',
-  KNF1L: 'KNF1L.TL',
-  SAB1L: 'SAB1L.TL',
-  LNA1L: 'LNA1L.TL',
-  ROE1L: 'ROE1L.TL',
-  ASML: 'ASML',        // US ADR on NASDAQ
-  E3G1: 'EVO.ST',      // Evolution AB on Stockholm
-  BABA: 'BABA',
-  WIX: 'WIX',
-  GOOG: 'GOOG',
-  PBR: 'PBR',
-  NOVA: 'NVO',
-  '002594': '002594.SHZ',
-};
+// ----------------------------------------------------------------------------
+// Stooq fetchers
+// ----------------------------------------------------------------------------
+
+function resolveCurrency(ticker: string): string {
+  return TICKER_CURRENCY_OVERRIDE[ticker]
+    || HARDCODED_PRICES[ticker]?.[0]?.currency
+    || 'USD';
+}
 
 /**
- * Fetch stock quote from Alpha Vantage GLOBAL_QUOTE endpoint.
- * Returns price and currency, or null on failure.
+ * Parse a Stooq CSV response. The first line is the header (e.g.
+ * `Symbol,Date,Time,Open,High,Low,Close,Volume`). Returns rows as objects
+ * keyed by lowercased header name. Values that equal "N/D" are treated as null.
  */
-async function fetchAlphaVantageQuote(ticker: string): Promise<{
-  price: number;
-  currency: string;
-  name?: string;
-  peRatio?: number | null;
-  eps?: number | null;
-  dividendYield?: number | null;
-  fiftyTwoWeekHigh?: number | null;
-  fiftyTwoWeekLow?: number | null;
-  marketCap?: number | null;
-} | null> {
-  if (!canCallAlphaVantage()) return null;
+function parseStooqCsv(csv: string): Record<string, string>[] {
+  const lines = csv.trim().split(/\r?\n/);
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+  const rows: Record<string, string>[] = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(',');
+    if (cols.length !== headers.length) continue;
+    const row: Record<string, string> = {};
+    for (let j = 0; j < headers.length; j++) {
+      row[headers[j]] = cols[j].trim();
+    }
+    rows.push(row);
+  }
+  return rows;
+}
 
-  const avTicker = ALPHA_VANTAGE_TICKER_MAP[ticker] || ticker;
+/**
+ * Fetch a live quote from Stooq for the given internal ticker.
+ * Returns { price, currency, name } or null on failure / no data.
+ */
+async function fetchStooqQuote(ticker: string): Promise<{ price: number; currency: string; name: string } | null> {
+  const stooqSymbol = STOOQ_TICKER_MAP[ticker];
+  if (!stooqSymbol) return null;
 
+  const url = `https://stooq.com/q/l/?s=${encodeURIComponent(stooqSymbol)}&f=sd2t2ohlcnv&h&e=csv`;
   try {
-    // GLOBAL_QUOTE for current price
-    trackAlphaVantageCall();
-    const quoteUrl = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${encodeURIComponent(avTicker)}&apikey=${alphaVantageApiKey}`;
-    const quoteRes = await fetch(quoteUrl);
-    const quoteData = await quoteRes.json();
-
-    const gq = quoteData['Global Quote'];
-    if (!gq || !gq['05. price']) {
-      console.warn(`[AlphaVantage] No quote data for ${avTicker}`);
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.warn(`[Stooq] HTTP ${res.status} for ${stooqSymbol}`);
       return null;
     }
-
-    const price = parseFloat(gq['05. price']);
-    const knownCurrency = TICKER_CURRENCY_OVERRIDE[ticker] || HARDCODED_PRICES[ticker]?.[0]?.currency || 'USD';
-
-    const result: any = { price, currency: knownCurrency };
-
-    // OVERVIEW for fundamentals (costs another API call)
-    if (canCallAlphaVantage()) {
-      trackAlphaVantageCall();
-      const overviewUrl = `https://www.alphavantage.co/query?function=OVERVIEW&symbol=${encodeURIComponent(avTicker)}&apikey=${alphaVantageApiKey}`;
-      const overviewRes = await fetch(overviewUrl);
-      const overview = await overviewRes.json();
-
-      if (overview && overview.Name) {
-        result.name = overview.Name;
-        result.peRatio = overview.PERatio && overview.PERatio !== 'None' ? parseFloat(overview.PERatio) : null;
-        result.eps = overview.EPS && overview.EPS !== 'None' ? parseFloat(overview.EPS) : null;
-        result.dividendYield = overview.DividendYield && overview.DividendYield !== 'None' && overview.DividendYield !== '0'
-          ? parseFloat(overview.DividendYield) : null;
-        result.fiftyTwoWeekHigh = overview['52WeekHigh'] && overview['52WeekHigh'] !== 'None'
-          ? parseFloat(overview['52WeekHigh']) : null;
-        result.fiftyTwoWeekLow = overview['52WeekLow'] && overview['52WeekLow'] !== 'None'
-          ? parseFloat(overview['52WeekLow']) : null;
-        result.marketCap = overview.MarketCapitalization && overview.MarketCapitalization !== 'None'
-          ? parseFloat(overview.MarketCapitalization) : null;
-      }
+    const csv = await res.text();
+    const rows = parseStooqCsv(csv);
+    if (rows.length === 0) {
+      console.warn(`[Stooq] Empty CSV for ${stooqSymbol}`);
+      return null;
     }
-
-    console.log(`[AlphaVantage] Fetched ${ticker} (${avTicker}): ${price} ${knownCurrency} (calls today: ${alphaVantageCallsToday}/${ALPHA_VANTAGE_DAILY_LIMIT})`);
-    return result;
+    const row = rows[0];
+    const closeRaw = row['close'];
+    if (!closeRaw || closeRaw === 'N/D') {
+      console.warn(`[Stooq] No data for ${stooqSymbol}`);
+      return null;
+    }
+    const price = parseFloat(closeRaw);
+    if (!Number.isFinite(price)) return null;
+    const name = row['name'] || ticker;
+    const currency = resolveCurrency(ticker);
+    console.log(`[Stooq] ${ticker} (${stooqSymbol}): ${price} ${currency}`);
+    return { price, currency, name };
   } catch (e) {
-    console.warn(`[AlphaVantage] Failed for ${ticker}:`, e);
+    console.warn(`[Stooq] Failed for ${ticker}:`, e);
     return null;
   }
 }
 
-// ----------------------------------------------------------------------------
-// Per-share 5-year dividend growth rate from Yahoo Finance historical data
-// ----------------------------------------------------------------------------
-
 /**
- * Fetches historical per-share dividend data from Yahoo Finance and computes
- * the 5-year CAGR of annual dividends per share.
- * Returns null if insufficient data (< 2 years with dividends).
+ * Fetch daily history from Stooq for the given internal ticker.
+ * Returns an array of PriceEntry sorted ascending by date, or [] on failure.
  */
-async function fetchDivGrowthRate5Y(yahooTicker: string): Promise<number | null> {
+async function fetchStooqHistory(ticker: string, from: string, to: string): Promise<PriceEntry[]> {
+  const stooqSymbol = STOOQ_TICKER_MAP[ticker];
+  if (!stooqSymbol) return [];
+
+  const d1 = from.replace(/-/g, '');
+  const d2 = to.replace(/-/g, '');
+  const url = `https://stooq.com/q/d/l/?s=${encodeURIComponent(stooqSymbol)}&i=d&d1=${d1}&d2=${d2}`;
+
   try {
-    const fiveYearsAgo = new Date();
-    fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
-    const history = await (yf as any).historical(yahooTicker, {
-      period1: fiveYearsAgo.toISOString().slice(0, 10),
-      events: 'dividends',
-    }) as Array<{ date: Date; dividends: number }>;
-
-    if (!history || history.length === 0) return null;
-
-    // Sum dividends per calendar year
-    const byYear = new Map<number, number>();
-    for (const entry of history) {
-      const year = entry.date.getFullYear();
-      byYear.set(year, (byYear.get(year) ?? 0) + entry.dividends);
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.warn(`[Stooq] History HTTP ${res.status} for ${stooqSymbol}`);
+      return [];
     }
-
-    const currentYear = new Date().getFullYear();
-    const years = [...byYear.keys()]
-      .filter(y => y < currentYear) // exclude current partial year
-      .sort((a, b) => a - b);
-
-    if (years.length < 2) return null;
-
-    const baseYear = years[0];
-    const latestYear = years[years.length - 1];
-    const baseAmount = byYear.get(baseYear)!;
-    const latestAmount = byYear.get(latestYear)!;
-    const n = latestYear - baseYear;
-
-    if (baseAmount <= 0 || n === 0) return null;
-
-    const cagr = Math.pow(latestAmount / baseAmount, 1 / n) - 1;
-    return Math.round(cagr * 10000) / 100; // percent, 2 decimal places
-  } catch {
-    return null;
+    const csv = await res.text();
+    const rows = parseStooqCsv(csv);
+    const currency = resolveCurrency(ticker);
+    const entries: PriceEntry[] = [];
+    for (const row of rows) {
+      const date = row['date'];
+      const closeRaw = row['close'];
+      if (!date || !closeRaw || closeRaw === 'N/D') continue;
+      const price = parseFloat(closeRaw);
+      if (!Number.isFinite(price)) continue;
+      entries.push({ date, price, currency });
+    }
+    return entries.sort((a, b) => a.date.localeCompare(b.date));
+  } catch (e) {
+    console.warn(`[Stooq] History failed for ${ticker}:`, e);
+    return [];
   }
+}
+
+// ----------------------------------------------------------------------------
+// One-time history backfill
+// ----------------------------------------------------------------------------
+
+const BACKFILL_FLAG = 'stooq-backfilled.json';
+const BACKFILL_YEARS = 5;
+
+async function backfillHistoryIfNeeded(): Promise<void> {
+  if (!priceHistoryDir) return;
+  const flagPath = join(priceHistoryDir, BACKFILL_FLAG);
+  if (existsSync(flagPath)) return;
+
+  const toDate = new Date();
+  const fromDate = new Date();
+  fromDate.setFullYear(fromDate.getFullYear() - BACKFILL_YEARS);
+  const from = fromDate.toISOString().slice(0, 10);
+  const to = toDate.toISOString().slice(0, 10);
+
+  const results: Record<string, number> = {};
+  for (const ticker of Object.keys(STOOQ_TICKER_MAP)) {
+    const entries = await fetchStooqHistory(ticker, from, to);
+    for (const entry of entries) {
+      appendPriceEntry(ticker, entry);
+    }
+    results[ticker] = entries.length;
+  }
+  savePriceHistory();
+
+  mkdirSync(priceHistoryDir, { recursive: true });
+  writeFileSync(flagPath, JSON.stringify({ backfilledAt: new Date().toISOString(), results }, null, 2), 'utf-8');
+  console.log(`[Stooq] Backfilled ${BACKFILL_YEARS}y history:`, results);
 }
 
 // ----------------------------------------------------------------------------
@@ -352,144 +291,51 @@ async function fetchDivGrowthRate5Y(yahooTicker: string): Promise<number | null>
 const priceCache = new Map<string, CachedPrice>();
 
 /**
- * Fetch live prices for a list of tickers from Yahoo Finance.
- * Falls back to Alpha Vantage for tickers that Yahoo fails on.
- * Prioritizes tickers with the oldest (or no) cached prices.
- * Updates the in-memory cache and appends to file-based price history.
- * Also fetches stock fundamental info (P/E, dividends, etc.).
- * Returns the number of successfully fetched tickers.
+ * Fetch live prices for a list of tickers from Stooq.
+ * Tickers not mapped in STOOQ_TICKER_MAP are skipped (manual-entry only).
+ * Also performs a one-time ~5y history backfill on the first run.
  */
-export async function refreshPrices(tickers: string[]): Promise<{ fetched: number; failed: string[]; alphaVantageCalls: number }> {
+export async function refreshPrices(tickers: string[]): Promise<{ fetched: number; failed: string[]; skipped: string[] }> {
+  await backfillHistoryIfNeeded();
+
   const failed: string[] = [];
+  const skipped: string[] = [];
   let fetched = 0;
   const today = new Date().toISOString().slice(0, 10);
 
-  // Sort tickers: prioritize those without cached prices, then oldest cached
-  const sortedTickers = [...tickers].sort((a, b) => {
-    const aCache = priceCache.get(a);
-    const bCache = priceCache.get(b);
-    if (!aCache && !bCache) return 0;
-    if (!aCache) return -1;
-    if (!bCache) return 1;
-    return aCache.lastUpdated.localeCompare(bCache.lastUpdated);
-  });
-
-  const yahooFailed: string[] = [];
-
-  for (const ticker of sortedTickers) {
-    const yahooTicker = YAHOO_TICKER_MAP[ticker] || ticker;
-    try {
-      const quote = await yf.quote(yahooTicker) as any;
-      if (quote && quote.regularMarketPrice) {
-        const overrideCurrency = TICKER_CURRENCY_OVERRIDE[ticker];
-        const knownCurrency = HARDCODED_PRICES[ticker]?.[0]?.currency;
-        const currency = overrideCurrency || quote.currency || knownCurrency || 'USD';
-        const now = new Date().toISOString();
-
-        priceCache.set(ticker, {
-          price: quote.regularMarketPrice,
-          currency,
-          lastUpdated: now,
-        });
-
-        appendPriceEntry(ticker, {
-          date: today,
-          price: quote.regularMarketPrice,
-          currency,
-        });
-
-        const existingDgr = stockInfoCache.get(ticker)?.divGrowthRate5Y ?? null;
-        const divGrowthRate5Y = quote.dividendRate
-          ? await fetchDivGrowthRate5Y(yahooTicker) ?? existingDgr
-          : existingDgr;
-
-        stockInfoCache.set(ticker, {
-          ticker,
-          name: quote.shortName || quote.longName || ticker,
-          currency,
-          currentPrice: quote.regularMarketPrice,
-          peRatio: quote.trailingPE ?? null,
-          forwardPeRatio: quote.forwardPE ?? null,
-          epsTrailingTwelveMonths: quote.epsTrailingTwelveMonths ?? null,
-          dividendYield: quote.dividendYield != null ? quote.dividendYield * 100 : null,
-          dividendRate: quote.dividendRate ?? quote.trailingAnnualDividendRate ?? null,
-          exDividendDate: quote.exDividendDate ? new Date(quote.exDividendDate).toISOString().slice(0, 10) : null,
-          marketCap: quote.marketCap ?? null,
-          fiftyTwoWeekHigh: quote.fiftyTwoWeekHigh ?? null,
-          fiftyTwoWeekLow: quote.fiftyTwoWeekLow ?? null,
-          fiftyDayAverage: quote.fiftyDayAverage ?? null,
-          twoHundredDayAverage: quote.twoHundredDayAverage ?? null,
-          beta: quote.beta ?? null,
-          earningsDate: quote.earningsTimestamp ? new Date(quote.earningsTimestamp * 1000).toISOString().slice(0, 10) : null,
-          divGrowthRate5Y,
-          lastUpdated: now,
-        });
-
-        fetched++;
-      } else {
-        yahooFailed.push(ticker);
-      }
-    } catch {
-      yahooFailed.push(ticker);
+  for (const ticker of tickers) {
+    if (!STOOQ_TICKER_MAP[ticker]) {
+      skipped.push(ticker);
+      continue;
     }
-  }
-
-  // Alpha Vantage fallback for Yahoo failures
-  const avCallsBefore = alphaVantageCallsToday;
-  for (const ticker of yahooFailed) {
-    if (!canCallAlphaVantage()) {
+    const quote = await fetchStooqQuote(ticker);
+    if (!quote) {
       failed.push(ticker);
       continue;
     }
-
-    const avResult = await fetchAlphaVantageQuote(ticker);
-    if (avResult) {
-      const now = new Date().toISOString();
-      priceCache.set(ticker, {
-        price: avResult.price,
-        currency: avResult.currency,
-        lastUpdated: now,
-      });
-
-      appendPriceEntry(ticker, {
-        date: today,
-        price: avResult.price,
-        currency: avResult.currency,
-      });
-
-      // Build stock info from AV data
-      const existing = stockInfoCache.get(ticker);
-      stockInfoCache.set(ticker, {
-        ticker,
-        name: avResult.name || existing?.name || ticker,
-        currency: avResult.currency,
-        currentPrice: avResult.price,
-        peRatio: avResult.peRatio ?? existing?.peRatio ?? null,
-        forwardPeRatio: existing?.forwardPeRatio ?? null,
-        epsTrailingTwelveMonths: avResult.eps ?? existing?.epsTrailingTwelveMonths ?? null,
-        dividendYield: avResult.dividendYield ?? existing?.dividendYield ?? null,
-        dividendRate: existing?.dividendRate ?? null,
-        exDividendDate: existing?.exDividendDate ?? null,
-        marketCap: avResult.marketCap ?? existing?.marketCap ?? null,
-        fiftyTwoWeekHigh: avResult.fiftyTwoWeekHigh ?? existing?.fiftyTwoWeekHigh ?? null,
-        fiftyTwoWeekLow: avResult.fiftyTwoWeekLow ?? existing?.fiftyTwoWeekLow ?? null,
-        fiftyDayAverage: existing?.fiftyDayAverage ?? null,
-        twoHundredDayAverage: existing?.twoHundredDayAverage ?? null,
-        beta: existing?.beta ?? null,
-        earningsDate: existing?.earningsDate ?? null,
-        divGrowthRate5Y: existing?.divGrowthRate5Y ?? null,
-        lastUpdated: now,
-      });
-
-      fetched++;
-    } else {
-      failed.push(ticker);
-    }
+    const now = new Date().toISOString();
+    priceCache.set(ticker, {
+      price: quote.price,
+      currency: quote.currency,
+      lastUpdated: now,
+    });
+    appendPriceEntry(ticker, {
+      date: today,
+      price: quote.price,
+      currency: quote.currency,
+    });
+    stockInfoCache.set(ticker, {
+      ticker,
+      name: quote.name || stockInfoCache.get(ticker)?.name || ticker,
+      currency: quote.currency,
+      currentPrice: quote.price,
+      lastUpdated: now,
+    });
+    fetched++;
   }
 
   savePriceHistory();
-
-  return { fetched, failed, alphaVantageCalls: alphaVantageCallsToday - avCallsBefore };
+  return { fetched, failed, skipped };
 }
 
 /**
@@ -651,9 +497,6 @@ const HARDCODED_PRICES: Record<string, PriceEntry[]> = {
   ],
 };
 
-/**
- * Find the entry with the closest date to the target.
- */
 function findClosestEntry(
   entries: PriceEntry[],
   targetDate: string,
@@ -674,10 +517,6 @@ function findClosestEntry(
   return best;
 }
 
-/**
- * Get the market price for a ticker on (or closest to) a given date.
- * Uses file-based history + hardcoded historical data (merged).
- */
 export function getPrice(
   ticker: string,
   date: string,
@@ -691,31 +530,19 @@ export function getPrice(
   return entry ? { price: entry.price, currency: entry.currency } : null;
 }
 
-/**
- * Get the current market price for a ticker.
- *
- * Priority:
- * 1. Live-fetched price from cache (populated by refreshPrices())
- * 2. Hardcoded fallback (closest to today)
- *
- * Returns price, currency, and lastUpdated timestamp (null if using hardcoded fallback).
- */
 export function getCurrentPrice(
   ticker: string,
 ): { price: number; currency: string; lastUpdated: string | null } | null {
-  // Check live cache first
   const cached = priceCache.get(ticker);
   if (cached) {
     return { price: cached.price, currency: cached.currency, lastUpdated: cached.lastUpdated };
   }
 
-  // Fall back to file-based + hardcoded history
   const today = new Date().toISOString().slice(0, 10);
   const allEntries = getPriceHistory(ticker);
   if (allEntries.length > 0) {
     const entry = findClosestEntry(allEntries, today);
     if (entry) {
-      // If the entry is from file-based history (recent), mark it as such
       const isFromFile = fileBasedHistory[ticker]?.some(e => e.date === entry.date);
       return { price: entry.price, currency: entry.currency, lastUpdated: isFromFile ? entry.date : null };
     }
@@ -724,9 +551,6 @@ export function getCurrentPrice(
   return null;
 }
 
-/**
- * Get all known ticker symbols (from hardcoded data + file history + cache).
- */
 export function getKnownTickers(): string[] {
   const tickers = new Set<string>(Object.keys(HARDCODED_PRICES));
   for (const ticker of Object.keys(fileBasedHistory)) {

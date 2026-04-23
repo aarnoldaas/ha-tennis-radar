@@ -24,7 +24,7 @@ export function formatEur(n: number): string {
 }
 
 export function pnlColor(n: number): string {
-  return n >= 0 ? '#51cf66' : '#ff6b6b';
+  return n >= 0 ? 'var(--lh-positive, #51cf66)' : 'var(--lh-negative, #ff6b6b)';
 }
 
 export function timeAgo(iso: string): string {
@@ -59,13 +59,6 @@ export function formatHoldingsForClipboard(holdings: IHolding[]): string {
     `| **Total** | | | **${totalCost.toFixed(2)}** | | **${totalValue.toFixed(2)}** | **${totalPnl.toFixed(2)}** | **${totalCost > 0 ? ((totalPnl / totalCost) * 100).toFixed(2) + '%' : 'N/A'}** |`
   );
   return lines.join('\n');
-}
-
-export function formatMarketCap(n: number): string {
-  if (n >= 1e12) return `$${(n / 1e12).toFixed(2)}T`;
-  if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
-  if (n >= 1e6) return `$${(n / 1e6).toFixed(1)}M`;
-  return `$${formatNum(n, 0)}`;
 }
 
 export function renderMarkdown(md: string): string {

@@ -5,6 +5,7 @@ import { readFileSync, existsSync, mkdirSync, readdirSync, unlinkSync, statSync 
 import { join, resolve } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { createWriteStream } from 'node:fs';
+import { PortfolioService } from './portfolio/service.js';
 
 const BROKER_DIRS: Record<string, string> = {
   swedbank: 'swedbank',
@@ -13,7 +14,6 @@ const BROKER_DIRS: Record<string, string> = {
   wix: 'wix',
 };
 
-/** Find a hashed asset file like "app-AB12CD34.js" for a given base name and extension. */
 function findAsset(dir: string, base: string, ext: string): string {
   const files = readdirSync(dir);
   const match = files.find(f => f.startsWith(`${base}-`) && f.endsWith(`.${ext}`) && !f.endsWith(`.${ext}.map`));
@@ -26,9 +26,12 @@ export function createServer(options: { port: number; dataDir: string }) {
   const appDir = resolve(process.env.APP_DIR || '/app');
   const publicDir = join(appDir, 'public');
   const investmentsDir = join(options.dataDir, 'Investments');
+  mkdirSync(investmentsDir, { recursive: true });
 
   const appJs = findAsset(publicDir, 'app', 'js');
   const appCss = findAsset(publicDir, 'app', 'css');
+
+  const portfolio = new PortfolioService(options.dataDir);
 
   app.addHook('onSend', async (_request, reply) => {
     reply.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
@@ -57,7 +60,6 @@ export function createServer(options: { port: number; dataDir: string }) {
   app.get('/', serveIndex);
   app.get('//', serveIndex);
 
-  // API: list uploaded investment files
   app.get('/api/investments/files', async () => {
     const result: Record<string, string[]> = {};
     for (const [key, dir] of Object.entries(BROKER_DIRS)) {
@@ -74,7 +76,6 @@ export function createServer(options: { port: number; dataDir: string }) {
     return result;
   });
 
-  // API: upload investment files
   app.post('/api/investments/upload', async (request) => {
     const parts = request.parts();
     const uploaded: string[] = [];
@@ -97,7 +98,6 @@ export function createServer(options: { port: number; dataDir: string }) {
     return { success: true, uploaded };
   });
 
-  // API: delete an investment file
   app.delete('/api/investments/files/:broker/:filename', async (request) => {
     const { broker, filename } = request.params as { broker: string; filename: string };
     const brokerDir = BROKER_DIRS[broker];
@@ -108,6 +108,31 @@ export function createServer(options: { port: number; dataDir: string }) {
 
     unlinkSync(filePath);
     return { success: true };
+  });
+
+  app.get('/api/portfolio', async () => {
+    return portfolio.getSnapshot();
+  });
+
+  app.post('/api/portfolio/refresh', async () => {
+    const snapshot = await portfolio.getSnapshot(true);
+    return { success: true, asOf: snapshot.asOf };
+  });
+
+  app.get('/api/portfolio/instrument/:id', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const detail = await portfolio.getInstrumentDetail(id);
+    if (!detail) return reply.code(404).send({ error: 'Unknown instrument' });
+    return detail;
+  });
+
+  app.get('/api/instruments', async () => {
+    return portfolio.listInstruments();
+  });
+
+  app.get('/api/instruments/unresolved', async () => {
+    const snap = await portfolio.getSnapshot();
+    return snap.unresolved;
   });
 
   app.listen({ port: options.port, host: '0.0.0.0' });

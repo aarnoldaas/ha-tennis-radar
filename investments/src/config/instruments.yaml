@@ -1,0 +1,220 @@
+# Curated instrument master — the single source of truth for cross-broker identity.
+#
+# `id` is our stable internal identifier. `aliases` maps each broker to the
+# symbol it uses (string or list). `priceSource` tells the market layer where
+# to fetch the current price. For instruments that are fully liquidated and no
+# longer relevant we can omit `priceSource` — they'll still resolve but won't
+# have a market value.
+
+- id: ignitis-grupe
+  name: Ignitis Grupė
+  isin: LT0000115768
+  currency: EUR
+  assetClass: equity
+  priceSource: { provider: yahoo, symbol: IGN1L.VS }
+  aliases:
+    swedbank: IGN1L
+    interactive-brokers: IGN1L
+
+- id: apranga
+  name: Apranga
+  isin: LT0000102337
+  currency: EUR
+  assetClass: equity
+  priceSource: { provider: yahoo, symbol: APG1L.VS }
+  aliases:
+    swedbank: APG1L
+    interactive-brokers: APG1L
+
+- id: telia-lietuva
+  name: Telia Lietuva
+  isin: LT0000123911
+  currency: EUR
+  assetClass: equity
+  priceSource: { provider: yahoo, symbol: TEL1L.VS }
+  aliases:
+    swedbank: TEL1L
+    interactive-brokers: TEL1L
+
+- id: artea-bankas
+  name: Artea Bankas
+  isin: LT0000102253
+  currency: EUR
+  assetClass: equity
+  priceSource: { provider: yahoo, symbol: ROE1L.VS }
+  aliases:
+    swedbank: ROE1L
+    interactive-brokers: ROE1L
+
+- id: klaipedos-nafta
+  name: Klaipėdos Nafta
+  currency: EUR
+  assetClass: equity
+  aliases:
+    swedbank: KNF1L
+
+- id: novaturas
+  name: Novaturas
+  currency: EUR
+  assetClass: equity
+  aliases:
+    swedbank: NTU1L
+
+- id: siauliu-bankas-legacy
+  name: Šiaulių Bankas (pre-merger)
+  currency: EUR
+  assetClass: equity
+  aliases:
+    swedbank: SFG1T
+
+- id: vilkyskiu-pienine
+  name: Vilkyškių Pieninė
+  currency: EUR
+  assetClass: equity
+  aliases:
+    swedbank: VLP1L
+
+- id: snoras
+  name: Snoras (historical)
+  currency: EUR
+  assetClass: equity
+  aliases:
+    swedbank: SNG1L
+
+- id: utenos-trikotazas
+  name: Utenos Trikotažas
+  currency: EUR
+  assetClass: equity
+  aliases:
+    swedbank: UTR1L
+
+- id: nordic-capital-hedge
+  name: Nordic Capital Hedge Fund
+  currency: EUR
+  assetClass: etf
+  aliases:
+    swedbank: NHCBHFFT
+
+- id: dcx
+  name: DCX
+  currency: EUR
+  assetClass: equity
+  aliases:
+    swedbank: DCX
+
+- id: novo-nordisk-ger
+  name: Novo Nordisk (GY legacy)
+  currency: EUR
+  assetClass: equity
+  aliases:
+    swedbank:
+      - NOVC-GY
+      - NOV-GY
+
+- id: alphabet-class-c
+  name: Alphabet Class C
+  currency: USD
+  assetClass: equity
+  priceSource: { provider: yahoo, symbol: GOOG }
+  aliases:
+    interactive-brokers: GOOG
+
+- id: asml-holding
+  name: ASML Holding
+  currency: EUR
+  assetClass: equity
+  priceSource: { provider: yahoo, symbol: ASML.AS }
+  aliases:
+    interactive-brokers: ASML
+
+- id: alibaba-group
+  name: Alibaba Group
+  currency: USD
+  assetClass: equity
+  priceSource: { provider: yahoo, symbol: BABA }
+  aliases:
+    interactive-brokers: BABA
+
+- id: mcdonalds
+  name: McDonald's
+  currency: USD
+  assetClass: equity
+  priceSource: { provider: yahoo, symbol: MCD }
+  aliases:
+    interactive-brokers: MCD
+
+- id: nomad-foods
+  name: Nomad Foods
+  currency: USD
+  assetClass: equity
+  priceSource: { provider: yahoo, symbol: NOMD }
+  aliases:
+    interactive-brokers: NOMD
+
+- id: sunnova-energy
+  name: Sunnova Energy (delisted)
+  currency: USD
+  assetClass: equity
+  aliases:
+    interactive-brokers: NOVA
+
+- id: petrobras
+  name: Petrobras
+  currency: USD
+  assetClass: equity
+  priceSource: { provider: yahoo, symbol: PBR }
+  aliases:
+    interactive-brokers: PBR
+
+- id: byd-company
+  name: BYD Company
+  currency: CNY
+  assetClass: equity
+  priceSource: { provider: yahoo, symbol: 002594.SZ }
+  aliases:
+    interactive-brokers:
+      - "002594"
+      - "89988"
+
+- id: wisdomtree-physical-gold
+  name: WisdomTree Physical Gold (E3G1)
+  currency: EUR
+  assetClass: etf
+  aliases:
+    interactive-brokers: E3G1
+
+- id: samsung-electronics
+  name: Samsung Electronics
+  currency: USD
+  assetClass: equity
+  aliases:
+    interactive-brokers:
+      - SMSN
+      - SSUN
+
+- id: archer-daniels-midland
+  name: Archer Daniels Midland
+  currency: USD
+  assetClass: equity
+  priceSource: { provider: yahoo, symbol: ADM }
+  aliases:
+    interactive-brokers: ADM
+
+- id: amr-legacy
+  name: AMR Corp (legacy)
+  currency: USD
+  assetClass: equity
+  aliases:
+    interactive-brokers: AMR
+
+- id: wix-com
+  name: Wix.com Ltd.
+  currency: USD
+  assetClass: equity
+  priceSource: { provider: yahoo, symbol: WIX }
+  aliases:
+    wix:
+      - WIX
+      - RSU
+      - ESPP
+    interactive-brokers: WIX

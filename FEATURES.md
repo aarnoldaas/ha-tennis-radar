@@ -3,7 +3,7 @@
 This repository hosts two independent Home Assistant add-ons:
 
 - **`tennis/`** — tennis court availability scanner (SEB Arena, Baltic Tennis)
-- **`investments/`** — broker file storage (CSV/TXT upload + delete)
+- **`investments/`** — multi-broker portfolio tracker (Swedbank, Interactive Brokers, Revolut, Wix equity plans)
 
 Each addon has its own `src/`, `public/`, `data/`, Dockerfile, config, and versioning. They share no code.
 
@@ -113,32 +113,76 @@ Navigation: **Tennis Radar** (Courts, Bookings) + **Settings**.
 
 # Investments Addon (`investments/`)
 
-The Investments addon is now a minimal broker-file uploader. As of 1.46.0, all parsers, portfolio analytics, market price fetching, currency conversion, AI insights, and reporting UI have been removed. The addon stores raw broker exports under `/data/Investments/<broker>/` for downstream consumers (e.g. external analysis tools); it does not interpret or compute anything.
+As of 1.47.0, the Investments addon is a full portfolio tracker built around a single canonical transaction ledger. Broker-native CSV/TXT exports are parsed into a shared `Transaction` shape, cross-broker identity is resolved via a curated `instruments.yaml` master, and every view (merged holdings, realized P&L, income, cash, allocation) is a pure derivation of that ledger. Base reporting currency is EUR; historical FX uses ECB daily reference rates.
+
+## Architecture
+
+```
+raw CSVs  →  broker parsers  →  canonical ledger (Transaction[])
+                                        │
+                                        ├─▶  FIFO lot builder  →  merged holdings (per-broker breakdown)
+                                        ├─▶  realized P&L (lot-matched, EUR)
+                                        ├─▶  income (dividends + interest + withholding tax, yearly)
+                                        ├─▶  cash balances (per broker per currency)
+                                        └─▶  allocation (asset class / currency / broker)
+                                                         ▲
+                 prices + FX (Yahoo, ECB) ───────────────┘
+```
+
+- **Canonical ledger is derived, never stored.** Raw broker files under `/data/Investments/<broker>/` remain the only source of truth. The portfolio is rebuilt in-memory on demand and cached until any source file's mtime changes.
+- **Cross-broker identity** is resolved via a hand-curated `src/config/instruments.yaml` (instrument id + per-broker aliases + optional ISIN + price-source hint). ISIN match wins when the source provides one (e.g. Swedbank dividend lines, IB dividend descriptions); alias match is the fallback.
+- **Dedupe** is keyed on stable `Transaction.id` (`swedbank:<refNo>`, `ib:<hash>`, `wix:<tradeId>`) so overlapping yearly exports are idempotent.
+- **Base currency: EUR.** Historical FX at trade date for cost basis; latest spot FX for current valuation. IB offshore currencies like `CNH` alias to published ECB pairs (`CNY`).
+
+## Broker Parsers
+
+- **Swedbank** — parses the Lithuanian bank-statement CSV. Classifier reads the free-text `Details` column:
+  - Trade regex (`SYMBOL ±qty@price`) → buy/sell with D/K direction flipping the sign.
+  - `DIVIDENDAI ...` rows → dividend; extracts ISIN and the per-share rate/withholding % into notes.
+  - `VP saugojimo mokestis` → custody fee.
+  - `Transfer between own accounts` / `Pervedimas tarp savo sąskaitų` → `internal` (excluded from cash).
+  - Opening/Closing balance / Turnover rows dropped.
+- **Interactive Brokers** — section-aware CSV parser consuming only source-of-truth sections: `Trades` (stocks), `Dividends`, `Withholding Tax`, `Fees`, `Deposits & Withdrawals`. Derived IB sections (`Mark-to-Market`, `Realized & Unrealized`, `Open Positions`, `Change in Dividend Accruals`) are intentionally skipped — we rebuild them from the ledger ourselves so nothing can drift.
+- **Wix (employer equity)** — whitespace-delimited RSU + ESPP files with mixed date formats. Issued rows emit a `buy` at fair market value with cash amount 0 (shares received, not bought); sold rows emit a `sell` with net proceeds (qty × sale price − fee).
+- **Revolut** — intentionally **summary-only**. The Revolut export does not contain a granular-enough ledger to merge with the other brokers, so this parser emits only lifetime earned interest, lifetime fees, closing balances, and lifetime dividends tagged against the relevant section/currency. Revolut appears in Cash and Income but never in Holdings or Realized P&L.
 
 ## Web UI
 
-Single-page app: just an Upload panel. Warm dark theme shared with Tennis Radar addon (DM Sans + JetBrains Mono, amber accent).
+Single-page app with persistent sidebar (desktop, 220px) and bottom tab bar (mobile). Warm dark theme shared with Tennis Radar (DM Sans + JetBrains Mono, amber accent).
 
-- **Upload**: select a broker (Swedbank, Interactive Brokers, Revolut, Wix), choose one or more `.csv`/`.txt` files, upload to `/data/Investments/<broker>/`
-- **List**: grouped by broker, shows all currently stored files
-- **Delete**: per-file delete button with confirmation prompt
+- **Overview** — KPI strip (total value, invested, unrealized P&L, realized YTD, dividends YTD, cash) plus per-broker value cards.
+- **Holdings** — single merged table keyed by canonical instrument id. Columns: symbol, name, qty, avg cost in EUR, market price, market value, unrealized P&L + %. Each row expands to show a per-broker breakdown with native and EUR cost basis. An "Unresolved instruments" banner surfaces the broker symbols missing from `instruments.yaml` so curation is a one-file edit.
+- **Instrument detail** (modal) — opens on row click: KPI panel plus four tabs (Open lots, Transactions, Realized, Income).
+- **Realized P&L** — lot-matched table filterable by year with holding-period days and totals summary (proceeds / cost basis / net).
+- **Income** — per-year summary cards plus a full dividend + interest table with gross / withholding tax / net in EUR.
+- **Cash** — per-broker per-currency balances in native and EUR, with a base-currency total.
+- **Allocation** — three donut charts: by asset class, by currency, by broker.
+- **Upload** — broker selector, multi-file upload, lists current files per broker with delete confirmation.
 
-No tabs, no settings, no charts.
+## Market Data
+
+- **Prices** — Yahoo Finance v8 chart API (`regularMarketPrice` + `currency`) covers US, European, and Baltic (`.VS` suffix) tickers. Cached to `/data/price-cache.json` with a 6-hour TTL; stale misses fall back to the last cached value.
+- **FX** — ECB euro reference rates. First boot fetches the full `eurofxref-hist.xml` (history back to 1999); subsequent refreshes pull the 90-day slice. Cached to `/data/fx-cache.json`. Historical `rateOn(date)` uses binary search for the nearest on-or-before business day.
 
 ## Storage Layout
 
-- `/data/Investments/swedbank/` — Swedbank exports
-- `/data/Investments/interactive-brokers/` — IB trade confirmations
-- `/data/Investments/revolut/` — Revolut statements
-- `/data/Investments/wix/` — Wix employer equity files
-
-Files are written verbatim — no parsing, validation, or transformation.
+- `/data/Investments/swedbank/` — raw Swedbank exports
+- `/data/Investments/interactive-brokers/` — raw IB Activity Statements
+- `/data/Investments/revolut/` — raw Revolut summaries
+- `/data/Investments/wix/` — Wix employer-equity text files
+- `/data/fx-cache.json` — ECB daily rates (derived)
+- `/data/price-cache.json` — Yahoo price quotes (derived)
 
 ## API Endpoints
 
-- `GET /api/investments/files` — list uploaded files per broker
+- `GET /api/investments/files` — list uploaded investment files per broker
 - `POST /api/investments/upload` — upload investment files (multipart, max 10 MB per file)
 - `DELETE /api/investments/files/:broker/:filename` — delete a file
+- `GET /api/portfolio` — full portfolio snapshot (KPIs + holdings + realized + income + cash + allocation + unresolved)
+- `POST /api/portfolio/refresh` — force reparse + reprice
+- `GET /api/portfolio/instrument/:id` — drill-down (instrument + holding + open lots + transactions + realized + income)
+- `GET /api/instruments` — list curated instrument master
+- `GET /api/instruments/unresolved` — broker symbols not yet mapped in `instruments.yaml`
 
 ---
 
@@ -153,3 +197,6 @@ Files are written verbatim — no parsing, validation, or transformation.
 ## Investments-Only Additional Dependencies
 
 - `@fastify/multipart` — file uploads
+- `js-yaml` — loads the embedded `instruments.yaml` master (inlined at build time via esbuild's `text` loader)
+- `papaparse` — RFC 4180-correct CSV parsing for quoted Swedbank/IB rows
+- `decimal.js` — available for deterministic cost-basis arithmetic when/if precision drift becomes visible (current implementation uses plain numbers as portfolio magnitudes stay within IEEE-754 safe range)

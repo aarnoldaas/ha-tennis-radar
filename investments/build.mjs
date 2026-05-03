@@ -32,6 +32,7 @@ await esbuild.build({
   format: 'cjs',
   outfile: 'dist/bundle.cjs',
   minify: isProd,
+  loader: { '.yaml': 'text' },
 });
 
 // Frontend

@@ -6,3 +6,7 @@ export const BROKERS = [
   { value: 'revolut', label: 'Revolut' },
   { value: 'wix', label: 'Wix' },
 ];
+
+export const BROKER_LABEL: Record<string, string> = Object.fromEntries(
+  BROKERS.map(b => [b.value, b.label]),
+);

@@ -1,17 +1,19 @@
 # Project Rules
 
+This repo contains two Home Assistant add-ons: `tennis/` (tennis court scanner) and `investments/` (portfolio tracker). They share no code — each is an independent addon with its own `src/`, `public/`, `data/`, and build toolchain.
+
 ## Version Sync
 
-When any code or asset changes are made, update the version string in ALL of these files before bundling:
+When you change code or assets in an addon, update BOTH version strings in that addon before bundling:
 
-1. `arnoldas_life_helper/config.yaml` — `version: "X.Y.Z"`
-2. `arnoldas_life_helper/build.yaml` — `BUILD_VERSION: "X.Y.Z"`
+- `tennis/config.yaml` + `tennis/build.yaml` — keep `version` and `BUILD_VERSION` identical
+- `investments/config.yaml` + `investments/build.yaml` — keep `version` and `BUILD_VERSION` identical
 
-Both occurrences must always match. Bump the patch version (Z) for fixes, minor (Y) for features.
+Addons are versioned independently. Bump patch (Z) for fixes, minor (Y) for features.
 
 ## Features Documentation
 
-When implementing new features, making architectural decisions, or changing existing behavior, update `FEATURES.md` to reflect the changes. This keeps the file as a living record of what the application does. Specifically:
+When implementing new features, making architectural decisions, or changing existing behavior, update `FEATURES.md` to reflect the changes. This keeps the file as a living record of what each addon does. Specifically:
 
 - **New features** — add a section or bullet points describing the capability
 - **Changed behavior** — update existing descriptions to match the new behavior

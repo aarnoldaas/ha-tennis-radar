@@ -1,0 +1,27 @@
+name: "Investments"
+version: "1.44.0"
+slug: "investments"
+description: "Personal investment portfolio tracker with AI insights"
+url: "https://github.com/aarnoldaas/ha-tennis-radar"
+arch:
+  - amd64
+  - aarch64
+init: false
+startup: application
+boot: auto
+
+ingress: true
+ingress_port: 8099
+ingress_entry: "/"
+panel_icon: "mdi:chart-line"
+panel_title: "Investments"
+panel_admin: false
+
+homeassistant_api: true
+
+options: {}
+schema: {}
+
+map:
+  - type: data
+    read_only: false

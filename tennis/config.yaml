@@ -1,0 +1,27 @@
+name: "Tennis Radar"
+version: "1.47.1"
+slug: "tennis_radar"
+description: "Tennis court availability scanner for SEB Arena and Baltic Tennis"
+url: "https://github.com/aarnoldaas/ha-tennis-radar"
+arch:
+  - amd64
+  - aarch64
+init: false
+startup: application
+boot: auto
+
+ingress: true
+ingress_port: 8099
+ingress_entry: "/"
+panel_icon: "mdi:tennis"
+panel_title: "Tennis Radar"
+panel_admin: false
+
+homeassistant_api: true
+
+options: {}
+schema: {}
+
+map:
+  - type: data
+    read_only: false

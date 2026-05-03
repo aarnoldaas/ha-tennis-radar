@@ -1,0 +1,7 @@
+configuration:
+  anthropic_api_key:
+    name: Anthropic API Key
+    description: Required for AI portfolio insights and plan refinement.
+  debug:
+    name: Debug Mode
+    description: Enable verbose logging for troubleshooting.

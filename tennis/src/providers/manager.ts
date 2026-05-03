@@ -128,8 +128,9 @@ export class CourtProviderManager {
       }
     }
 
-    allBookings.sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
-    return { bookings: allBookings, errors };
+    const merged = mergeConsecutiveBookings(allBookings);
+    merged.sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
+    return { bookings: merged, errors };
   }
 
   get disabledProviderNames(): string[] {
@@ -149,4 +150,68 @@ export class CourtProviderManager {
     this.radarEnabled.clear();
     this.disabledProviders.clear();
   }
+}
+
+/**
+ * Collapses runs of back-to-back bookings on the same court/date into a single
+ * combined booking. Two bookings merge when they share `(provider, courtName,
+ * date)` and the previous booking's `endTime` equals the next booking's
+ * `startTime`. Prices are summed when both share a parseable numeric component
+ * and the surrounding template (currency, formatting) matches.
+ */
+export function mergeConsecutiveBookings(bookings: Booking[]): Booking[] {
+  const groups = new Map<string, Booking[]>();
+  for (const b of bookings) {
+    const key = `${b.provider}|${b.courtName}|${b.date}`;
+    let group = groups.get(key);
+    if (!group) {
+      group = [];
+      groups.set(key, group);
+    }
+    group.push(b);
+  }
+
+  const out: Booking[] = [];
+  for (const group of groups.values()) {
+    group.sort((a, b) => a.startTime.localeCompare(b.startTime));
+    let cur: Booking | null = null;
+    for (const b of group) {
+      if (cur && cur.endTime === b.startTime) {
+        cur = {
+          ...cur,
+          endTime: b.endTime,
+          durationMinutes: cur.durationMinutes + b.durationMinutes,
+          price: combinePrices(cur.price, b.price),
+          status: cur.status ?? b.status,
+        };
+      } else {
+        if (cur) out.push(cur);
+        cur = { ...b };
+      }
+    }
+    if (cur) out.push(cur);
+  }
+
+  return out;
+}
+
+function combinePrices(a?: string, b?: string): string | undefined {
+  if (!a && !b) return undefined;
+  if (!a) return b;
+  if (!b) return a;
+
+  const parse = (s: string): { num: number; template: string } | null => {
+    const match = s.match(/(-?\d+(?:[.,]\d+)?)/);
+    if (!match) return null;
+    const num = parseFloat(match[1].replace(',', '.'));
+    if (Number.isNaN(num)) return null;
+    return { num, template: s.replace(match[1], '__N__') };
+  };
+
+  const pa = parse(a);
+  const pb = parse(b);
+  if (pa && pb && pa.template === pb.template) {
+    return pa.template.replace('__N__', (pa.num + pb.num).toFixed(2));
+  }
+  return `${a} + ${b}`;
 }

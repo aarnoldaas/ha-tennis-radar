@@ -1,5 +1,5 @@
 name: "Tennis Radar"
-version: "1.47.1"
+version: "1.48.0"
 slug: "tennis_radar"
 description: "Tennis court availability scanner for SEB Arena and Baltic Tennis"
 url: "https://github.com/aarnoldaas/ha-tennis-radar"

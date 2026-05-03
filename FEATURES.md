@@ -73,6 +73,7 @@ Navigation: **Tennis Radar** (Courts, Bookings) + **Settings**.
 
 ### Bookings Screen
 - User's existing bookings from all providers with configured credentials, grouped by date — bookings are returned regardless of whether the provider is enabled for radar polling
+- Back-to-back bookings on the same court (where one ends exactly when the next begins) are merged into a single combined session — duration is summed and price is summed when the format is parseable
 - Court name, time, duration, provider, price, status
 - Manual refresh button, error handling for fetch failures
 

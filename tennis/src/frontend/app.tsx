@@ -158,18 +158,28 @@ function getInitialPage(): NavPage {
 // ════════════════════════════════════════════════════════════
 
 function DatePicker({ selected, onChange }: { selected: string[]; onChange: (dates: string[]) => void }) {
-  const days: { date: string; label: string; weekday: string }[] = [];
+  const dateSet = new Set<string>();
   const now = new Date();
   for (let i = 1; i <= 14; i++) {
     const d = new Date(now);
     d.setDate(d.getDate() + i);
-    const iso = d.toISOString().slice(0, 10);
-    days.push({
-      date: iso,
-      label: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      weekday: d.toLocaleDateString('en-US', { weekday: 'short' }),
-    });
+    dateSet.add(d.toISOString().slice(0, 10));
   }
+  // Always include currently-selected dates, even if they fall outside the
+  // default 14-day window (e.g. dates further out, or past dates that haven't
+  // been deselected yet).
+  for (const date of selected) dateSet.add(date);
+
+  const days = [...dateSet]
+    .sort()
+    .map(date => {
+      const d = new Date(date + 'T00:00:00');
+      return {
+        date,
+        label: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        weekday: d.toLocaleDateString('en-US', { weekday: 'short' }),
+      };
+    });
 
   const toggle = (date: string) => {
     if (selected.includes(date)) {

@@ -1,7 +1,7 @@
 name: "Investments"
-version: "1.44.0"
+version: "1.46.0"
 slug: "investments"
-description: "Personal investment portfolio tracker with AI insights"
+description: "Broker file upload storage"
 url: "https://github.com/aarnoldaas/ha-tennis-radar"
 arch:
   - amd64

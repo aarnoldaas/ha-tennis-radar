@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, Group, Stack, Text, Button, Select, FileButton, Alert } from '@mantine/core';
 import { BASE, BROKERS } from './utils';
 
-export function UploadTab({ onDataChange }: { onDataChange: () => void }) {
+export function UploadTab() {
   const [files, setFiles] = useState<Record<string, string[]>>({});
   const [broker, setBroker] = useState<string>('swedbank');
   const [uploading, setUploading] = useState(false);
@@ -29,9 +29,8 @@ export function UploadTab({ onDataChange }: { onDataChange: () => void }) {
       const res = await fetch(`${BASE}/api/investments/upload`, { method: 'POST', body: formData });
       const result = await res.json();
       if (result.success) {
-        setMessage({ type: 'success', text: `Uploaded ${result.uploaded.length} file(s). Data reloaded.` });
+        setMessage({ type: 'success', text: `Uploaded ${result.uploaded.length} file(s).` });
         loadFiles();
-        onDataChange();
       } else {
         setMessage({ type: 'error', text: result.error || 'Upload failed' });
       }
@@ -48,9 +47,8 @@ export function UploadTab({ onDataChange }: { onDataChange: () => void }) {
       const res = await fetch(`${BASE}/api/investments/files/${brokerKey}/${encodeURIComponent(filename)}`, { method: 'DELETE' });
       const result = await res.json();
       if (result.success) {
-        setMessage({ type: 'success', text: `Deleted ${filename}. Data reloaded.` });
+        setMessage({ type: 'success', text: `Deleted ${filename}.` });
         loadFiles();
-        onDataChange();
       }
     } catch (e: any) {
       setMessage({ type: 'error', text: e.message });

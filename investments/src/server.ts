@@ -5,13 +5,6 @@ import { readFileSync, existsSync, mkdirSync, readdirSync, unlinkSync, statSync 
 import { join, resolve } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { createWriteStream } from 'node:fs';
-import type { AddonOptions } from './utils/config.js';
-import { loadOptions, saveOptions } from './utils/config.js';
-import { getInvestmentData, loadInvestmentData, refreshInvestmentPrices } from './investments/portfolio-service.js';
-import { loadEcbRates } from './investments/currency.js';
-import { loadSavedSuggestions, generateAiSuggestions } from './investments/ai-suggestions.js';
-import { loadPlan, savePlan, refinePlanWithAi } from './investments/plan-service.js';
-import { getFileBasedPriceHistory, updatePriceEntry, deletePriceEntry } from './investments/prices.js';
 
 const BROKER_DIRS: Record<string, string> = {
   swedbank: 'swedbank',
@@ -27,7 +20,7 @@ function findAsset(dir: string, base: string, ext: string): string {
   return match || `${base}.${ext}`;
 }
 
-export function createServer(options: { port: number; dataDir: string; getOptions: () => AddonOptions; onConfigChange: (opts: AddonOptions) => void }) {
+export function createServer(options: { port: number; dataDir: string }) {
   const app = Fastify({ logger: true });
   app.register(fastifyMultipart, { limits: { fileSize: 10 * 1024 * 1024 } });
   const appDir = resolve(process.env.APP_DIR || '/app');
@@ -63,46 +56,6 @@ export function createServer(options: { port: number; dataDir: string; getOption
   };
   app.get('/', serveIndex);
   app.get('//', serveIndex);
-
-  // API: investment data
-  app.get('/api/investments', async () => {
-    const data = getInvestmentData();
-    if (!data) return { transactions: [], holdings: [], interestSummary: null };
-    return data;
-  });
-
-  // API: refresh investment prices and ECB rates
-  app.post('/api/investments/refresh', async () => {
-    try {
-      await loadEcbRates();
-      const result = await refreshInvestmentPrices();
-      const data = getInvestmentData();
-      return { success: true, ...result, data };
-    } catch (err) {
-      return { success: false, error: err instanceof Error ? err.message : String(err) };
-    }
-  });
-
-  // API: get config
-  app.get('/api/config', async () => {
-    return loadOptions();
-  });
-
-  // API: save config
-  app.post('/api/config', async (request) => {
-    const body = request.body as Partial<AddonOptions>;
-    const current = loadOptions();
-
-    const updated: AddonOptions = {
-      ...current,
-      ...body,
-    };
-
-    saveOptions(updated);
-    options.onConfigChange(updated);
-
-    return { success: true };
-  });
 
   // API: list uploaded investment files
   app.get('/api/investments/files', async () => {
@@ -141,11 +94,6 @@ export function createServer(options: { port: number; dataDir: string; getOption
       }
     }
 
-    if (uploaded.length > 0) {
-      await loadEcbRates();
-      await loadInvestmentData(options.dataDir);
-    }
-
     return { success: true, uploaded };
   });
 
@@ -159,88 +107,6 @@ export function createServer(options: { port: number; dataDir: string; getOption
     if (!existsSync(filePath)) return { success: false, error: 'File not found' };
 
     unlinkSync(filePath);
-
-    await loadEcbRates();
-    await loadInvestmentData(options.dataDir);
-
-    return { success: true };
-  });
-
-  // API: get saved AI suggestions
-  app.get('/api/investments/ai-suggestions', async () => {
-    return loadSavedSuggestions() || { suggestions: null, generatedAt: null };
-  });
-
-  // API: generate new AI suggestions
-  app.post('/api/investments/ai-suggestions', async () => {
-    const config = options.getOptions();
-    if (!config.anthropic_api_key) {
-      return { success: false, error: 'Anthropic API key not configured. Add it in the Settings screen.' };
-    }
-    const data = getInvestmentData();
-    if (!data || data.holdings.length === 0) {
-      return { success: false, error: 'No portfolio data available. Upload investment files first.' };
-    }
-    try {
-      const result = await generateAiSuggestions(config.anthropic_api_key, data);
-      return { success: true, ...result };
-    } catch (err) {
-      return { success: false, error: err instanceof Error ? err.message : String(err) };
-    }
-  });
-
-  // API: get investment plan
-  app.get('/api/investments/plan', async () => {
-    return loadPlan() || { content: '', updatedAt: null };
-  });
-
-  // API: save investment plan
-  app.post('/api/investments/plan', async (request) => {
-    const { content } = request.body as { content: string };
-    const plan = savePlan(content);
-    return { success: true, ...plan };
-  });
-
-  // API: refine plan with AI
-  app.post('/api/investments/plan/refine', async () => {
-    const config = options.getOptions();
-    if (!config.anthropic_api_key) {
-      return { success: false, error: 'Anthropic API key not configured. Add it in the Settings screen.' };
-    }
-    const data = getInvestmentData();
-    if (!data || data.holdings.length === 0) {
-      return { success: false, error: 'No portfolio data available. Upload investment files first.' };
-    }
-    const plan = loadPlan();
-    if (!plan?.content?.trim()) {
-      return { success: false, error: 'Write your plan first before refining it with AI.' };
-    }
-    try {
-      const result = await refinePlanWithAi(config.anthropic_api_key, data, plan.content);
-      return { success: true, ...result };
-    } catch (err) {
-      return { success: false, error: err instanceof Error ? err.message : String(err) };
-    }
-  });
-
-  // API: get file-based price history (editable entries only)
-  app.get('/api/investments/price-history', async () => {
-    return getFileBasedPriceHistory();
-  });
-
-  // API: upsert a price entry for a ticker
-  app.put('/api/investments/price-history/:ticker', async (request) => {
-    const { ticker } = request.params as { ticker: string };
-    const { date, price } = request.body as { date: string; price: number };
-    if (!date || typeof price !== 'number') return { success: false, error: 'date and price are required' };
-    updatePriceEntry(ticker.toUpperCase(), date, price);
-    return { success: true };
-  });
-
-  // API: delete a price entry for a ticker by date
-  app.delete('/api/investments/price-history/:ticker/:date', async (request) => {
-    const { ticker, date } = request.params as { ticker: string; date: string };
-    deletePriceEntry(ticker.toUpperCase(), date);
     return { success: true };
   });
 

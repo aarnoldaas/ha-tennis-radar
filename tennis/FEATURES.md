@@ -73,7 +73,8 @@ Navigation: **Tennis Radar** (Courts, Bookings) + **Settings**.
 ### Settings Screen
 - **Date picker** — select from next 14 days with weekend indicators (accent-bordered card)
 - **General** — poll interval, start/end time, min duration, notify device
-- **Accordion sections** — SEB Arena credentials, Baltic Tennis credentials, Advanced (Debug mode)
+- **Provider cards** — SEB Arena and Baltic Tennis with always-visible Enabled toggle in the card header; credential fields shown when enabled
+- **Advanced card** — always-visible Debug mode toggle
 - Save with immediate effect and validation feedback (sticky bottom bar with backdrop blur)
 
 ### Status & Errors

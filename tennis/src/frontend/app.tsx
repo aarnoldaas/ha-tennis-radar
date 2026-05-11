@@ -20,7 +20,6 @@ import {
   Alert,
   Loader,
   UnstyledButton,
-  Accordion,
 } from '@mantine/core';
 import '@mantine/core/styles.css';
 import './custom.css';
@@ -566,78 +565,77 @@ function SettingsPanel() {
         </Card.Section>
       </Card>
 
-      <Accordion variant="separated" radius="md">
-        <Accordion.Item value="seb">
-          <Accordion.Control>
+      <Card withBorder radius="md">
+        <Card.Section withBorder inheritPadding py="xs">
+          <Group justify="space-between" wrap="nowrap">
             <Text fw={600} size="sm">SEB Arena</Text>
-          </Accordion.Control>
-          <Accordion.Panel>
             <Switch
-              label="Enabled"
               checked={config.seb_enabled}
               onChange={e => update('seb_enabled', e.currentTarget.checked)}
               size="sm"
             />
-            {config.seb_enabled && (
-              <TextInput
-                label="Session Token"
-                value={config.seb_session_token}
-                onChange={e => update('seb_session_token', e.currentTarget.value)}
-                autoComplete="off"
-                size="sm"
-                mt="sm"
-              />
-            )}
-          </Accordion.Panel>
-        </Accordion.Item>
+          </Group>
+        </Card.Section>
+        {config.seb_enabled && (
+          <Card.Section inheritPadding py="md">
+            <TextInput
+              label="Session Token"
+              value={config.seb_session_token}
+              onChange={e => update('seb_session_token', e.currentTarget.value)}
+              autoComplete="off"
+              size="sm"
+            />
+          </Card.Section>
+        )}
+      </Card>
 
-        <Accordion.Item value="baltic">
-          <Accordion.Control>
+      <Card withBorder radius="md">
+        <Card.Section withBorder inheritPadding py="xs">
+          <Group justify="space-between" wrap="nowrap">
             <Text fw={600} size="sm">Baltic Tennis</Text>
-          </Accordion.Control>
-          <Accordion.Panel>
             <Switch
-              label="Enabled"
               checked={config.baltic_tennis_enabled}
               onChange={e => update('baltic_tennis_enabled', e.currentTarget.checked)}
               size="sm"
             />
-            {config.baltic_tennis_enabled && (
-              <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm" mt="sm">
-                <TextInput
-                  label="Username"
-                  placeholder="email@example.com"
-                  value={config.baltic_tennis_username}
-                  onChange={e => update('baltic_tennis_username', e.currentTarget.value)}
-                  autoComplete="off"
-                  size="sm"
-                />
-                <PasswordInput
-                  label="Password"
-                  value={config.baltic_tennis_password}
-                  onChange={e => update('baltic_tennis_password', e.currentTarget.value)}
-                  autoComplete="off"
-                  size="sm"
-                />
-              </SimpleGrid>
-            )}
-          </Accordion.Panel>
-        </Accordion.Item>
+          </Group>
+        </Card.Section>
+        {config.baltic_tennis_enabled && (
+          <Card.Section inheritPadding py="md">
+            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+              <TextInput
+                label="Username"
+                placeholder="email@example.com"
+                value={config.baltic_tennis_username}
+                onChange={e => update('baltic_tennis_username', e.currentTarget.value)}
+                autoComplete="off"
+                size="sm"
+              />
+              <PasswordInput
+                label="Password"
+                value={config.baltic_tennis_password}
+                onChange={e => update('baltic_tennis_password', e.currentTarget.value)}
+                autoComplete="off"
+                size="sm"
+              />
+            </SimpleGrid>
+          </Card.Section>
+        )}
+      </Card>
 
-        <Accordion.Item value="advanced">
-          <Accordion.Control>
+      <Card withBorder radius="md">
+        <Card.Section withBorder inheritPadding py="xs">
+          <Group justify="space-between" wrap="nowrap">
             <Text fw={600} size="sm">Advanced</Text>
-          </Accordion.Control>
-          <Accordion.Panel>
             <Switch
               label="Debug Mode"
               checked={config.debug}
               onChange={e => update('debug', e.currentTarget.checked)}
               size="sm"
             />
-          </Accordion.Panel>
-        </Accordion.Item>
-      </Accordion>
+          </Group>
+        </Card.Section>
+      </Card>
 
       <Group gap="md" className="save-bar">
         <Button onClick={handleSave} loading={saving} size="sm">

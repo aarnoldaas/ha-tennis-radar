@@ -168,13 +168,28 @@
 
 - id: byd-company
   name: BYD Company
+  isin: CNE100001526
   currency: CNY
   assetClass: equity
   priceSource: { provider: yahoo, symbol: 002594.SZ }
   aliases:
+    interactive-brokers: "002594"
+
+# IB symbol "89988" (and post-rename "89988.OLD") is the HK-listed RMB counter
+# of Alibaba — a different security from the US-listed BABA ADR
+# (alibaba-group), so it has its own canonical id. Currency CNY matches the
+# IB trade currency (CNH, normalized via the FX layer); no priceSource yet
+# because the position is closed and the dual-counter HKD/CNY price quoting
+# on Yahoo doesn't cleanly match.
+- id: alibaba-group-hk
+  name: Alibaba Group (HK)
+  isin: KYG017191225
+  currency: CNY
+  assetClass: equity
+  aliases:
     interactive-brokers:
-      - "002594"
       - "89988"
+      - "89988.OLD"
 
 - id: wisdomtree-physical-gold
   name: WisdomTree Physical Gold (E3G1)
@@ -183,14 +198,24 @@
   aliases:
     interactive-brokers: E3G1
 
-- id: samsung-electronics
-  name: Samsung Electronics
+# Samsung Electronics has two distinct GDR lines on IB: SMSN is the common
+# 1/2 NV GDR (USD-traded, Reg S) and SSUN is the preferred GDR (EUR-traded
+# on Frankfurt). They're separate securities, not a join.
+- id: samsung-electronics-common-gdr
+  name: Samsung Electronics (Common GDR)
   currency: USD
   assetClass: equity
+  priceSource: { provider: yahoo, symbol: SMSN.IL }
   aliases:
-    interactive-brokers:
-      - SMSN
-      - SSUN
+    interactive-brokers: SMSN
+
+- id: samsung-electronics
+  name: Samsung Electronics (Preferred GDR)
+  currency: EUR
+  assetClass: equity
+  priceSource: { provider: yahoo, symbol: SSUN.F }
+  aliases:
+    interactive-brokers: SSUN
 
 - id: archer-daniels-midland
   name: Archer Daniels Midland
@@ -206,15 +231,3 @@
   assetClass: equity
   aliases:
     interactive-brokers: AMR
-
-- id: wix-com
-  name: Wix.com Ltd.
-  currency: USD
-  assetClass: equity
-  priceSource: { provider: yahoo, symbol: WIX }
-  aliases:
-    wix:
-      - WIX
-      - RSU
-      - ESPP
-    interactive-brokers: WIX

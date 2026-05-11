@@ -18,20 +18,22 @@ import { api, type PortfolioSnapshot } from './investments/api';
 import { UploadTab } from './investments/UploadTab';
 import { OverviewTab } from './investments/OverviewTab';
 import { HoldingsTab } from './investments/HoldingsTab';
-import { RealizedTab } from './investments/RealizedTab';
-import { IncomeTab } from './investments/IncomeTab';
-import { CashTab } from './investments/CashTab';
+import { TransactionsTab } from './investments/TransactionsTab';
+import { CashflowTab } from './investments/CashflowTab';
 import { AllocationTab } from './investments/AllocationTab';
+import { MappingsTab } from './investments/MappingsTab';
+import { FilesTab } from './investments/FilesTab';
 import { InstrumentDetailModal } from './investments/InstrumentDetailModal';
 
 type NavPage =
   | 'overview'
   | 'holdings'
-  | 'realized'
-  | 'income'
-  | 'cash'
+  | 'transactions'
+  | 'cashflow'
   | 'allocation'
-  | 'upload';
+  | 'mappings'
+  | 'upload'
+  | 'files';
 
 interface NavItem {
   page: NavPage;
@@ -52,16 +54,19 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { page: 'overview', label: 'Overview', icon: '◎' },
       { page: 'holdings', label: 'Holdings', icon: '≡' },
-      { page: 'realized', label: 'Realized P&L', icon: '↻' },
-      { page: 'income', label: 'Income', icon: '₪' },
-      { page: 'cash', label: 'Cash', icon: '€' },
+      { page: 'transactions', label: 'Transactions', icon: '↹' },
+      { page: 'cashflow', label: 'Cashflow', icon: '⇅' },
       { page: 'allocation', label: 'Allocation', icon: '◐' },
     ],
   },
   {
     label: 'Data',
     icon: '↑',
-    items: [{ page: 'upload', label: 'Upload', icon: '↑' }],
+    items: [
+      { page: 'mappings', label: 'Mappings', icon: '⇄' },
+      { page: 'upload', label: 'Upload', icon: '↑' },
+      { page: 'files', label: 'Files', icon: '⌘' },
+    ],
   },
 ];
 
@@ -70,11 +75,12 @@ function getInitialPage(): NavPage {
   const all: NavPage[] = [
     'overview',
     'holdings',
-    'realized',
-    'income',
-    'cash',
+    'transactions',
+    'cashflow',
     'allocation',
+    'mappings',
     'upload',
+    'files',
   ];
   return (all.includes(screen as NavPage) ? (screen as NavPage) : 'overview');
 }
@@ -127,7 +133,7 @@ function BottomTabs({
   const tabs: { icon: string; label: string; page: NavPage }[] = [
     { icon: '◎', label: 'Overview', page: 'overview' },
     { icon: '≡', label: 'Holdings', page: 'holdings' },
-    { icon: '₪', label: 'Income', page: 'income' },
+    { icon: '↹', label: 'Transactions', page: 'transactions' },
     { icon: '↑', label: 'Upload', page: 'upload' },
   ];
   return (
@@ -236,16 +242,18 @@ function App() {
             onOpenInstrument={id => setOpenInstrument(id)}
           />
         );
-      case 'realized':
-        return <RealizedTab snapshot={snapshot} />;
-      case 'income':
-        return <IncomeTab snapshot={snapshot} />;
-      case 'cash':
-        return <CashTab snapshot={snapshot} />;
+      case 'transactions':
+        return <TransactionsTab />;
+      case 'cashflow':
+        return <CashflowTab />;
       case 'allocation':
         return <AllocationTab snapshot={snapshot} />;
+      case 'mappings':
+        return <MappingsTab />;
       case 'upload':
         return <UploadTab />;
+      case 'files':
+        return <FilesTab />;
       default:
         return null;
     }

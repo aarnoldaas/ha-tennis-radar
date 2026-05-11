@@ -1,7 +1,7 @@
 name: "Investments"
-version: "1.47.0"
+version: "1.54.0"
 slug: "investments"
-description: "Merged-holdings portfolio tracker across Swedbank, Interactive Brokers, Revolut, and Wix equity plans"
+description: "Merged-holdings portfolio tracker across Swedbank and Interactive Brokers"
 url: "https://github.com/aarnoldaas/ha-tennis-radar"
 arch:
   - amd64

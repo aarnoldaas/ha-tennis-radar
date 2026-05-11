@@ -1,6 +1,6 @@
 import { BASE } from './utils';
 
-export type BrokerKey = 'swedbank' | 'interactive-brokers' | 'revolut' | 'wix';
+export type BrokerKey = 'swedbank' | 'interactive-brokers';
 export type AssetClass = 'equity' | 'etf' | 'bond' | 'cash' | 'crypto';
 export type TxKind =
   | 'buy'
@@ -8,11 +8,8 @@ export type TxKind =
   | 'dividend'
   | 'interest'
   | 'tax'
-  | 'fee'
   | 'deposit'
-  | 'withdrawal'
-  | 'fx'
-  | 'internal';
+  | 'withdrawal';
 
 export interface Transaction {
   id: string;
@@ -30,14 +27,6 @@ export interface Transaction {
   notes?: string;
 }
 
-export interface BrokerHolding {
-  broker: BrokerKey;
-  quantity: number;
-  avgCost: number;
-  avgCostBase: number;
-  costBasisBase: number;
-}
-
 export interface MergedHolding {
   instrumentId: string;
   symbol: string;
@@ -52,7 +41,6 @@ export interface MergedHolding {
   marketValueBase: number | null;
   unrealizedPnlBase: number | null;
   unrealizedPnlPct: number | null;
-  perBroker: BrokerHolding[];
 }
 
 export interface OpenLot {
@@ -93,13 +81,6 @@ export interface IncomeRow {
   kind: 'dividend' | 'interest';
 }
 
-export interface CashBalance {
-  broker: BrokerKey;
-  currency: string;
-  amount: number;
-  amountBase: number;
-}
-
 export interface AllocationSlice {
   key: string;
   label: string;
@@ -110,7 +91,6 @@ export interface AllocationSlice {
 export interface Allocation {
   byAssetClass: AllocationSlice[];
   byCurrency: AllocationSlice[];
-  byBroker: AllocationSlice[];
 }
 
 export interface PortfolioKpis {
@@ -120,7 +100,6 @@ export interface PortfolioKpis {
   unrealizedPnlPct: number;
   realizedYtdBase: number;
   dividendsYtdBase: number;
-  totalCashBase: number;
   baseCurrency: string;
 }
 
@@ -139,7 +118,6 @@ export interface PortfolioSnapshot {
   holdings: MergedHolding[];
   realized: RealizedLotMatch[];
   income: IncomeRow[];
-  cash: CashBalance[];
   allocation: Allocation;
   unresolved: UnresolvedAlias[];
 }
@@ -163,6 +141,56 @@ export interface InstrumentDetail {
   income: IncomeRow[];
 }
 
+export interface ResolvedMappingEntry {
+  instrumentId: string;
+  name: string;
+  isin?: string;
+  currency: string;
+  assetClass: AssetClass;
+  yahooSymbol: string | null;
+  priceProvider: string | null;
+  priceSymbol: string | null;
+  aliases: { broker: BrokerKey; rawSymbol: string }[];
+  marketPrice: number | null;
+  marketValueBase: number | null;
+  quantity: number;
+  hasOpenPosition: boolean;
+}
+
+export interface UnresolvedMappingEntry {
+  broker: BrokerKey;
+  rawSymbol: string;
+  isin?: string;
+  count: number;
+}
+
+export interface MappingsPayload {
+  resolved: ResolvedMappingEntry[];
+  unresolved: UnresolvedMappingEntry[];
+}
+
+export interface DataFileEntry {
+  path: string;
+  size: number;
+  mtime: number;
+}
+
+export interface DataFilesPayload {
+  root: string;
+  files: DataFileEntry[];
+}
+
+export interface YahooVerifyResponse {
+  ok: boolean;
+  price?: number;
+  currency?: string;
+  symbol?: string;
+  exchangeName?: string | null;
+  shortName?: string | null;
+  longName?: string | null;
+  error?: string;
+}
+
 async function j<T>(res: Response): Promise<T> {
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json() as Promise<T>;
@@ -178,6 +206,8 @@ export const api = {
     fetch(`${BASE}/api/portfolio/instrument/${encodeURIComponent(id)}`).then(r =>
       j<InstrumentDetail>(r),
     ),
+  transactions: () =>
+    fetch(`${BASE}/api/portfolio/transactions`).then(r => j<Transaction[]>(r)),
   listFiles: () =>
     fetch(`${BASE}/api/investments/files`).then(r => j<Record<string, string[]>>(r)),
   uploadFiles: async (broker: string, files: File[]) => {
@@ -195,5 +225,63 @@ export const api = {
       { method: 'DELETE' },
     );
     return j<{ success: boolean; error?: string }>(res);
+  },
+  mappings: () =>
+    fetch(`${BASE}/api/instruments/mappings`).then(r => j<MappingsPayload>(r)),
+  verifyYahoo: async (symbol: string) => {
+    const res = await fetch(`${BASE}/api/instruments/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ symbol }),
+    });
+    // Errors come back as 4xx/5xx with a structured body — surface them
+    // instead of throwing so the UI can render the message inline.
+    return (await res.json()) as YahooVerifyResponse;
+  },
+  saveResolvedMapping: async (instrumentId: string, yahooSymbol: string | null) => {
+    const res = await fetch(`${BASE}/api/instruments/mappings/resolved`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ instrumentId, yahooSymbol }),
+    });
+    return (await res.json()) as { ok: boolean; error?: string; instrument?: Instrument };
+  },
+  listDataFiles: () =>
+    fetch(`${BASE}/api/data/files`).then(r => j<DataFilesPayload>(r)),
+  dataFileUrl: (path: string) =>
+    `${BASE}/api/data/file?path=${encodeURIComponent(path)}`,
+  deleteDataFile: async (path: string) => {
+    const res = await fetch(
+      `${BASE}/api/data/file?path=${encodeURIComponent(path)}`,
+      { method: 'DELETE' },
+    );
+    return j<{ success: boolean; error?: string }>(res);
+  },
+  uploadDataFiles: async (dir: string, files: File[]) => {
+    const formData = new FormData();
+    for (const f of files) formData.append('file', f, f.name);
+    const res = await fetch(
+      `${BASE}/api/data/upload?dir=${encodeURIComponent(dir)}`,
+      { method: 'POST', body: formData },
+    );
+    return j<{ success: boolean; uploaded?: string[]; error?: string }>(res);
+  },
+  saveUnresolvedMapping: async (
+    broker: BrokerKey,
+    rawSymbol: string,
+    yahooSymbol: string,
+    overrides?: { name?: string; currency?: string },
+  ) => {
+    const res = await fetch(`${BASE}/api/instruments/mappings/unresolved`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ broker, rawSymbol, yahooSymbol, ...overrides }),
+    });
+    return (await res.json()) as {
+      ok: boolean;
+      error?: string;
+      instrument?: Instrument;
+      verified?: YahooVerifyResponse | null;
+    };
   },
 };

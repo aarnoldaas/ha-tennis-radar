@@ -112,17 +112,52 @@ export class PriceService {
  * the native currency on the quote meta.
  */
 async function fetchYahoo(symbol: string): Promise<{ price: number; currency: string } | null> {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`;
+  const verified = await verifyYahooSymbol(symbol);
+  if (!verified) return null;
+  return { price: verified.price, currency: verified.currency };
+}
+
+export interface YahooVerifyResult {
+  price: number;
+  currency: string;
+  symbol: string;
+  exchangeName: string | null;
+  shortName: string | null;
+  longName: string | null;
+}
+
+/**
+ * Probe a Yahoo Finance symbol via the public v8 chart endpoint and return
+ * the resolved currency / current price / display name. Used by the
+ * Mappings tab so users can sanity-check a ticker before saving it. Throws
+ * a descriptive error on HTTP failure or malformed response so the UI can
+ * surface a meaningful message.
+ */
+export async function verifyYahooSymbol(symbol: string): Promise<YahooVerifyResult | null> {
+  const trimmed = symbol.trim();
+  if (!trimmed) return null;
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(trimmed)}?interval=1d&range=1d`;
   const res = await fetch(url, {
     headers: { 'User-Agent': 'Mozilla/5.0 (ha-investments)' },
   });
-  if (!res.ok) return null;
+  if (!res.ok) {
+    throw new Error(`Yahoo HTTP ${res.status}`);
+  }
   const json = (await res.json()) as any;
+  const errMsg = json?.chart?.error?.description;
+  if (errMsg) throw new Error(errMsg);
   const meta = json?.chart?.result?.[0]?.meta;
   if (!meta) return null;
   const price = Number(meta.regularMarketPrice);
   if (!Number.isFinite(price) || price <= 0) return null;
-  return { price, currency: String(meta.currency ?? 'USD').toUpperCase() };
+  return {
+    price,
+    currency: String(meta.currency ?? 'USD').toUpperCase(),
+    symbol: String(meta.symbol ?? trimmed),
+    exchangeName: meta.exchangeName ? String(meta.exchangeName) : null,
+    shortName: meta.shortName ? String(meta.shortName) : null,
+    longName: meta.longName ? String(meta.longName) : null,
+  };
 }
 
 /**

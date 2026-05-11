@@ -4,8 +4,6 @@ import type { BrokerKey, Transaction, UnresolvedAlias } from '../parsers/types.j
 import { BROKER_KEYS } from '../parsers/types.js';
 import { parseSwedbank } from '../parsers/swedbank.js';
 import { parseInteractiveBrokers } from '../parsers/interactive-brokers.js';
-import { parseWix } from '../parsers/wix.js';
-import { parseRevolut } from '../parsers/revolut.js';
 import { createUnresolvedTracker, resolveInstrument } from '../config/instruments.js';
 
 export interface LedgerResult {
@@ -20,10 +18,6 @@ function parserFor(broker: BrokerKey): (text: string, source: string) => Transac
       return parseSwedbank;
     case 'interactive-brokers':
       return parseInteractiveBrokers;
-    case 'wix':
-      return parseWix;
-    case 'revolut':
-      return parseRevolut;
   }
 }
 

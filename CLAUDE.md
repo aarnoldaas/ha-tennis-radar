@@ -13,7 +13,12 @@ Addons are versioned independently. Bump patch (Z) for fixes, minor (Y) for feat
 
 ## Features Documentation
 
-When implementing new features, making architectural decisions, or changing existing behavior, update `FEATURES.md` to reflect the changes. This keeps the file as a living record of what each addon does. Specifically:
+Each addon has its own living features doc:
+
+- `tennis/FEATURES.md` — Tennis Radar
+- `investments/FEATURES.md` — Investments
+
+When implementing new features, making architectural decisions, or changing existing behavior, update the relevant addon's `FEATURES.md` to reflect the changes. Specifically:
 
 - **New features** — add a section or bullet points describing the capability
 - **Changed behavior** — update existing descriptions to match the new behavior

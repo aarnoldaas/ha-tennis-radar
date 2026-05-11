@@ -5,10 +5,9 @@ import { money, pct } from './format';
 export function AllocationTab({ snapshot }: { snapshot: PortfolioSnapshot }) {
   return (
     <Stack gap="md">
-      <SimpleGrid cols={{ base: 1, md: 3 }} spacing="md">
+      <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
         <DonutCard title="By asset class" slices={snapshot.allocation.byAssetClass} />
         <DonutCard title="By currency" slices={snapshot.allocation.byCurrency} />
-        <DonutCard title="By broker" slices={snapshot.allocation.byBroker} />
       </SimpleGrid>
     </Stack>
   );

@@ -4,7 +4,6 @@ import type {
   OpenLot,
   RealizedLotMatch,
   Transaction,
-  BrokerHolding,
 } from '../parsers/types.js';
 import { getInstrument } from '../config/instruments.js';
 import type { FxService } from '../market/fx.js';
@@ -12,13 +11,13 @@ import type { FxService } from '../market/fx.js';
 /**
  * Walk the ledger in chronological order and apply FIFO lot matching within
  * each `(instrumentId, broker)` pair. Produces both open lots (for holdings)
- * and realized-P&L rows (for the Realized tab).
+ * and realized-P&L rows (for the Realized tab in the instrument detail).
  *
  * Cost basis is tracked in both native currency and base EUR. FX is applied
  * at trade date so a USD cost basis locks in the EUR rate that day.
  *
- * Transactions with a null `instrumentId` cannot be matched — they contribute
- * only to cash balances (via cash.ts) and are skipped here.
+ * Transactions with a null `instrumentId` cannot be matched to an instrument
+ * and are skipped. Cash is not tracked anywhere in the system.
  */
 
 export interface LotBuildResult {
@@ -104,6 +103,11 @@ export function buildLots(transactions: Transaction[], fx: FxService): LotBuildR
   return { openLots, realized };
 }
 
+/**
+ * Collapse open lots into one row per instrument. Per-broker breakdowns are
+ * available on the instrument detail modal via the lot list, so we don't
+ * surface a separate broker dimension here.
+ */
 export function mergeLotsIntoHoldings(openLots: OpenLot[]): MergedHolding[] {
   const byInstrument = new Map<string, OpenLot[]>();
   for (const lot of openLots) {
@@ -117,7 +121,6 @@ export function mergeLotsIntoHoldings(openLots: OpenLot[]): MergedHolding[] {
     const inst = getInstrument(instrumentId);
     if (!inst) continue;
 
-    const perBrokerMap = new Map<BrokerKey, BrokerHolding>();
     let totalQty = 0;
     let totalCostNative = 0;
     let totalCostBase = 0;
@@ -126,32 +129,20 @@ export function mergeLotsIntoHoldings(openLots: OpenLot[]): MergedHolding[] {
       totalQty += lot.quantity;
       totalCostNative += lot.quantity * lot.costPerUnit;
       totalCostBase += lot.quantity * lot.costPerUnitBase;
-      const bh = perBrokerMap.get(lot.broker) ?? {
-        broker: lot.broker,
-        quantity: 0,
-        avgCost: 0,
-        avgCostBase: 0,
-        costBasisBase: 0,
-      };
-      const newQty = bh.quantity + lot.quantity;
-      const newCostNative = bh.avgCost * bh.quantity + lot.quantity * lot.costPerUnit;
-      const newCostBase = bh.costBasisBase + lot.quantity * lot.costPerUnitBase;
-      bh.quantity = newQty;
-      bh.avgCost = newQty > 0 ? newCostNative / newQty : 0;
-      bh.costBasisBase = newCostBase;
-      bh.avgCostBase = newQty > 0 ? newCostBase / newQty : 0;
-      perBrokerMap.set(lot.broker, bh);
     }
 
     if (totalQty <= 1e-9) continue;
 
+    const firstAlias = Object.values(inst.aliases)[0];
+    const symbol = firstAlias
+      ? Array.isArray(firstAlias)
+        ? firstAlias[0]
+        : firstAlias
+      : instrumentId;
+
     holdings.push({
       instrumentId,
-      symbol: Object.values(inst.aliases)[0]
-        ? (Array.isArray(Object.values(inst.aliases)[0])
-            ? (Object.values(inst.aliases)[0] as string[])[0]
-            : (Object.values(inst.aliases)[0] as string))
-        : instrumentId,
+      symbol,
       name: inst.name,
       assetClass: inst.assetClass,
       currency: inst.currency,
@@ -163,7 +154,6 @@ export function mergeLotsIntoHoldings(openLots: OpenLot[]): MergedHolding[] {
       marketValueBase: null,
       unrealizedPnlBase: null,
       unrealizedPnlPct: null,
-      perBroker: [...perBrokerMap.values()].sort((a, b) => b.costBasisBase - a.costBasisBase),
     });
   }
 

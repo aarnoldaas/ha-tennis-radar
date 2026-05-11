@@ -1,17 +1,13 @@
-export type BrokerKey = 'swedbank' | 'interactive-brokers' | 'revolut' | 'wix';
+export type BrokerKey = 'swedbank' | 'interactive-brokers';
 
 export const BROKER_KEYS: BrokerKey[] = [
   'swedbank',
   'interactive-brokers',
-  'revolut',
-  'wix',
 ];
 
 export const BROKER_LABELS: Record<BrokerKey, string> = {
   swedbank: 'Swedbank',
   'interactive-brokers': 'Interactive Brokers',
-  revolut: 'Revolut',
-  wix: 'Wix',
 };
 
 export type TxKind =
@@ -20,11 +16,8 @@ export type TxKind =
   | 'dividend'
   | 'interest'
   | 'tax'
-  | 'fee'
   | 'deposit'
-  | 'withdrawal'
-  | 'fx'
-  | 'internal';
+  | 'withdrawal';
 
 export type AssetClass = 'equity' | 'etf' | 'bond' | 'cash' | 'crypto';
 
@@ -92,14 +85,6 @@ export interface OpenLot {
   sourceTxId: string;
 }
 
-export interface BrokerHolding {
-  broker: BrokerKey;
-  quantity: number;
-  avgCost: number;
-  avgCostBase: number;
-  costBasisBase: number;
-}
-
 export interface MergedHolding {
   instrumentId: string;
   symbol: string;
@@ -114,7 +99,6 @@ export interface MergedHolding {
   marketValueBase: number | null;
   unrealizedPnlBase: number | null;
   unrealizedPnlPct: number | null;
-  perBroker: BrokerHolding[];
 }
 
 export interface RealizedLotMatch {
@@ -143,13 +127,6 @@ export interface IncomeRow {
   kind: 'dividend' | 'interest';
 }
 
-export interface CashBalance {
-  broker: BrokerKey;
-  currency: string;
-  amount: number;
-  amountBase: number;
-}
-
 export interface AllocationSlice {
   key: string;
   label: string;
@@ -160,7 +137,6 @@ export interface AllocationSlice {
 export interface Allocation {
   byAssetClass: AllocationSlice[];
   byCurrency: AllocationSlice[];
-  byBroker: AllocationSlice[];
 }
 
 export interface PortfolioKpis {
@@ -170,7 +146,6 @@ export interface PortfolioKpis {
   unrealizedPnlPct: number;
   realizedYtdBase: number;
   dividendsYtdBase: number;
-  totalCashBase: number;
   baseCurrency: string;
 }
 
@@ -181,7 +156,6 @@ export interface PortfolioSnapshot {
   holdings: MergedHolding[];
   realized: RealizedLotMatch[];
   income: IncomeRow[];
-  cash: CashBalance[];
   allocation: Allocation;
   unresolved: UnresolvedAlias[];
 }

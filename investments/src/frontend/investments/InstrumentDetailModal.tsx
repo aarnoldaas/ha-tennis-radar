@@ -291,14 +291,6 @@ function kindColor(kind: string): string {
       return 'cyan';
     case 'tax':
       return 'red';
-    case 'fee':
-      return 'red';
-    case 'deposit':
-      return 'green';
-    case 'withdrawal':
-      return 'yellow';
-    case 'internal':
-      return 'gray';
     default:
       return 'gray';
   }

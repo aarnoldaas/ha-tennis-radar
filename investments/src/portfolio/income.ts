@@ -1,4 +1,4 @@
-import type { CashBalance, IncomeRow, Transaction } from '../parsers/types.js';
+import type { IncomeRow, Transaction } from '../parsers/types.js';
 import type { FxService } from '../market/fx.js';
 
 /**
@@ -6,6 +6,9 @@ import type { FxService } from '../market/fx.js';
  * broker, year) income rows in base EUR. Withholding tax is subtracted from
  * gross when we can match tax rows to their dividend on (instrument, date);
  * otherwise we report tax per symbol.
+ *
+ * Cash movements (deposits, withdrawals, fees, buys, sells) are not tracked
+ * anywhere — this module is strictly about income.
  */
 export function buildIncome(transactions: Transaction[], fx: FxService): IncomeRow[] {
   const map = new Map<string, IncomeRow>();
@@ -17,8 +20,17 @@ export function buildIncome(transactions: Transaction[], fx: FxService): IncomeR
     if (tx.kind !== 'dividend' && tx.kind !== 'interest' && tx.kind !== 'tax') continue;
     const year = Number(tx.timestamp.slice(0, 4));
     if (!Number.isFinite(year)) continue;
-    const sym = tx.rawSymbol ?? (tx.kind === 'interest' ? 'INTEREST' : '(unresolved)');
-    const incomeKind: 'dividend' | 'interest' = tx.kind === 'interest' ? 'interest' : 'dividend';
+    // Symbolless withholding-tax rows whose description mentions
+    // "Credit Interest" are IBKR's interest-withholding rows. Net them
+    // against the matching `Credit Interest` row instead of bucketing
+    // them as a no-symbol "(unresolved)" dividend. We detect this on the
+    // description so the parser can leave rawSymbol null (no fake ticker
+    // leaks into the Transactions / Mappings UI).
+    const isInterestTax =
+      tx.kind === 'tax' && !tx.rawSymbol && /credit interest/i.test(tx.notes ?? '');
+    const isInterestRow = tx.kind === 'interest' || isInterestTax;
+    const sym = tx.rawSymbol ?? (isInterestRow ? '__interest__' : '(unresolved)');
+    const incomeKind: 'dividend' | 'interest' = isInterestRow ? 'interest' : 'dividend';
     const k = key(sym, tx.broker, year, incomeKind);
 
     const existing = map.get(k) ?? {
@@ -48,33 +60,5 @@ export function buildIncome(transactions: Transaction[], fx: FxService): IncomeR
   return [...map.values()].sort((a, b) => {
     if (b.year !== a.year) return b.year - a.year;
     return b.netBase - a.netBase;
-  });
-}
-
-/**
- * Reduce all cash-affecting transactions to a per-broker per-currency net
- * balance. Converts to base using the current spot rate for display in the
- * KPI strip.
- */
-export function buildCash(transactions: Transaction[], fx: FxService): CashBalance[] {
-  const map = new Map<string, CashBalance>();
-  for (const tx of transactions) {
-    if (tx.kind === 'internal') continue;
-    const k = `${tx.broker}|${tx.currency}`;
-    const entry = map.get(k) ?? {
-      broker: tx.broker,
-      currency: tx.currency,
-      amount: 0,
-      amountBase: 0,
-    };
-    entry.amount += tx.amount;
-    map.set(k, entry);
-  }
-  for (const entry of map.values()) {
-    entry.amountBase = fx.toBaseLatest(entry.amount, entry.currency);
-  }
-  return [...map.values()].sort((a, b) => {
-    if (a.broker !== b.broker) return a.broker.localeCompare(b.broker);
-    return a.currency.localeCompare(b.currency);
   });
 }

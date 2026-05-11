@@ -215,8 +215,12 @@ export class FinnhubService {
         return null;
       }
       const metric: FinnhubMetric = {
-        peTTM: numOrNull(m.peTTM ?? m.peNormalizedAnnual ?? m.peExclExtraTTM),
-        peForward: numOrNull(m.peFwd ?? m.forwardPE ?? null),
+        peTTM: numOrNull(m.peTTM ?? m.peExclExtraTTM),
+        // Finnhub's "forward" P/E lives in `peNormalizedAnnual` on
+        // `/stock/metric?metric=all` — there is no `peFwd` / `forwardPE`
+        // field despite intuitive naming. See finnhub/Finnhub-API issue
+        // #554 for confirmation.
+        peForward: numOrNull(m.peNormalizedAnnual ?? m.peExclExtraAnnual),
         epsTTM: numOrNull(m.epsTTM ?? m.epsBasicExclExtraItemsTTM),
         beta: numOrNull(m.beta),
         marketCap: numOrNull(m.marketCapitalization) != null

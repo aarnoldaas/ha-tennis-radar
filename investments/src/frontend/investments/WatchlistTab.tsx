@@ -101,14 +101,25 @@ export function WatchlistTab({
   return (
     <Stack gap="md">
       {!data.enabled && (
-        <Alert color="yellow" variant="light" title="Finnhub API key not configured">
+        <Alert color="blue" variant="light" title="Running on Yahoo Finance only">
           <Text size="xs" mb={4}>
-            Fundamentals (P/E, growth %, earnings dates, ex-dividend dates) are powered by
-            Finnhub. Add a free API key in the addon options to populate the table.
+            Fundamentals are coming from Yahoo Finance's public quoteSummary endpoint
+            (free, no key required) — covers most US + international listings.
           </Text>
           <Text size="xs" c="dimmed">
-            Open the addon's Configuration tab in Home Assistant and paste a key into
-            <Pill mx={4} size="xs">finnhub_api_key</Pill> — then restart the addon.
+            For US stocks you can also add a free Finnhub key in the addon options
+            (<Pill mx={4} size="xs">finnhub_api_key</Pill>) — Finnhub publishes
+            additional fields like 5-year revenue CAGR and detailed earnings estimates.
+            Finnhub's free tier is US-only; non-US holdings will keep using Yahoo.
+          </Text>
+        </Alert>
+      )}
+      {data.enabled && (
+        <Alert color="gray" variant="light" title="Data sources" withCloseButton={false}>
+          <Text size="xs" c="dimmed">
+            Finnhub free tier is US-only — for every non-US holding we fall back to
+            Yahoo Finance's quoteSummary endpoint. The badge on each row shows which
+            provider supplied that row's fundamentals.
           </Text>
         </Alert>
       )}
@@ -139,7 +150,7 @@ export function WatchlistTab({
           >
             Refresh fundamentals
           </Button>
-          <Button size="xs" onClick={() => setAddOpen(true)} disabled={!data.enabled}>
+          <Button size="xs" onClick={() => setAddOpen(true)}>
             + Add ticker
           </Button>
         </Group>
@@ -317,6 +328,22 @@ function ResearchRowView({
     if (row.kind === 'both') return <Badge size="xs" variant="filled">Held + Watch</Badge>;
     return <Badge size="xs" variant="default">Watch</Badge>;
   })();
+  const sourceBadge = (() => {
+    switch (row.fundamentalsSource) {
+      case 'finnhub':
+        return <SourcePill label="Finnhub" tooltip="Fundamentals from Finnhub" />;
+      case 'yahoo':
+        return <SourcePill label="Yahoo" tooltip="Fundamentals from Yahoo Finance (Finnhub free tier is US-only)" />;
+      case 'mixed':
+        return <SourcePill label="Mixed" tooltip="Finnhub for some fields, Yahoo Finance for the rest" />;
+      case 'none':
+        return <SourcePill label="No data" tooltip="Neither Finnhub nor Yahoo returned fundamentals for this symbol" />;
+      case 'disabled':
+        return <SourcePill label="No symbol" tooltip="This instrument has no Yahoo / Finnhub mapping" />;
+      default:
+        return null;
+    }
+  })();
 
   const openHoldingDetail = row.id.startsWith('holding:') || row.id.startsWith('both:')
     ? () => onOpenInstrument(row.id.replace(/^[^:]+:/, ''))
@@ -399,7 +426,10 @@ function ResearchRowView({
       </Table.Td>
       <Table.Td>
         <Stack gap={2}>
-          {heldBadge}
+          <Group gap={4} wrap="nowrap">
+            {heldBadge}
+            {sourceBadge}
+          </Group>
           {row.quantity != null && (
             <Text size="xs" c="dimmed" className="lh-mono">
               {num(row.quantity)} · {money(row.marketValueBase)}
@@ -600,9 +630,15 @@ function AddTickerModal({
       return;
     }
     try {
+      // If the user didn't explicitly supply a Yahoo symbol, default it to
+      // the entered Finnhub symbol — that way non-US tickers (e.g.
+      // `NOVO-B.CO`, `IGN1L.VS`) still get queried via the Yahoo fallback
+      // when Finnhub free tier 403s. Finnhub-search picks already select a
+      // US-friendly symbol so the duplicate doesn't hurt.
+      const yh = yahooSymbol.trim() || (selected ? null : finnhubSymbol);
       const res = await api.addWatchlist({
         finnhubSymbol,
-        yahooSymbol: yahooSymbol.trim() || null,
+        yahooSymbol: yh,
         displayName: selected?.description?.trim() || null,
         notes: notes.trim() || null,
       });
@@ -621,8 +657,16 @@ function AddTickerModal({
   return (
     <Modal opened={opened} onClose={onClose} title="Add ticker to watchlist" size="lg">
       <Stack gap="sm">
+        <Alert color="gray" variant="light" p="xs">
+          <Text size="xs" c="dimmed">
+            Type a Finnhub symbol (e.g. <Pill size="xs" mx={2}>AAPL</Pill> for US stocks) or a
+            Yahoo symbol below to use Yahoo Finance for non-US listings (e.g.
+            <Pill size="xs" mx={2}>NVO</Pill>, <Pill size="xs" mx={2}>NOVO-B.CO</Pill>,
+            <Pill size="xs" mx={2}>IGN1L.VS</Pill>).
+          </Text>
+        </Alert>
         <TextInput
-          label="Search"
+          label="Search (Finnhub — US only on free tier)"
           placeholder="AAPL, Novo Nordisk, Alphabet..."
           value={query}
           onChange={e => {
@@ -782,6 +826,16 @@ function EditTickerModal({
         </Group>
       </Stack>
     </Modal>
+  );
+}
+
+function SourcePill({ label, tooltip }: { label: string; tooltip: string }) {
+  return (
+    <Tooltip label={tooltip}>
+      <Badge size="xs" variant="default" radius="xl">
+        {label}
+      </Badge>
+    </Tooltip>
   );
 }
 

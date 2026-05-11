@@ -10,6 +10,7 @@ import type { PortfolioService } from './service.js';
 import { allInstruments, getInstrument } from '../config/instruments.js';
 import type { WatchlistStore } from './watchlist.js';
 import { PriceService } from '../market/prices.js';
+import type { YahooFundamentals, YahooFundamentalsService } from '../market/yahoo-fundamentals.js';
 
 /**
  * Research feed. One row per tracked instrument across two sources:
@@ -59,6 +60,16 @@ export interface ResearchRow {
   notes: string | null;
   /** Watchlist-only: stable id of the watchlist row (so DELETE knows the target). */
   watchlistId: string | null;
+  /**
+   * Where the fundamentals on this row came from. Useful for the UI to
+   * indicate why a row might be sparse:
+   *   - `finnhub`   — Finnhub free tier had data (US stocks only)
+   *   - `yahoo`     — fell back to Yahoo Finance quoteSummary (most non-US)
+   *   - `mixed`     — Finnhub for some fields, Yahoo for others
+   *   - `none`      — neither provider returned data
+   *   - `disabled`  — no Finnhub key + no Yahoo symbol to query
+   */
+  fundamentalsSource: 'finnhub' | 'yahoo' | 'mixed' | 'none' | 'disabled';
 }
 
 export interface UpcomingEvent {
@@ -104,6 +115,7 @@ export async function buildResearchFeed(
   watchlist: WatchlistStore,
   finnhub: FinnhubService,
   prices: PriceService,
+  yahooFundamentals: YahooFundamentalsService,
 ): Promise<ResearchPayload> {
   const snapshot = await portfolio.getSnapshot();
   const items = watchlist.list();
@@ -175,7 +187,7 @@ export async function buildResearchFeed(
   }
 
   const rows = await mapWithConcurrency(buildInputs, FANOUT_CONCURRENCY, input =>
-    enrichRow(input, finnhub, prices),
+    enrichRow(input, finnhub, prices, yahooFundamentals),
   );
 
   const upcoming = collectUpcoming(rows);
@@ -193,6 +205,7 @@ async function enrichRow(
   input: BuildInput,
   finnhub: FinnhubService,
   prices: PriceService,
+  yahooFundamentals: YahooFundamentalsService,
 ): Promise<ResearchRow> {
   const symbol = input.finnhubSymbol;
 
@@ -202,12 +215,22 @@ async function enrichRow(
     symbol ? finnhub.getProfile(symbol) : Promise.resolve(null),
     symbol ? finnhub.getEarningsCalendar(symbol) : Promise.resolve([]),
     symbol ? finnhub.getDividends(symbol) : Promise.resolve([]),
-    // Yahoo fallback for non-US watchlist symbols where Finnhub returns
-    // nothing. Holdings already have a price piped through PortfolioService.
     input.yahooSymbol && input.kind === 'watchlist'
       ? prices.get({ provider: 'yahoo', symbol: input.yahooSymbol }).catch(() => null)
       : Promise.resolve(null),
   ]);
+
+  // If Finnhub free-tier returned nothing for the metric / profile /
+  // earnings / dividend triplet (the common case for non-US holdings),
+  // fall back to Yahoo Finance's quoteSummary endpoint — it covers
+  // virtually every Yahoo-listed symbol with no auth and gives us the same
+  // five buckets of data (just in a slightly different shape).
+  const needsYahooFallback = !!input.yahooSymbol && (
+    !metric || !profile || (earnings ?? []).length === 0 || (dividends ?? []).length === 0
+  );
+  const yfund = needsYahooFallback
+    ? await yahooFundamentals.getFundamentals(input.yahooSymbol!)
+    : null;
 
   const todayIso = isoDate(new Date());
   const upcomingEarnings = (earnings ?? [])
@@ -217,12 +240,23 @@ async function enrichRow(
     .filter(d => d.date >= todayIso)
     .sort((a, b) => a.date.localeCompare(b.date));
 
-  const finalPrice = quote?.price ?? input.holdingPrice ?? yahooQuote?.price ?? null;
+  // Merge Finnhub + Yahoo fundamentals. Finnhub wins where available
+  // (it's purpose-built and has additional fields like 5-year revenue
+  // growth); Yahoo plugs the gaps.
+  const mergedMetric: FinnhubMetric | null = mergeMetric(metric, yfund);
+  const mergedProfile: FinnhubProfile | null = mergeProfile(profile, yfund);
+  const nextEarnings: FinnhubEarningsEvent | null =
+    upcomingEarnings[0] ?? yahooEarningsToFinnhub(yfund);
+  const nextExDividend: FinnhubDividend | null =
+    upcomingDivs[0] ?? yahooDividendToFinnhub(yfund);
+
+  const finalPrice =
+    quote?.price ?? input.holdingPrice ?? yahooQuote?.price ?? null;
   const finalCurrency =
-    profile?.currency ?? input.holdingCurrency ?? yahooQuote?.currency ?? input.currency ?? null;
+    mergedProfile?.currency ?? input.holdingCurrency ?? yahooQuote?.currency ?? yfund?.currency ?? input.currency ?? null;
 
   const displayName =
-    profile?.name ??
+    mergedProfile?.name ?? yfund?.longName ?? yfund?.shortName ??
     (input.displayName && input.displayName !== input.finnhubSymbol
       ? input.displayName
       : input.displayName ?? input.finnhubSymbol ?? input.yahooSymbol ?? 'Unknown');
@@ -234,8 +268,8 @@ async function enrichRow(
     yahooSymbol: input.yahooSymbol,
     displayName,
     currency: finalCurrency,
-    sector: profile?.industry ?? null,
-    country: profile?.country ?? null,
+    sector: mergedProfile?.industry ?? yfund?.sector ?? null,
+    country: mergedProfile?.country ?? yfund?.country ?? null,
     quantity: input.quantity,
     marketValueBase: input.marketValueBase,
     unrealizedPnlPct: input.unrealizedPnlPct,
@@ -243,12 +277,112 @@ async function enrichRow(
     priceCurrency: finalCurrency,
     dayChangePct: quote?.dayChangePct ?? null,
     quote,
-    metric,
-    profile,
-    nextEarnings: upcomingEarnings[0] ?? null,
-    nextExDividend: upcomingDivs[0] ?? null,
+    metric: mergedMetric,
+    profile: mergedProfile,
+    nextEarnings,
+    nextExDividend,
     notes: input.notes,
     watchlistId: input.watchlistId,
+    fundamentalsSource: classifySource(metric, profile, earnings, dividends, yfund, input),
+  };
+}
+
+function classifySource(
+  metric: FinnhubMetric | null,
+  profile: FinnhubProfile | null,
+  earnings: FinnhubEarningsEvent[],
+  dividends: FinnhubDividend[],
+  yfund: YahooFundamentals | null,
+  input: BuildInput,
+): ResearchRow['fundamentalsSource'] {
+  const hasFinnhub = !!metric || !!profile || earnings.length > 0 || dividends.length > 0;
+  const hasYahoo = !!yfund;
+  if (hasFinnhub && hasYahoo) return 'mixed';
+  if (hasFinnhub) return 'finnhub';
+  if (hasYahoo) return 'yahoo';
+  if (!input.finnhubSymbol && !input.yahooSymbol) return 'disabled';
+  return 'none';
+}
+
+/**
+ * Yahoo's quoteSummary uses different field shapes than Finnhub's
+ * `/stock/metric` (raw numbers vs RawValue wrappers, slightly different
+ * growth percentages). Translate into the FinnhubMetric shape and let
+ * Finnhub's value win when both present a field — it's purpose-built
+ * fundamentals, Yahoo is a public-API best-effort.
+ */
+function mergeMetric(
+  fh: FinnhubMetric | null,
+  yh: YahooFundamentals | null,
+): FinnhubMetric | null {
+  if (!fh && !yh) return null;
+  return {
+    peTTM: fh?.peTTM ?? yh?.peTTM ?? null,
+    peForward: fh?.peForward ?? yh?.peForward ?? null,
+    epsTTM: fh?.epsTTM ?? yh?.epsTTM ?? null,
+    beta: fh?.beta ?? yh?.beta ?? null,
+    marketCap: fh?.marketCap ?? yh?.marketCap ?? null,
+    week52High: fh?.week52High ?? yh?.week52High ?? null,
+    week52Low: fh?.week52Low ?? yh?.week52Low ?? null,
+    dividendYieldAnnual: fh?.dividendYieldAnnual ?? yh?.dividendYieldAnnual ?? null,
+    payoutRatio: fh?.payoutRatio ?? yh?.payoutRatio ?? null,
+    // Yahoo doesn't break out TTM vs Quarterly growth as cleanly as
+    // Finnhub does — `financialData.revenueGrowth` is YoY quarterly and
+    // there's no clean TTM equivalent in the public response. Use it for
+    // both buckets if Finnhub had nothing.
+    revenueGrowthTTMYoy: fh?.revenueGrowthTTMYoy ?? yh?.revenueGrowthQuarterlyYoy ?? null,
+    revenueGrowth5Y: fh?.revenueGrowth5Y ?? null,
+    revenueGrowthQuarterlyYoy: fh?.revenueGrowthQuarterlyYoy ?? yh?.revenueGrowthQuarterlyYoy ?? null,
+    epsGrowthTTMYoy: fh?.epsGrowthTTMYoy ?? yh?.earningsGrowthQuarterlyYoy ?? null,
+    epsGrowthQuarterlyYoy: fh?.epsGrowthQuarterlyYoy ?? yh?.earningsGrowthQuarterlyYoy ?? null,
+  };
+}
+
+function mergeProfile(
+  fh: FinnhubProfile | null,
+  yh: YahooFundamentals | null,
+): FinnhubProfile | null {
+  if (!fh && !yh) return null;
+  return {
+    name: fh?.name ?? yh?.longName ?? yh?.shortName ?? null,
+    ticker: fh?.ticker ?? yh?.symbol ?? null,
+    exchange: fh?.exchange ?? yh?.exchange ?? null,
+    country: fh?.country ?? yh?.country ?? null,
+    currency: fh?.currency ?? yh?.currency ?? null,
+    industry: fh?.industry ?? yh?.industry ?? yh?.sector ?? null,
+    ipo: fh?.ipo ?? null,
+    logo: fh?.logo ?? null,
+    weburl: fh?.weburl ?? yh?.weburl ?? null,
+    marketCap: fh?.marketCap ?? yh?.marketCap ?? null,
+    shareOutstanding: fh?.shareOutstanding ?? yh?.sharesOutstanding ?? null,
+  };
+}
+
+function yahooEarningsToFinnhub(yh: YahooFundamentals | null): FinnhubEarningsEvent | null {
+  if (!yh?.nextEarningsDate) return null;
+  return {
+    symbol: yh.symbol,
+    date: yh.nextEarningsDate,
+    epsEstimate: yh.nextEarningsEpsEstimate,
+    epsActual: null,
+    revenueEstimate: null,
+    revenueActual: null,
+    hour: null,
+    quarter: null,
+    year: null,
+  };
+}
+
+function yahooDividendToFinnhub(yh: YahooFundamentals | null): FinnhubDividend | null {
+  if (!yh?.nextExDividendDate) return null;
+  return {
+    symbol: yh.symbol,
+    date: yh.nextExDividendDate,
+    amount: yh.lastDividendAmount ?? 0,
+    currency: yh.currency,
+    payDate: yh.nextDividendDate,
+    recordDate: null,
+    declarationDate: null,
   };
 }
 

@@ -13,6 +13,7 @@ import {
 } from './config/instruments.js';
 import { PriceService, verifyYahooSymbol } from './market/prices.js';
 import { FinnhubService } from './market/finnhub.js';
+import { YahooFundamentalsService } from './market/yahoo-fundamentals.js';
 import { WatchlistStore } from './portfolio/watchlist.js';
 import { buildResearchFeed } from './portfolio/research.js';
 import type { BrokerKey } from './parsers/types.js';
@@ -88,6 +89,7 @@ export function createServer(options: { port: number; dataDir: string }) {
   const portfolio = new PortfolioService(options.dataDir);
   const watchlist = new WatchlistStore(options.dataDir);
   const finnhub = new FinnhubService(options.dataDir);
+  const yahooFundamentals = new YahooFundamentalsService(options.dataDir);
   // Independent PriceService instance for the Watchlist's Yahoo fallback.
   // Shares the same on-disk cache as the portfolio service so freshness
   // benefits both views without coordination.
@@ -425,14 +427,20 @@ export function createServer(options: { port: number; dataDir: string }) {
   });
 
   app.get('/api/research', async () => {
-    return buildResearchFeed(portfolio, watchlist, finnhub, watchlistPrices);
+    return buildResearchFeed(portfolio, watchlist, finnhub, watchlistPrices, yahooFundamentals);
   });
 
   app.post('/api/research/refresh', async () => {
     // Quote cache only — fundamentals / profile / earnings / dividends keep
     // their longer TTLs to respect the free-tier budget.
     finnhub.invalidateQuotes();
-    const payload = await buildResearchFeed(portfolio, watchlist, finnhub, watchlistPrices);
+    const payload = await buildResearchFeed(
+      portfolio,
+      watchlist,
+      finnhub,
+      watchlistPrices,
+      yahooFundamentals,
+    );
     return { ok: true, asOf: payload.asOf };
   });
 

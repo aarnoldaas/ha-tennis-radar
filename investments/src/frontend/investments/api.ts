@@ -272,6 +272,7 @@ export interface ResearchRow {
   } | null;
   notes: string | null;
   watchlistId: string | null;
+  fundamentalsSource: 'finnhub' | 'yahoo' | 'mixed' | 'none' | 'disabled';
 }
 
 export interface UpcomingEvent {

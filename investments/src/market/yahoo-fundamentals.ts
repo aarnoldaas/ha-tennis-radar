@@ -62,18 +62,25 @@ export interface YahooFundamentals {
   weburl: string | null;
   marketCap: number | null;
   sharesOutstanding: number | null;
+  /** Latest regular-market price (real-time during market hours; last close after-hours). */
+  price: number | null;
+  prevClose: number | null;
+  dayChange: number | null;
+  /** Day change as a fraction (0.015 = +1.5%). */
+  dayChangePct: number | null;
   peTTM: number | null;
   peForward: number | null;
   epsTTM: number | null;
   beta: number | null;
   week52High: number | null;
   week52Low: number | null;
+  /** Annualised dividend yield as a fraction (0.025 = 2.5%). */
   dividendYieldAnnual: number | null;
   payoutRatio: number | null;
   /** Quarterly YoY revenue growth as a fraction (0.18 = 18%). */
-  revenueGrowthQuarterlyYoy: number | null;
+  revenueGrowthYoy: number | null;
   /** Quarterly YoY earnings growth as a fraction. */
-  earningsGrowthQuarterlyYoy: number | null;
+  earningsGrowthYoy: number | null;
   nextEarningsDate: string | null;
   nextEarningsEpsEstimate: number | null;
   nextExDividendDate: string | null;
@@ -178,6 +185,15 @@ export class YahooFundamentalsService {
   private resetCrumb(): void {
     this.crumb = null;
     this.cookie = null;
+  }
+
+  /**
+   * Wipe every cached fundamentals entry. Used by the Refresh button so
+   * the next research feed fetches fresh data for every row.
+   */
+  invalidateAll(): void {
+    this.cache.entries = {};
+    this.save();
   }
 
   async getFundamentals(symbol: string): Promise<YahooFundamentals | null> {
@@ -299,6 +315,12 @@ function parseResult(symbol: string, result: any): YahooFundamentals {
   const earningsDates: any[] = Array.isArray(earnings.earningsDate) ? earnings.earningsDate : [];
   const nextEarningsTs = earningsDates.length > 0 ? earningsDates[0] : null;
 
+  const regularPrice = rawNum(price?.regularMarketPrice);
+  const prevClose = rawNum(price?.regularMarketPreviousClose);
+  const dayChange = rawNum(price?.regularMarketChange) ??
+    (regularPrice != null && prevClose != null ? regularPrice - prevClose : null);
+  const dayChangePct = rawNum(price?.regularMarketChangePercent);
+
   return {
     symbol,
     shortName: price?.shortName ?? null,
@@ -311,6 +333,13 @@ function parseResult(symbol: string, result: any): YahooFundamentals {
     weburl: profile?.website ?? null,
     marketCap: rawNum(summary.marketCap ?? price?.marketCap),
     sharesOutstanding: rawNum(stats.sharesOutstanding),
+    price: regularPrice,
+    prevClose,
+    dayChange,
+    // Yahoo reports regularMarketChangePercent as a fraction already
+    // (0.015 = 1.5%), not a percentage. Keep as-is so the UI's existing
+    // signedPct() renders correctly.
+    dayChangePct,
     peTTM: rawNum(summary.trailingPE ?? stats.trailingPE),
     peForward: rawNum(summary.forwardPE ?? stats.forwardPE),
     epsTTM: rawNum(stats.trailingEps),
@@ -319,8 +348,8 @@ function parseResult(symbol: string, result: any): YahooFundamentals {
     week52Low: rawNum(summary.fiftyTwoWeekLow),
     dividendYieldAnnual: rawNum(summary.dividendYield ?? summary.trailingAnnualDividendYield),
     payoutRatio: rawNum(summary.payoutRatio),
-    revenueGrowthQuarterlyYoy: rawNum(financial.revenueGrowth),
-    earningsGrowthQuarterlyYoy: rawNum(financial.earningsGrowth ?? stats.earningsQuarterlyGrowth),
+    revenueGrowthYoy: rawNum(financial.revenueGrowth),
+    earningsGrowthYoy: rawNum(financial.earningsGrowth ?? stats.earningsQuarterlyGrowth),
     nextEarningsDate: epochToIsoDate(nextEarningsTs),
     nextEarningsEpsEstimate: rawNum(earnings.earningsAverage),
     nextExDividendDate: epochToIsoDate(calendar.exDividendDate ?? summary.exDividendDate),

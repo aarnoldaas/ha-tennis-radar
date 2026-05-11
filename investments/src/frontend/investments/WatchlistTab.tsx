@@ -11,7 +11,6 @@ import {
   Loader,
   Menu,
   Modal,
-  Pill,
   Stack,
   Table,
   Text,
@@ -19,7 +18,13 @@ import {
   Textarea,
   Tooltip,
 } from '@mantine/core';
-import { api, type ResearchPayload, type ResearchRow, type UpcomingEvent, type FinnhubSearchHit } from './api';
+import {
+  api,
+  type ResearchPayload,
+  type ResearchRow,
+  type UpcomingEvent,
+  type YahooVerifyResponse,
+} from './api';
 import { currencyFmt, money, num, pct, pnlColor, signedPct } from './format';
 
 type Filter = 'all' | 'held' | 'watch';
@@ -67,12 +72,8 @@ export function WatchlistTab({
   const filteredRows = useMemo(() => {
     if (!data) return [];
     const rows = [...data.rows];
-    if (filter === 'held') {
-      return rows.filter(r => r.kind !== 'watchlist');
-    }
-    if (filter === 'watch') {
-      return rows.filter(r => r.kind !== 'holding');
-    }
+    if (filter === 'held') return rows.filter(r => r.kind !== 'watchlist');
+    if (filter === 'watch') return rows.filter(r => r.kind !== 'holding');
     return rows;
   }, [data, filter]);
 
@@ -100,33 +101,14 @@ export function WatchlistTab({
 
   return (
     <Stack gap="md">
-      {!data.enabled && (
-        <Alert color="blue" variant="light" title="Running on Yahoo Finance only">
-          <Text size="xs" mb={4}>
-            Fundamentals are coming from Yahoo Finance's public quoteSummary endpoint
-            (free, no key required) — covers most US + international listings.
-          </Text>
-          <Text size="xs" c="dimmed">
-            For US stocks you can also add a free Finnhub key in the addon options
-            (<Pill mx={4} size="xs">finnhub_api_key</Pill>) — Finnhub publishes
-            additional fields like 5-year revenue CAGR and detailed earnings estimates.
-            Finnhub's free tier is US-only; non-US holdings will keep using Yahoo.
-          </Text>
-        </Alert>
-      )}
-      {data.enabled && (
-        <Alert color="gray" variant="light" title="Data sources" withCloseButton={false}>
-          <Text size="xs" c="dimmed">
-            Finnhub free tier is US-only — for every non-US holding we fall back to
-            Yahoo Finance's quoteSummary endpoint. The badge on each row shows which
-            provider supplied that row's fundamentals.
-          </Text>
-        </Alert>
-      )}
-
       <Group justify="space-between" wrap="wrap" gap="xs">
         <Group gap="xs">
-          <FilterChip label="All" active={filter === 'all'} onClick={() => setFilter('all')} count={data.rows.length} />
+          <FilterChip
+            label="All"
+            active={filter === 'all'}
+            onClick={() => setFilter('all')}
+            count={data.rows.length}
+          />
           <FilterChip
             label="Held"
             active={filter === 'held'}
@@ -251,7 +233,10 @@ function FilterChip({
       onClick={onClick}
       radius="xl"
     >
-      {label} <Text size="xs" component="span" ml={6} c={active ? undefined : 'dimmed'}>{count}</Text>
+      {label}{' '}
+      <Text size="xs" component="span" ml={6} c={active ? undefined : 'dimmed'}>
+        {count}
+      </Text>
     </Button>
   );
 }
@@ -273,7 +258,9 @@ function UpcomingPanel({
           <Text size="sm" fw={600}>
             Upcoming events
           </Text>
-          <Badge size="sm" variant="light">{upcoming.length}</Badge>
+          <Badge size="sm" variant="light">
+            {upcoming.length}
+          </Badge>
           <Text size="xs" c="dimmed">next 30 days</Text>
         </Group>
         <Button size="xs" variant="subtle" onClick={onToggle}>
@@ -292,13 +279,21 @@ function UpcomingPanel({
                 >
                   {e.kind === 'earnings' ? 'Earnings' : 'Ex-div'}
                 </Badge>
-                <Text size="xs" fw={600} className="lh-mono">{e.symbol}</Text>
-                <Text size="xs" c="dimmed" truncate>{e.displayName}</Text>
+                <Text size="xs" fw={600} className="lh-mono">
+                  {e.symbol}
+                </Text>
+                <Text size="xs" c="dimmed" truncate>
+                  {e.displayName}
+                </Text>
               </Group>
               <Group gap="xs" wrap="nowrap">
-                {e.detail && <Text size="xs" c="dimmed" className="lh-mono">{e.detail}</Text>}
+                {e.detail && (
+                  <Text size="xs" c="dimmed" className="lh-mono">
+                    {e.detail}
+                  </Text>
+                )}
                 <Text size="xs" className="lh-mono">{e.date}</Text>
-                <Text size="xs" c="dimmed">
+                <Text size="xs" c={e.daysUntil <= 7 ? 'yellow' : 'dimmed'}>
                   {e.daysUntil === 0 ? 'today' : `in ${e.daysUntil}d`}
                 </Text>
               </Group>
@@ -321,32 +316,16 @@ function ResearchRowView({
   onEdit: (row: ResearchRow) => void;
   onRemoved: () => void;
 }) {
-  const m = row.metric;
+  const m = row.metrics;
   const dayPct = row.dayChangePct;
   const heldBadge = (() => {
     if (row.kind === 'holding') return <Badge size="xs" variant="filled">Held</Badge>;
     if (row.kind === 'both') return <Badge size="xs" variant="filled">Held + Watch</Badge>;
     return <Badge size="xs" variant="default">Watch</Badge>;
   })();
-  const sourceBadge = (() => {
-    switch (row.fundamentalsSource) {
-      case 'finnhub':
-        return <SourcePill label="Finnhub" tooltip="Fundamentals from Finnhub" />;
-      case 'yahoo':
-        return <SourcePill label="Yahoo" tooltip="Fundamentals from Yahoo Finance (Finnhub free tier is US-only)" />;
-      case 'mixed':
-        return <SourcePill label="Mixed" tooltip="Finnhub for some fields, Yahoo Finance for the rest" />;
-      case 'none':
-        return <SourcePill label="No data" tooltip="Neither Finnhub nor Yahoo returned fundamentals for this symbol" />;
-      case 'disabled':
-        return <SourcePill label="No symbol" tooltip="This instrument has no Yahoo / Finnhub mapping" />;
-      default:
-        return null;
-    }
-  })();
 
-  const openHoldingDetail = row.id.startsWith('holding:') || row.id.startsWith('both:')
-    ? () => onOpenInstrument(row.id.replace(/^[^:]+:/, ''))
+  const openHoldingDetail = row.id.startsWith('holding:')
+    ? () => onOpenInstrument(row.id.replace(/^holding:/, ''))
     : null;
 
   return (
@@ -354,16 +333,22 @@ function ResearchRowView({
       <Table.Td>
         <Group gap="xs" wrap="nowrap">
           <Text fw={600} size="sm" className="lh-mono">
-            {row.finnhubSymbol ?? row.yahooSymbol ?? '—'}
+            {row.symbol ?? '—'}
           </Text>
-          <Text size="xs" c="dimmed" truncate>{row.displayName}</Text>
+          <Text size="xs" c="dimmed" truncate>
+            {row.displayName}
+          </Text>
         </Group>
         <Group gap={6} mt={2}>
           {row.sector && (
-            <Badge size="xs" variant="default" radius="xl">{row.sector}</Badge>
+            <Badge size="xs" variant="default" radius="xl">
+              {row.sector}
+            </Badge>
           )}
           {row.country && (
-            <Badge size="xs" variant="default" radius="xl">{row.country}</Badge>
+            <Badge size="xs" variant="default" radius="xl">
+              {row.country}
+            </Badge>
           )}
         </Group>
         {row.notes && (
@@ -388,21 +373,17 @@ function ResearchRowView({
       <Table.Td ta="right" className="lh-mono">{num2(m?.epsTTM ?? null)}</Table.Td>
       <Table.Td ta="right" className="lh-mono">{pct(m?.dividendYieldAnnual ?? null)}</Table.Td>
       <Table.Td ta="right" className="lh-mono">
-        <Text size="sm" c={pnlColor(m?.revenueGrowthTTMYoy ?? null)} className="lh-mono">
-          {m?.revenueGrowthTTMYoy != null ? signedPct(m.revenueGrowthTTMYoy) : '—'}
+        <Text size="sm" c={pnlColor(m?.revenueGrowthYoy ?? null)} className="lh-mono">
+          {m?.revenueGrowthYoy != null ? signedPct(m.revenueGrowthYoy) : '—'}
         </Text>
       </Table.Td>
       <Table.Td ta="right" className="lh-mono">
-        <Text size="sm" c={pnlColor(m?.epsGrowthQuarterlyYoy ?? null)} className="lh-mono">
-          {m?.epsGrowthQuarterlyYoy != null ? signedPct(m.epsGrowthQuarterlyYoy) : '—'}
+        <Text size="sm" c={pnlColor(m?.earningsGrowthYoy ?? null)} className="lh-mono">
+          {m?.earningsGrowthYoy != null ? signedPct(m.earningsGrowthYoy) : '—'}
         </Text>
       </Table.Td>
       <Table.Td>
-        <RangeBar
-          low={m?.week52Low ?? null}
-          high={m?.week52High ?? null}
-          current={row.price}
-        />
+        <RangeBar low={m?.week52Low ?? null} high={m?.week52High ?? null} current={row.price} />
       </Table.Td>
       <Table.Td>
         <DateCell
@@ -426,10 +407,7 @@ function ResearchRowView({
       </Table.Td>
       <Table.Td>
         <Stack gap={2}>
-          <Group gap={4} wrap="nowrap">
-            {heldBadge}
-            {sourceBadge}
-          </Group>
+          {heldBadge}
           {row.quantity != null && (
             <Text size="xs" c="dimmed" className="lh-mono">
               {num(row.quantity)} · {money(row.marketValueBase)}
@@ -489,7 +467,7 @@ function RowMenu({
         {onOpenInstrument && (
           <Menu.Item onClick={onOpenInstrument}>Open instrument detail</Menu.Item>
         )}
-        {row.watchlistId && <Menu.Item onClick={onEdit}>Edit notes / symbols</Menu.Item>}
+        {row.watchlistId && <Menu.Item onClick={onEdit}>Edit notes / symbol</Menu.Item>}
         {row.watchlistId && (
           <Menu.Item color="red" onClick={remove}>
             Remove from watchlist
@@ -519,9 +497,7 @@ function RangeBar({
   }
   const pctPos = Math.max(0, Math.min(1, (current - low) / (high - low)));
   return (
-    <Tooltip
-      label={`Low ${low.toFixed(2)} · Now ${current.toFixed(2)} · High ${high.toFixed(2)}`}
-    >
+    <Tooltip label={`Low ${low.toFixed(2)} · Now ${current.toFixed(2)} · High ${high.toFixed(2)}`}>
       <Stack gap={2} style={{ minWidth: 100 }}>
         <div
           style={{
@@ -577,69 +553,54 @@ function AddTickerModal({
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const [query, setQuery] = useState('');
-  const [hits, setHits] = useState<FinnhubSearchHit[]>([]);
-  const [searching, setSearching] = useState(false);
-  const [selected, setSelected] = useState<FinnhubSearchHit | null>(null);
+  const [symbol, setSymbol] = useState('');
   const [notes, setNotes] = useState('');
-  const [yahooSymbol, setYahooSymbol] = useState('');
+  const [verifying, setVerifying] = useState(false);
+  const [verified, setVerified] = useState<YahooVerifyResponse | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!opened) {
-      setQuery('');
-      setHits([]);
-      setSelected(null);
+      setSymbol('');
       setNotes('');
-      setYahooSymbol('');
+      setVerified(null);
       setError(null);
     }
   }, [opened]);
 
-  useEffect(() => {
-    if (!opened) return;
-    const term = query.trim();
-    if (term.length < 1) {
-      setHits([]);
-      return;
-    }
-    let cancelled = false;
-    setSearching(true);
-    const handle = window.setTimeout(async () => {
-      try {
-        const res = await api.searchSymbol(term);
-        if (!cancelled) setHits(res.hits ?? []);
-      } finally {
-        if (!cancelled) setSearching(false);
+  const verify = async () => {
+    const trimmed = symbol.trim();
+    if (!trimmed) return;
+    setVerifying(true);
+    setError(null);
+    try {
+      const res = await api.verifyYahoo(trimmed);
+      if (!res.ok) {
+        setError(res.error ?? 'Yahoo did not recognise that symbol.');
+        setVerified(null);
+      } else {
+        setVerified(res);
       }
-    }, 250);
-    return () => {
-      cancelled = true;
-      window.clearTimeout(handle);
-    };
-  }, [query, opened]);
+    } catch (e: any) {
+      setError(e?.message ?? 'Verify failed');
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   const save = async () => {
-    setSaving(true);
-    setError(null);
-    const finnhubSymbol = (selected?.symbol ?? query).trim().toUpperCase();
-    if (!finnhubSymbol) {
-      setError('Pick a symbol from the list, or type one manually.');
-      setSaving(false);
+    const trimmed = symbol.trim();
+    if (!trimmed) {
+      setError('Enter a Yahoo Finance symbol.');
       return;
     }
+    setSaving(true);
+    setError(null);
     try {
-      // If the user didn't explicitly supply a Yahoo symbol, default it to
-      // the entered Finnhub symbol — that way non-US tickers (e.g.
-      // `NOVO-B.CO`, `IGN1L.VS`) still get queried via the Yahoo fallback
-      // when Finnhub free tier 403s. Finnhub-search picks already select a
-      // US-friendly symbol so the duplicate doesn't hurt.
-      const yh = yahooSymbol.trim() || (selected ? null : finnhubSymbol);
       const res = await api.addWatchlist({
-        finnhubSymbol,
-        yahooSymbol: yh,
-        displayName: selected?.description?.trim() || null,
+        symbol: trimmed,
+        displayName: verified?.longName?.trim() || verified?.shortName?.trim() || null,
         notes: notes.trim() || null,
       });
       if (!res.ok) {
@@ -655,64 +616,45 @@ function AddTickerModal({
   };
 
   return (
-    <Modal opened={opened} onClose={onClose} title="Add ticker to watchlist" size="lg">
+    <Modal opened={opened} onClose={onClose} title="Add ticker to watchlist" size="md">
       <Stack gap="sm">
         <Alert color="gray" variant="light" p="xs">
           <Text size="xs" c="dimmed">
-            Type a Finnhub symbol (e.g. <Pill size="xs" mx={2}>AAPL</Pill> for US stocks) or a
-            Yahoo symbol below to use Yahoo Finance for non-US listings (e.g.
-            <Pill size="xs" mx={2}>NVO</Pill>, <Pill size="xs" mx={2}>NOVO-B.CO</Pill>,
-            <Pill size="xs" mx={2}>IGN1L.VS</Pill>).
+            Type a Yahoo Finance symbol. US tickers are unadorned (e.g. <code>AAPL</code>);
+            international listings carry an exchange suffix (e.g. <code>NOVO-B.CO</code>,
+            <code> ASML.AS</code>, <code>IGN1L.VS</code>). Click Verify to confirm Yahoo
+            knows the symbol before saving.
           </Text>
         </Alert>
-        <TextInput
-          label="Search (Finnhub — US only on free tier)"
-          placeholder="AAPL, Novo Nordisk, Alphabet..."
-          value={query}
-          onChange={e => {
-            setQuery(e.currentTarget.value);
-            setSelected(null);
-          }}
-          rightSection={searching ? <Loader size="xs" /> : null}
-          autoFocus
-          data-autofocus
-        />
-        {hits.length > 0 && (
-          <Card padding="xs" withBorder>
-            <Stack gap={2} mah={240} style={{ overflowY: 'auto' }}>
-              {hits.map(h => (
-                <Group
-                  key={h.symbol}
-                  justify="space-between"
-                  wrap="nowrap"
-                  onClick={() => setSelected(h)}
-                  style={{
-                    cursor: 'pointer',
-                    padding: 6,
-                    borderRadius: 4,
-                    background:
-                      selected?.symbol === h.symbol
-                        ? 'var(--mantine-color-dark-6)'
-                        : undefined,
-                  }}
-                >
-                  <Group gap="xs" wrap="nowrap">
-                    <Text fw={600} size="sm" className="lh-mono">{h.symbol}</Text>
-                    <Text size="xs" c="dimmed" truncate>{h.description}</Text>
-                  </Group>
-                  {h.type && <Badge size="xs" variant="default">{h.type}</Badge>}
-                </Group>
-              ))}
-            </Stack>
-          </Card>
+        <Group align="flex-end" gap="xs" wrap="nowrap">
+          <TextInput
+            label="Symbol"
+            placeholder="AAPL"
+            value={symbol}
+            onChange={e => {
+              setSymbol(e.currentTarget.value);
+              setVerified(null);
+            }}
+            style={{ flex: 1 }}
+            autoFocus
+            data-autofocus
+          />
+          <Button variant="default" onClick={verify} loading={verifying} disabled={!symbol.trim()}>
+            Verify
+          </Button>
+        </Group>
+        {verified && (
+          <Alert color="teal" variant="light" p="xs">
+            <Text size="xs" fw={600}>
+              {verified.longName || verified.shortName || verified.symbol}
+            </Text>
+            <Text size="xs" c="dimmed" className="lh-mono">
+              {verified.symbol} · {verified.exchangeName ?? '?'} ·{' '}
+              {verified.currency ?? '?'}
+              {verified.price != null ? ` · ${verified.price.toFixed(2)}` : ''}
+            </Text>
+          </Alert>
         )}
-        <TextInput
-          label="Yahoo symbol (optional)"
-          description="Falls back to Yahoo for the price when Finnhub returns no data — useful for European / Baltic listings."
-          value={yahooSymbol}
-          onChange={e => setYahooSymbol(e.currentTarget.value)}
-          placeholder={selected?.symbol ?? ''}
-        />
         <Textarea
           label="Notes (optional)"
           placeholder="Buy under €40, monitor margins..."
@@ -722,9 +664,11 @@ function AddTickerModal({
         />
         {error && <Alert color="red">{error}</Alert>}
         <Group justify="flex-end" gap="xs">
-          <Button variant="default" onClick={onClose}>Cancel</Button>
-          <Button onClick={save} loading={saving}>
-            Add {selected?.symbol ?? query.trim().toUpperCase()}
+          <Button variant="default" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={save} loading={saving} disabled={!symbol.trim()}>
+            Add {symbol.trim().toUpperCase()}
           </Button>
         </Group>
       </Stack>
@@ -744,14 +688,14 @@ function EditTickerModal({
   onRemoved: () => void;
 }) {
   const [notes, setNotes] = useState('');
-  const [yahooSymbol, setYahooSymbol] = useState('');
+  const [symbol, setSymbol] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (row) {
       setNotes(row.notes ?? '');
-      setYahooSymbol(row.yahooSymbol ?? '');
+      setSymbol(row.symbol ?? '');
       setError(null);
     }
   }, [row]);
@@ -763,8 +707,8 @@ function EditTickerModal({
     setError(null);
     try {
       const res = await api.updateWatchlist(row.watchlistId!, {
+        symbol: symbol.trim() || undefined,
         notes,
-        yahooSymbol: yahooSymbol.trim() || null,
       });
       if (!res.ok) {
         setError(res.error ?? 'Save failed');
@@ -795,7 +739,7 @@ function EditTickerModal({
   };
 
   return (
-    <Modal opened={!!row} onClose={onClose} title={`Edit ${row.finnhubSymbol ?? row.displayName}`}>
+    <Modal opened={!!row} onClose={onClose} title={`Edit ${row.symbol ?? row.displayName}`}>
       <Stack gap="sm">
         <Text size="xs" c="dimmed">
           {row.displayName}
@@ -803,10 +747,9 @@ function EditTickerModal({
           {row.country ? ` · ${row.country}` : ''}
         </Text>
         <TextInput
-          label="Yahoo symbol (optional)"
-          value={yahooSymbol}
-          onChange={e => setYahooSymbol(e.currentTarget.value)}
-          placeholder={row.finnhubSymbol ?? ''}
+          label="Yahoo symbol"
+          value={symbol}
+          onChange={e => setSymbol(e.currentTarget.value)}
         />
         <Textarea
           label="Notes"
@@ -820,22 +763,16 @@ function EditTickerModal({
             Remove
           </Button>
           <Group gap="xs">
-            <Button variant="default" onClick={onClose}>Cancel</Button>
-            <Button onClick={save} loading={saving}>Save</Button>
+            <Button variant="default" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button onClick={save} loading={saving}>
+              Save
+            </Button>
           </Group>
         </Group>
       </Stack>
     </Modal>
-  );
-}
-
-function SourcePill({ label, tooltip }: { label: string; tooltip: string }) {
-  return (
-    <Tooltip label={tooltip}>
-      <Badge size="xs" variant="default" radius="xl">
-        {label}
-      </Badge>
-    </Tooltip>
   );
 }
 

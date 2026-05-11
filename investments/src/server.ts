@@ -12,7 +12,6 @@ import {
   upsertResolvedMapping,
 } from './config/instruments.js';
 import { PriceService, verifyYahooSymbol } from './market/prices.js';
-import { FinnhubService } from './market/finnhub.js';
 import { YahooFundamentalsService } from './market/yahoo-fundamentals.js';
 import { WatchlistStore } from './portfolio/watchlist.js';
 import { buildResearchFeed } from './portfolio/research.js';
@@ -88,11 +87,10 @@ export function createServer(options: { port: number; dataDir: string }) {
 
   const portfolio = new PortfolioService(options.dataDir);
   const watchlist = new WatchlistStore(options.dataDir);
-  const finnhub = new FinnhubService(options.dataDir);
   const yahooFundamentals = new YahooFundamentalsService(options.dataDir);
-  // Independent PriceService instance for the Watchlist's Yahoo fallback.
-  // Shares the same on-disk cache as the portfolio service so freshness
-  // benefits both views without coordination.
+  // Independent PriceService instance for the Watchlist tab. Shares the
+  // same on-disk cache as the portfolio service so freshness benefits
+  // both views without coordination.
   const watchlistPrices = new PriceService(options.dataDir);
 
   app.addHook('onSend', async (_request, reply) => {
@@ -373,27 +371,30 @@ export function createServer(options: { port: number; dataDir: string }) {
 
   app.post('/api/watchlist', async (request, reply) => {
     const body = (request.body ?? {}) as {
-      finnhubSymbol?: string;
-      yahooSymbol?: string | null;
+      symbol?: string;
       displayName?: string | null;
       notes?: string | null;
     };
-    const finnhubSymbol = String(body.finnhubSymbol ?? '').trim();
-    if (!finnhubSymbol) {
-      return reply.code(400).send({ ok: false, error: 'finnhubSymbol is required' });
+    const symbol = String(body.symbol ?? '').trim();
+    if (!symbol) {
+      return reply.code(400).send({ ok: false, error: 'symbol is required' });
     }
     try {
-      // Probe Finnhub profile so the saved row carries a display name out of
-      // the box — falls back silently if the free tier doesn't cover this
-      // symbol; the user can still curate `displayName` later.
+      // Probe Yahoo so the saved row carries a display name + currency
+      // out of the box. Failures are tolerated — the user can still
+      // curate `displayName` later, and the next research feed fetch
+      // will populate the rest.
       let displayName = body.displayName?.trim() || null;
       if (!displayName) {
-        const profile = await finnhub.getProfile(finnhubSymbol);
-        displayName = profile?.name ?? null;
+        try {
+          const verified = await verifyYahooSymbol(symbol);
+          displayName = verified?.longName ?? verified?.shortName ?? null;
+        } catch {
+          // ignore — symbol is still saved
+        }
       }
       const item = watchlist.add({
-        finnhubSymbol,
-        yahooSymbol: body.yahooSymbol ?? null,
+        symbol,
         displayName,
         notes: body.notes ?? null,
       });
@@ -406,8 +407,7 @@ export function createServer(options: { port: number; dataDir: string }) {
   app.patch('/api/watchlist/:id', async (request, reply) => {
     const { id } = request.params as { id: string };
     const body = (request.body ?? {}) as {
-      finnhubSymbol?: string;
-      yahooSymbol?: string | null;
+      symbol?: string;
       displayName?: string | null;
       notes?: string | null;
     };
@@ -427,28 +427,20 @@ export function createServer(options: { port: number; dataDir: string }) {
   });
 
   app.get('/api/research', async () => {
-    return buildResearchFeed(portfolio, watchlist, finnhub, watchlistPrices, yahooFundamentals);
+    return buildResearchFeed(portfolio, watchlist, watchlistPrices, yahooFundamentals);
   });
 
   app.post('/api/research/refresh', async () => {
-    // Quote cache only — fundamentals / profile / earnings / dividends keep
-    // their longer TTLs to respect the free-tier budget.
-    finnhub.invalidateQuotes();
+    // Hard refresh — wipe the fundamentals cache so the next research
+    // fetch pulls everything fresh from Yahoo.
+    yahooFundamentals.invalidateAll();
     const payload = await buildResearchFeed(
       portfolio,
       watchlist,
-      finnhub,
       watchlistPrices,
       yahooFundamentals,
     );
     return { ok: true, asOf: payload.asOf };
-  });
-
-  app.get('/api/research/search', async request => {
-    const q = String((request.query as any)?.q ?? '').trim();
-    if (!q) return { ok: true, hits: [] };
-    const hits = await finnhub.search(q);
-    return { ok: true, enabled: finnhub.isEnabled(), hits };
   });
 
   app.listen({ port: options.port, host: '0.0.0.0' });

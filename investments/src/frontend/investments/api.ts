@@ -192,18 +192,53 @@ export interface DataFilesPayload {
 
 export interface WatchlistItem {
   id: string;
-  finnhubSymbol: string;
-  yahooSymbol: string | null;
+  symbol: string;
   displayName: string | null;
   notes: string | null;
   addedAt: string;
 }
 
+export interface InstrumentMetrics {
+  peTTM: number | null;
+  peForward: number | null;
+  epsTTM: number | null;
+  beta: number | null;
+  marketCap: number | null;
+  week52High: number | null;
+  week52Low: number | null;
+  dividendYieldAnnual: number | null;
+  payoutRatio: number | null;
+  revenueGrowthYoy: number | null;
+  earningsGrowthYoy: number | null;
+}
+
+export interface InstrumentProfile {
+  name: string | null;
+  exchange: string | null;
+  country: string | null;
+  currency: string | null;
+  sector: string | null;
+  industry: string | null;
+  weburl: string | null;
+  sharesOutstanding: number | null;
+}
+
+export interface EarningsEvent {
+  date: string;
+  epsEstimate: number | null;
+}
+
+export interface DividendEvent {
+  date: string;
+  amount: number;
+  currency: string | null;
+  payDate: string | null;
+}
+
 export interface ResearchRow {
   id: string;
   kind: 'holding' | 'watchlist' | 'both';
-  finnhubSymbol: string | null;
-  yahooSymbol: string | null;
+  symbol: string | null;
   displayName: string;
   currency: string | null;
   sector: string | null;
@@ -214,65 +249,12 @@ export interface ResearchRow {
   price: number | null;
   priceCurrency: string | null;
   dayChangePct: number | null;
-  quote: {
-    price: number;
-    dayChange: number;
-    dayChangePct: number;
-    prevClose: number;
-    asOf: number;
-  } | null;
-  metric: {
-    peTTM: number | null;
-    peForward: number | null;
-    epsTTM: number | null;
-    beta: number | null;
-    marketCap: number | null;
-    week52High: number | null;
-    week52Low: number | null;
-    dividendYieldAnnual: number | null;
-    payoutRatio: number | null;
-    revenueGrowthTTMYoy: number | null;
-    revenueGrowth5Y: number | null;
-    revenueGrowthQuarterlyYoy: number | null;
-    epsGrowthTTMYoy: number | null;
-    epsGrowthQuarterlyYoy: number | null;
-  } | null;
-  profile: {
-    name: string | null;
-    ticker: string | null;
-    exchange: string | null;
-    country: string | null;
-    currency: string | null;
-    industry: string | null;
-    ipo: string | null;
-    logo: string | null;
-    weburl: string | null;
-    marketCap: number | null;
-    shareOutstanding: number | null;
-  } | null;
-  nextEarnings: {
-    symbol: string;
-    date: string;
-    epsEstimate: number | null;
-    epsActual: number | null;
-    revenueEstimate: number | null;
-    revenueActual: number | null;
-    hour: string | null;
-    quarter: number | null;
-    year: number | null;
-  } | null;
-  nextExDividend: {
-    symbol: string;
-    date: string;
-    amount: number;
-    currency: string | null;
-    payDate: string | null;
-    recordDate: string | null;
-    declarationDate: string | null;
-  } | null;
+  metrics: InstrumentMetrics | null;
+  profile: InstrumentProfile | null;
+  nextEarnings: EarningsEvent | null;
+  nextExDividend: DividendEvent | null;
   notes: string | null;
   watchlistId: string | null;
-  fundamentalsSource: 'finnhub' | 'yahoo' | 'mixed' | 'none' | 'disabled';
 }
 
 export interface UpcomingEvent {
@@ -287,17 +269,8 @@ export interface UpcomingEvent {
 
 export interface ResearchPayload {
   asOf: string;
-  enabled: boolean;
-  reason: string | null;
   rows: ResearchRow[];
   upcoming: UpcomingEvent[];
-}
-
-export interface FinnhubSearchHit {
-  symbol: string;
-  description: string;
-  type: string | null;
-  displaySymbol: string | null;
 }
 
 export interface YahooVerifyResponse {
@@ -391,17 +364,10 @@ export const api = {
     fetch(`${BASE}/api/research/refresh`, { method: 'POST' }).then(r =>
       j<{ ok: boolean; asOf: string }>(r),
     ),
-  searchSymbol: async (q: string) => {
-    const res = await fetch(
-      `${BASE}/api/research/search?q=${encodeURIComponent(q)}`,
-    );
-    return (await res.json()) as { ok: boolean; enabled?: boolean; hits: FinnhubSearchHit[] };
-  },
   listWatchlist: () =>
     fetch(`${BASE}/api/watchlist`).then(r => j<{ items: WatchlistItem[] }>(r)),
   addWatchlist: async (input: {
-    finnhubSymbol: string;
-    yahooSymbol?: string | null;
+    symbol: string;
     displayName?: string | null;
     notes?: string | null;
   }) => {
@@ -415,8 +381,7 @@ export const api = {
   updateWatchlist: async (
     id: string,
     patch: {
-      finnhubSymbol?: string;
-      yahooSymbol?: string | null;
+      symbol?: string;
       displayName?: string | null;
       notes?: string | null;
     },

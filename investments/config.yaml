@@ -1,5 +1,5 @@
 name: "Investments"
-version: "1.55.2"
+version: "1.56.0"
 slug: "investments"
 description: "Merged-holdings portfolio tracker across Swedbank and Interactive Brokers"
 url: "https://github.com/aarnoldaas/ha-tennis-radar"
@@ -19,10 +19,8 @@ panel_admin: false
 
 homeassistant_api: true
 
-options:
-  finnhub_api_key: ""
-schema:
-  finnhub_api_key: "str?"
+options: {}
+schema: {}
 
 map:
   - type: data

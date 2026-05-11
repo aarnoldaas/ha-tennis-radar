@@ -11,7 +11,10 @@ import {
   promoteUnresolvedMapping,
   upsertResolvedMapping,
 } from './config/instruments.js';
-import { verifyYahooSymbol } from './market/prices.js';
+import { PriceService, verifyYahooSymbol } from './market/prices.js';
+import { FinnhubService } from './market/finnhub.js';
+import { WatchlistStore } from './portfolio/watchlist.js';
+import { buildResearchFeed } from './portfolio/research.js';
 import type { BrokerKey } from './parsers/types.js';
 import { BROKER_KEYS } from './parsers/types.js';
 
@@ -83,6 +86,12 @@ export function createServer(options: { port: number; dataDir: string }) {
   const appCss = findAsset(publicDir, 'app', 'css');
 
   const portfolio = new PortfolioService(options.dataDir);
+  const watchlist = new WatchlistStore(options.dataDir);
+  const finnhub = new FinnhubService(options.dataDir);
+  // Independent PriceService instance for the Watchlist's Yahoo fallback.
+  // Shares the same on-disk cache as the portfolio service so freshness
+  // benefits both views without coordination.
+  const watchlistPrices = new PriceService(options.dataDir);
 
   app.addHook('onSend', async (_request, reply) => {
     reply.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
@@ -350,6 +359,88 @@ export function createServer(options: { port: number; dataDir: string }) {
     } catch (e: any) {
       return reply.code(400).send({ ok: false, error: e?.message || 'Save failed' });
     }
+  });
+
+  // ---------------------------------------------------------------------------
+  // Watchlist + research (fundamentals) endpoints
+  // ---------------------------------------------------------------------------
+
+  app.get('/api/watchlist', async () => {
+    return { items: watchlist.list() };
+  });
+
+  app.post('/api/watchlist', async (request, reply) => {
+    const body = (request.body ?? {}) as {
+      finnhubSymbol?: string;
+      yahooSymbol?: string | null;
+      displayName?: string | null;
+      notes?: string | null;
+    };
+    const finnhubSymbol = String(body.finnhubSymbol ?? '').trim();
+    if (!finnhubSymbol) {
+      return reply.code(400).send({ ok: false, error: 'finnhubSymbol is required' });
+    }
+    try {
+      // Probe Finnhub profile so the saved row carries a display name out of
+      // the box — falls back silently if the free tier doesn't cover this
+      // symbol; the user can still curate `displayName` later.
+      let displayName = body.displayName?.trim() || null;
+      if (!displayName) {
+        const profile = await finnhub.getProfile(finnhubSymbol);
+        displayName = profile?.name ?? null;
+      }
+      const item = watchlist.add({
+        finnhubSymbol,
+        yahooSymbol: body.yahooSymbol ?? null,
+        displayName,
+        notes: body.notes ?? null,
+      });
+      return { ok: true, item };
+    } catch (e: any) {
+      return reply.code(400).send({ ok: false, error: e?.message || 'Save failed' });
+    }
+  });
+
+  app.patch('/api/watchlist/:id', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const body = (request.body ?? {}) as {
+      finnhubSymbol?: string;
+      yahooSymbol?: string | null;
+      displayName?: string | null;
+      notes?: string | null;
+    };
+    try {
+      const item = watchlist.update(id, body);
+      return { ok: true, item };
+    } catch (e: any) {
+      return reply.code(404).send({ ok: false, error: e?.message || 'Not found' });
+    }
+  });
+
+  app.delete('/api/watchlist/:id', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const ok = watchlist.remove(id);
+    if (!ok) return reply.code(404).send({ ok: false, error: 'Not found' });
+    return { ok: true };
+  });
+
+  app.get('/api/research', async () => {
+    return buildResearchFeed(portfolio, watchlist, finnhub, watchlistPrices);
+  });
+
+  app.post('/api/research/refresh', async () => {
+    // Quote cache only — fundamentals / profile / earnings / dividends keep
+    // their longer TTLs to respect the free-tier budget.
+    finnhub.invalidateQuotes();
+    const payload = await buildResearchFeed(portfolio, watchlist, finnhub, watchlistPrices);
+    return { ok: true, asOf: payload.asOf };
+  });
+
+  app.get('/api/research/search', async request => {
+    const q = String((request.query as any)?.q ?? '').trim();
+    if (!q) return { ok: true, hits: [] };
+    const hits = await finnhub.search(q);
+    return { ok: true, enabled: finnhub.isEnabled(), hits };
   });
 
   app.listen({ port: options.port, host: '0.0.0.0' });

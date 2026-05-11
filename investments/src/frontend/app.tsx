@@ -21,6 +21,7 @@ import { HoldingsTab } from './investments/HoldingsTab';
 import { TransactionsTab } from './investments/TransactionsTab';
 import { CashflowTab } from './investments/CashflowTab';
 import { AllocationTab } from './investments/AllocationTab';
+import { WatchlistTab } from './investments/WatchlistTab';
 import { MappingsTab } from './investments/MappingsTab';
 import { FilesTab } from './investments/FilesTab';
 import { InstrumentDetailModal } from './investments/InstrumentDetailModal';
@@ -31,6 +32,7 @@ type NavPage =
   | 'transactions'
   | 'cashflow'
   | 'allocation'
+  | 'watchlist'
   | 'mappings'
   | 'upload'
   | 'files';
@@ -57,6 +59,7 @@ const NAV_GROUPS: NavGroup[] = [
       { page: 'transactions', label: 'Transactions', icon: '↹' },
       { page: 'cashflow', label: 'Cashflow', icon: '⇅' },
       { page: 'allocation', label: 'Allocation', icon: '◐' },
+      { page: 'watchlist', label: 'Watchlist', icon: '★' },
     ],
   },
   {
@@ -78,6 +81,7 @@ function getInitialPage(): NavPage {
     'transactions',
     'cashflow',
     'allocation',
+    'watchlist',
     'mappings',
     'upload',
     'files',
@@ -248,6 +252,10 @@ function App() {
         return <CashflowTab />;
       case 'allocation':
         return <AllocationTab snapshot={snapshot} />;
+      case 'watchlist':
+        return (
+          <WatchlistTab onOpenInstrument={id => setOpenInstrument(id)} />
+        );
       case 'mappings':
         return <MappingsTab />;
       case 'upload':

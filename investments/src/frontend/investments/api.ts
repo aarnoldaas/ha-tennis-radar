@@ -180,6 +180,115 @@ export interface DataFilesPayload {
   files: DataFileEntry[];
 }
 
+export interface WatchlistItem {
+  id: string;
+  finnhubSymbol: string;
+  yahooSymbol: string | null;
+  displayName: string | null;
+  notes: string | null;
+  addedAt: string;
+}
+
+export interface ResearchRow {
+  id: string;
+  kind: 'holding' | 'watchlist' | 'both';
+  finnhubSymbol: string | null;
+  yahooSymbol: string | null;
+  displayName: string;
+  currency: string | null;
+  sector: string | null;
+  country: string | null;
+  quantity: number | null;
+  marketValueBase: number | null;
+  unrealizedPnlPct: number | null;
+  price: number | null;
+  priceCurrency: string | null;
+  dayChangePct: number | null;
+  quote: {
+    price: number;
+    dayChange: number;
+    dayChangePct: number;
+    prevClose: number;
+    asOf: number;
+  } | null;
+  metric: {
+    peTTM: number | null;
+    peForward: number | null;
+    epsTTM: number | null;
+    beta: number | null;
+    marketCap: number | null;
+    week52High: number | null;
+    week52Low: number | null;
+    dividendYieldAnnual: number | null;
+    payoutRatio: number | null;
+    revenueGrowthTTMYoy: number | null;
+    revenueGrowth5Y: number | null;
+    revenueGrowthQuarterlyYoy: number | null;
+    epsGrowthTTMYoy: number | null;
+    epsGrowthQuarterlyYoy: number | null;
+  } | null;
+  profile: {
+    name: string | null;
+    ticker: string | null;
+    exchange: string | null;
+    country: string | null;
+    currency: string | null;
+    industry: string | null;
+    ipo: string | null;
+    logo: string | null;
+    weburl: string | null;
+    marketCap: number | null;
+    shareOutstanding: number | null;
+  } | null;
+  nextEarnings: {
+    symbol: string;
+    date: string;
+    epsEstimate: number | null;
+    epsActual: number | null;
+    revenueEstimate: number | null;
+    revenueActual: number | null;
+    hour: string | null;
+    quarter: number | null;
+    year: number | null;
+  } | null;
+  nextExDividend: {
+    symbol: string;
+    date: string;
+    amount: number;
+    currency: string | null;
+    payDate: string | null;
+    recordDate: string | null;
+    declarationDate: string | null;
+  } | null;
+  notes: string | null;
+  watchlistId: string | null;
+}
+
+export interface UpcomingEvent {
+  rowId: string;
+  symbol: string;
+  displayName: string;
+  date: string;
+  daysUntil: number;
+  kind: 'earnings' | 'ex-dividend';
+  detail: string | null;
+}
+
+export interface ResearchPayload {
+  asOf: string;
+  enabled: boolean;
+  reason: string | null;
+  rows: ResearchRow[];
+  upcoming: UpcomingEvent[];
+}
+
+export interface FinnhubSearchHit {
+  symbol: string;
+  description: string;
+  type: string | null;
+  displaySymbol: string | null;
+}
+
 export interface YahooVerifyResponse {
   ok: boolean;
   price?: number;
@@ -265,6 +374,54 @@ export const api = {
       { method: 'POST', body: formData },
     );
     return j<{ success: boolean; uploaded?: string[]; error?: string }>(res);
+  },
+  research: () => fetch(`${BASE}/api/research`).then(r => j<ResearchPayload>(r)),
+  refreshResearch: () =>
+    fetch(`${BASE}/api/research/refresh`, { method: 'POST' }).then(r =>
+      j<{ ok: boolean; asOf: string }>(r),
+    ),
+  searchSymbol: async (q: string) => {
+    const res = await fetch(
+      `${BASE}/api/research/search?q=${encodeURIComponent(q)}`,
+    );
+    return (await res.json()) as { ok: boolean; enabled?: boolean; hits: FinnhubSearchHit[] };
+  },
+  listWatchlist: () =>
+    fetch(`${BASE}/api/watchlist`).then(r => j<{ items: WatchlistItem[] }>(r)),
+  addWatchlist: async (input: {
+    finnhubSymbol: string;
+    yahooSymbol?: string | null;
+    displayName?: string | null;
+    notes?: string | null;
+  }) => {
+    const res = await fetch(`${BASE}/api/watchlist`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+    return (await res.json()) as { ok: boolean; error?: string; item?: WatchlistItem };
+  },
+  updateWatchlist: async (
+    id: string,
+    patch: {
+      finnhubSymbol?: string;
+      yahooSymbol?: string | null;
+      displayName?: string | null;
+      notes?: string | null;
+    },
+  ) => {
+    const res = await fetch(`${BASE}/api/watchlist/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    });
+    return (await res.json()) as { ok: boolean; error?: string; item?: WatchlistItem };
+  },
+  removeWatchlist: async (id: string) => {
+    const res = await fetch(`${BASE}/api/watchlist/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+    return (await res.json()) as { ok: boolean; error?: string };
   },
   saveUnresolvedMapping: async (
     broker: BrokerKey,

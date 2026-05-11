@@ -2,4 +2,13 @@
 # shellcheck shell=bash
 
 bashio::log.info "Starting Investments..."
+
+# Pipe optional Finnhub API key through so the fundamentals service can call
+# the upstream API. Empty string means the feature is disabled; the Watchlist
+# tab will render an info banner pointing the user back to the addon options.
+if bashio::config.has_value 'finnhub_api_key'; then
+  FINNHUB_API_KEY="$(bashio::config 'finnhub_api_key')"
+  export FINNHUB_API_KEY
+fi
+
 exec node /app/dist/bundle.cjs

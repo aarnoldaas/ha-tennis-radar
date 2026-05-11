@@ -99,6 +99,19 @@ export interface MergedHolding {
   marketValueBase: number | null;
   unrealizedPnlBase: number | null;
   unrealizedPnlPct: number | null;
+  /** Most recent buy transaction across all brokers for this instrument. */
+  lastBuy: TradeSummary | null;
+  /** Most recent sell transaction across all brokers for this instrument. Null if never sold. */
+  lastSell: TradeSummary | null;
+}
+
+/** Compact summary of a single trade — used for the "last buy / last sell" columns in Holdings. */
+export interface TradeSummary {
+  timestamp: string;
+  broker: BrokerKey;
+  quantity: number;
+  price: number;
+  currency: string;
 }
 
 export interface RealizedLotMatch {

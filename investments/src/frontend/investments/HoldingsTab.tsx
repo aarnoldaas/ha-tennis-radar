@@ -8,7 +8,7 @@ import {
   Table,
   Text,
 } from '@mantine/core';
-import type { MergedHolding, PortfolioSnapshot } from './api';
+import type { MergedHolding, PortfolioSnapshot, TradeSummary } from './api';
 import { currencyFmt, money, num, pnlColor, signedMoney, signedPct } from './format';
 import { BROKER_LABEL } from './utils';
 
@@ -44,7 +44,7 @@ export function HoldingsTab({
     <Stack gap="md">
       {snapshot.unresolved.length > 0 && <UnresolvedBanner snapshot={snapshot} />}
       <Card padding={0} withBorder>
-        <Table.ScrollContainer minWidth={720}>
+        <Table.ScrollContainer minWidth={960}>
           <Table highlightOnHover withRowBorders={false} verticalSpacing="sm">
             <Table.Thead>
               <Table.Tr>
@@ -54,6 +54,8 @@ export function HoldingsTab({
                 <Table.Th ta="right">Price</Table.Th>
                 <Table.Th ta="right">Market value</Table.Th>
                 <Table.Th ta="right">Unrealized P&L</Table.Th>
+                <Table.Th>Last buy</Table.Th>
+                <Table.Th>Last sell</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -113,7 +115,29 @@ function HoldingRow({ h, onOpen }: { h: MergedHolding; onOpen: () => void }) {
           <Text size="xs" c="dimmed">—</Text>
         )}
       </Table.Td>
+      <Table.Td>
+        <TradeCell trade={h.lastBuy} />
+      </Table.Td>
+      <Table.Td>
+        <TradeCell trade={h.lastSell} />
+      </Table.Td>
     </Table.Tr>
+  );
+}
+
+function TradeCell({ trade }: { trade: TradeSummary | null }) {
+  if (!trade) return <Text size="xs" c="dimmed">—</Text>;
+  const date = trade.timestamp.slice(0, 10);
+  return (
+    <Stack gap={0}>
+      <Text size="xs" className="lh-mono">{date}</Text>
+      <Text size="xs" c="dimmed" className="lh-mono">
+        {num(trade.quantity)} @ {currencyFmt(trade.price, trade.currency)}
+      </Text>
+      <Text size="xs" c="dimmed">
+        {BROKER_LABEL[trade.broker] ?? trade.broker}
+      </Text>
+    </Stack>
   );
 }
 

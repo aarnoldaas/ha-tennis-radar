@@ -3,6 +3,7 @@ import type {
   MergedHolding,
   OpenLot,
   RealizedLotMatch,
+  TradeSummary,
   Transaction,
 } from '../parsers/types.js';
 import { getInstrument } from '../config/instruments.js';
@@ -107,14 +108,24 @@ export function buildLots(transactions: Transaction[], fx: FxService): LotBuildR
  * Collapse open lots into one row per instrument. Per-broker breakdowns are
  * available on the instrument detail modal via the lot list, so we don't
  * surface a separate broker dimension here.
+ *
+ * `transactions` lets us populate the per-row `lastBuy` / `lastSell`
+ * summaries surfaced in the Holdings table. They're derived directly from
+ * the canonical ledger so they reflect the actual broker-reported trade
+ * (timestamp + native price + qty), not the FIFO lot view.
  */
-export function mergeLotsIntoHoldings(openLots: OpenLot[]): MergedHolding[] {
+export function mergeLotsIntoHoldings(
+  openLots: OpenLot[],
+  transactions: Transaction[] = [],
+): MergedHolding[] {
   const byInstrument = new Map<string, OpenLot[]>();
   for (const lot of openLots) {
     const arr = byInstrument.get(lot.instrumentId) ?? [];
     arr.push(lot);
     byInstrument.set(lot.instrumentId, arr);
   }
+
+  const lastByKind = buildLastTradeIndex(transactions);
 
   const holdings: MergedHolding[] = [];
   for (const [instrumentId, lots] of byInstrument) {
@@ -154,9 +165,36 @@ export function mergeLotsIntoHoldings(openLots: OpenLot[]): MergedHolding[] {
       marketValueBase: null,
       unrealizedPnlBase: null,
       unrealizedPnlPct: null,
+      lastBuy: lastByKind.get(`${instrumentId}|buy`) ?? null,
+      lastSell: lastByKind.get(`${instrumentId}|sell`) ?? null,
     });
   }
 
   holdings.sort((a, b) => b.costBasisBase - a.costBasisBase);
   return holdings;
+}
+
+/**
+ * Single-pass scan of the ledger for the most recent buy + sell per
+ * instrument. Keyed by `${instrumentId}|${kind}` so we can look both up in
+ * O(1) inside the per-instrument merge loop.
+ */
+function buildLastTradeIndex(transactions: Transaction[]): Map<string, TradeSummary> {
+  const out = new Map<string, TradeSummary>();
+  for (const tx of transactions) {
+    if (!tx.instrumentId) continue;
+    if (tx.kind !== 'buy' && tx.kind !== 'sell') continue;
+    if (!tx.quantity || !tx.price) continue;
+    const key = `${tx.instrumentId}|${tx.kind}`;
+    const existing = out.get(key);
+    if (existing && existing.timestamp >= tx.timestamp) continue;
+    out.set(key, {
+      timestamp: tx.timestamp,
+      broker: tx.broker,
+      quantity: Math.abs(tx.quantity),
+      price: tx.price,
+      currency: tx.currency,
+    });
+  }
+  return out;
 }

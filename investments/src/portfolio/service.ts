@@ -87,7 +87,7 @@ export class PortfolioService {
     await this.fx.refresh();
     const ledger = buildLedger(this.dataDir);
     const { openLots, realized } = buildLots(ledger.transactions, this.fx);
-    const holdings = mergeLotsIntoHoldings(openLots);
+    const holdings = mergeLotsIntoHoldings(openLots, ledger.transactions);
 
     const sources = holdings
       .map(h => {

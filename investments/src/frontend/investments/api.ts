@@ -27,6 +27,14 @@ export interface Transaction {
   notes?: string;
 }
 
+export interface TradeSummary {
+  timestamp: string;
+  broker: BrokerKey;
+  quantity: number;
+  price: number;
+  currency: string;
+}
+
 export interface MergedHolding {
   instrumentId: string;
   symbol: string;
@@ -41,6 +49,8 @@ export interface MergedHolding {
   marketValueBase: number | null;
   unrealizedPnlBase: number | null;
   unrealizedPnlPct: number | null;
+  lastBuy: TradeSummary | null;
+  lastSell: TradeSummary | null;
 }
 
 export interface OpenLot {

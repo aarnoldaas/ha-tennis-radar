@@ -1,13 +1,18 @@
 import type { ICourtProvider, TimeSlot, Booking } from './types.js';
+import { normalizeSebPlaces } from './seb-places.js';
 
 export class SebProvider implements ICourtProvider {
   readonly name = 'SEB Arena';
   readonly key = 'SEB' as const;
 
   private readonly salePoint = 11;
-  private readonly places = [2, 18];
+  private readonly places: number[];
+  private readonly sessionToken: string;
 
-  constructor(private sessionToken: string) {}
+  constructor(sessionToken: string, places?: number[]) {
+    this.sessionToken = sessionToken;
+    this.places = normalizeSebPlaces(places);
+  }
 
   async getBookings(): Promise<Booking[]> {
     const today = new Date().toISOString().slice(0, 10);

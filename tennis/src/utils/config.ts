@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { normalizeSebPlaces } from '../providers/seb-places.js';
 
 export interface AddonOptions {
   poll_interval_seconds: number;
@@ -10,6 +11,7 @@ export interface AddonOptions {
   notify_device: string;
   seb_enabled: boolean;
   seb_session_token: string;
+  seb_places: number[];
   baltic_tennis_enabled: boolean;
   baltic_tennis_username: string;
   baltic_tennis_password: string;
@@ -29,6 +31,7 @@ const DEFAULTS: AddonOptions = {
   notify_device: '',
   seb_enabled: true,
   seb_session_token: '',
+  seb_places: [2, 18],
   baltic_tennis_enabled: true,
   baltic_tennis_username: '',
   baltic_tennis_password: '',
@@ -49,10 +52,12 @@ function migrateKeys(obj: Record<string, any>): Record<string, any> {
     delete result[oldKey];
   }
   delete result['baltic_tennis_session_token'];
+  if ('teniso_pasaulis_places' in result && !('seb_places' in result)) {
+    result['seb_places'] = result['teniso_pasaulis_places'];
+  }
   delete result['teniso_pasaulis_sale_point'];
   delete result['teniso_pasaulis_places'];
   delete result['seb_sale_point'];
-  delete result['seb_places'];
   delete result['baltic_tennis_place_ids'];
   delete result['alpha_vantage_api_key'];
   delete result['anthropic_api_key'];
@@ -64,7 +69,8 @@ export function loadOptions(): AddonOptions {
   if (existsSync(CONFIG_PATH)) {
     try {
       const saved = JSON.parse(readFileSync(CONFIG_PATH, 'utf-8'));
-      return { ...DEFAULTS, ...migrateKeys(saved) };
+      const migrated = migrateKeys(saved);
+      return { ...DEFAULTS, ...migrated, seb_places: normalizeSebPlaces(migrated.seb_places) };
     } catch {
       console.warn('[Config] Failed to parse config.json, using defaults');
     }
@@ -72,7 +78,8 @@ export function loadOptions(): AddonOptions {
 
   try {
     const haOptions = JSON.parse(readFileSync(`${DATA_DIR}/options.json`, 'utf-8'));
-    return { ...DEFAULTS, ...migrateKeys(haOptions) };
+    const migrated = migrateKeys(haOptions);
+    return { ...DEFAULTS, ...migrated, seb_places: normalizeSebPlaces(migrated.seb_places) };
   } catch {
     // No HA options either — use defaults
   }
@@ -106,6 +113,10 @@ export function validateConfig(opts: AddonOptions): ConfigWarning[] {
 
   if (opts.seb_enabled && !opts.seb_session_token) {
     warnings.push({ field: 'seb_session_token', message: 'SEB Arena is enabled but session token is missing' });
+  }
+
+  if (opts.seb_enabled && normalizeSebPlaces(opts.seb_places).length === 0) {
+    warnings.push({ field: 'seb_places', message: 'SEB Arena is enabled but no court groups are selected' });
   }
 
   if (opts.baltic_tennis_enabled) {

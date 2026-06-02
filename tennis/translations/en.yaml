@@ -23,6 +23,9 @@ configuration:
   seb_session_token:
     name: SEB Arena Session Token
     description: Session token from savitarna.tenisopasaulis.lt (found in browser DevTools).
+  seb_places:
+    name: SEB Arena Court Groups
+    description: Court types to scan (SEB indoor hard, center court, carpet, Bernardinų sodas clay/grass).
   baltic_tennis_enabled:
     name: Baltic Tennis Enabled
     description: Enable polling the Baltic Tennis provider.

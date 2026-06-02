@@ -17,12 +17,14 @@ import {
   NumberInput,
   PasswordInput,
   Switch,
+  Checkbox,
   Alert,
   Loader,
   UnstyledButton,
 } from '@mantine/core';
 import '@mantine/core/styles.css';
 import './custom.css';
+import { SEB_PLACE_OPTIONS } from '../providers/seb-places.js';
 
 const BASE = (window as any).INGRESS_PATH || '';
 
@@ -48,6 +50,7 @@ interface Config {
   notify_device: string;
   seb_enabled: boolean;
   seb_session_token: string;
+  seb_places: number[];
   baltic_tennis_enabled: boolean;
   baltic_tennis_username: string;
   baltic_tennis_password: string;
@@ -578,13 +581,38 @@ function SettingsPanel() {
         </Card.Section>
         {config.seb_enabled && (
           <Card.Section inheritPadding py="md">
-            <TextInput
-              label="Session Token"
-              value={config.seb_session_token}
-              onChange={e => update('seb_session_token', e.currentTarget.value)}
-              autoComplete="off"
-              size="sm"
-            />
+            <Stack gap="sm">
+              <TextInput
+                label="Session Token"
+                value={config.seb_session_token}
+                onChange={e => update('seb_session_token', e.currentTarget.value)}
+                autoComplete="off"
+                size="sm"
+              />
+              <Stack gap={4}>
+                <Text size="sm" fw={500}>Court groups</Text>
+                <Text size="xs" c="dimmed">Which SEB / Bernardinų sodas court types to scan</Text>
+                {SEB_PLACE_OPTIONS.map(place => (
+                  <Checkbox
+                    key={place.id}
+                    label={
+                      <Group gap={6} wrap="nowrap">
+                        <Text size="sm">{place.label}</Text>
+                        <Text size="xs" c="dimmed">({place.description})</Text>
+                      </Group>
+                    }
+                    checked={config.seb_places.includes(place.id)}
+                    onChange={e => {
+                      const next = e.currentTarget.checked
+                        ? [...config.seb_places, place.id]
+                        : config.seb_places.filter(id => id !== place.id);
+                      update('seb_places', next.sort((a, b) => a - b));
+                    }}
+                    size="sm"
+                  />
+                ))}
+              </Stack>
+            </Stack>
           </Card.Section>
         )}
       </Card>

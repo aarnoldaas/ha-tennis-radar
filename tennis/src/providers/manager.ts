@@ -28,7 +28,7 @@ export class CourtProviderManager {
     // fetched. The *_enabled flags only control whether the provider participates
     // in radar polling.
     if (options.seb_session_token) {
-      const seb = new SebProvider(options.seb_session_token);
+      const seb = new SebProvider(options.seb_session_token, options.seb_places);
       this.providers.push(seb);
       if (options.seb_enabled) this.radarEnabled.add(seb.name);
     }

@@ -5,6 +5,7 @@ import { join, resolve } from 'node:path';
 import type { TimeSlot } from './providers/types.js';
 import type { AddonOptions } from './utils/config.js';
 import { loadOptions, saveOptions, validateConfig } from './utils/config.js';
+import { normalizeSebPlaces } from './providers/seb-places.js';
 
 // Shared state — updated by the polling loop
 export interface PollStats {
@@ -113,6 +114,7 @@ export function createServer(options: { port: number; getOptions: () => AddonOpt
     const updated: AddonOptions = {
       ...current,
       ...body,
+      seb_places: normalizeSebPlaces(body.seb_places ?? current.seb_places),
     };
 
     saveOptions(updated);

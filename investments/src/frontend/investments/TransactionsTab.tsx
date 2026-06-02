@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Badge,
+  Button,
   Card,
   Center,
   Group,
@@ -13,7 +14,14 @@ import {
   Text,
   TextInput,
 } from '@mantine/core';
-import { api, type BrokerKey, type Transaction, type TxKind } from './api';
+import {
+  api,
+  type BrokerKey,
+  type MappingsPayload,
+  type ResolvedMappingEntry,
+  type Transaction,
+  type TxKind,
+} from './api';
 import { BROKER_LABEL, BROKERS } from './utils';
 import { currencyFmt, num } from './format';
 
@@ -43,6 +51,7 @@ const KIND_OPTIONS: { value: KindFilter; label: string }[] = [
 
 export function TransactionsTab() {
   const [transactions, setTransactions] = useState<Transaction[] | null>(null);
+  const [mappings, setMappings] = useState<MappingsPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [broker, setBroker] = useState<BrokerFilter>('all');
   const [kind, setKind] = useState<KindFilter>('all');
@@ -51,10 +60,12 @@ export function TransactionsTab() {
 
   useEffect(() => {
     let cancelled = false;
-    api
-      .transactions()
-      .then(rows => {
-        if (!cancelled) setTransactions(rows);
+    Promise.all([api.transactions(), api.mappings()])
+      .then(([rows, map]) => {
+        if (!cancelled) {
+          setTransactions(rows);
+          setMappings(map);
+        }
       })
       .catch(e => {
         if (!cancelled) setError(e?.message || 'Failed to load transactions');
@@ -63,6 +74,17 @@ export function TransactionsTab() {
       cancelled = true;
     };
   }, []);
+
+  const instrumentById = useMemo(() => {
+    const map = new Map<string, ResolvedMappingEntry>();
+    for (const entry of mappings?.resolved ?? []) map.set(entry.instrumentId, entry);
+    return map;
+  }, [mappings]);
+
+  const trades = useMemo(
+    () => (transactions ?? []).filter(t => t.kind === 'buy' || t.kind === 'sell'),
+    [transactions],
+  );
 
   const years = useMemo(() => {
     if (!transactions) return [];
@@ -86,6 +108,11 @@ export function TransactionsTab() {
       return true;
     });
   }, [transactions, broker, kind, year, search]);
+
+  const handleExportTrades = () => {
+    const csv = buildTradesCsv(trades, instrumentById);
+    downloadCsv(csv, 'share-trades.csv');
+  };
 
   if (error) {
     return (
@@ -140,9 +167,19 @@ export function TransactionsTab() {
               w={220}
             />
           </Group>
-          <Text size="xs" c="dimmed">
-            {filtered.length} of {transactions.length} rows
-          </Text>
+          <Group gap="sm">
+            <Text size="xs" c="dimmed">
+              {filtered.length} of {transactions.length} rows
+            </Text>
+            <Button
+              size="xs"
+              variant="light"
+              onClick={handleExportTrades}
+              disabled={trades.length === 0}
+            >
+              Export trades CSV
+            </Button>
+          </Group>
         </Group>
       </Card>
 
@@ -218,4 +255,105 @@ export function TransactionsTab() {
       </Card>
     </Stack>
   );
+}
+
+const YAHOO_EXCHANGE_LABELS: Record<string, string> = {
+  VS: 'Vilnius Stock Exchange',
+  CO: 'NASDAQ Copenhagen',
+  L: 'London Stock Exchange',
+  DE: 'Xetra',
+  F: 'Frankfurt',
+  HK: 'Hong Kong',
+  ST: 'Stockholm',
+  SA: 'São Paulo',
+  TO: 'Toronto',
+  PA: 'Paris',
+  AS: 'Amsterdam',
+  MI: 'Milan',
+  SW: 'SIX Swiss',
+  AX: 'ASX',
+  T: 'Tokyo',
+  SS: 'Shanghai',
+  SZ: 'Shenzhen',
+  NS: 'NSE India',
+  BO: 'BSE India',
+};
+
+function buildTradesCsv(
+  rows: Transaction[],
+  instrumentById: Map<string, ResolvedMappingEntry>,
+): string {
+  const header = [
+    'Ticker',
+    'Name',
+    'ISIN',
+    'Transaction type',
+    'Transaction date',
+    'Number of shares',
+    'Price per share',
+    'Exchange & currency',
+  ];
+  const lines = [header.map(csvCell).join(',')];
+  const sorted = [...rows].sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+  for (const t of sorted) {
+    const inst = t.instrumentId ? instrumentById.get(t.instrumentId) : undefined;
+    const ticker = tradeTicker(t, inst);
+    const name = inst?.name ?? '';
+    const isin = inst?.isin ?? t.isin ?? '';
+    const type = t.kind === 'buy' ? 'Buy' : 'Sell';
+    const date = t.timestamp.slice(0, 10);
+    const shares =
+      t.quantity != null ? String(Math.abs(t.quantity)) : '';
+    const price = t.price != null ? formatPrice(t.price) : '';
+    const exchange = exchangeLabel(inst?.yahooSymbol, t.broker);
+    const exchangeAndCurrency = `${exchange} / ${t.currency}`;
+    lines.push(
+      [ticker, name, isin, type, date, shares, price, exchangeAndCurrency]
+        .map(csvCell)
+        .join(','),
+    );
+  }
+  return lines.join('\n') + '\n';
+}
+
+function tradeTicker(t: Transaction, inst?: ResolvedMappingEntry): string {
+  if (t.rawSymbol) return t.rawSymbol;
+  if (inst?.yahooSymbol) {
+    const dot = inst.yahooSymbol.lastIndexOf('.');
+    return dot > 0 ? inst.yahooSymbol.slice(0, dot) : inst.yahooSymbol;
+  }
+  return '';
+}
+
+function exchangeLabel(yahooSymbol: string | null | undefined, broker: BrokerKey): string {
+  if (yahooSymbol) {
+    const dot = yahooSymbol.lastIndexOf('.');
+    if (dot > 0) {
+      const suffix = yahooSymbol.slice(dot + 1).toUpperCase();
+      return YAHOO_EXCHANGE_LABELS[suffix] ?? suffix;
+    }
+  }
+  return BROKER_LABEL[broker] ?? broker;
+}
+
+function formatPrice(n: number): string {
+  const s = n.toFixed(6);
+  return s.replace(/\.?0+$/, '');
+}
+
+function csvCell(value: string): string {
+  if (/[",\n\r]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
+  return value;
+}
+
+function downloadCsv(content: string, filename: string): void {
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }

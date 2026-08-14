@@ -1,0 +1,25 @@
+name: "Home Lists"
+version: "1.0.0"
+slug: "home_lists"
+description: "A calm, shared home for shopping lists and everyday to-dos"
+url: "https://github.com/aarnoldaas/ha-tennis-radar"
+arch:
+  - amd64
+  - aarch64
+init: false
+startup: application
+boot: auto
+
+ingress: true
+ingress_port: 8100
+ingress_entry: "/"
+panel_icon: "mdi:format-list-checks"
+panel_title: "Lists"
+panel_admin: false
+
+options: {}
+schema: {}
+
+map:
+  - type: data
+    read_only: false

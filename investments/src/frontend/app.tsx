@@ -14,17 +14,17 @@ import {
 import '@mantine/core/styles.css';
 import './custom.css';
 
-import { api, type PortfolioSnapshot } from './investments/api';
-import { UploadTab } from './investments/UploadTab';
-import { OverviewTab } from './investments/OverviewTab';
-import { HoldingsTab } from './investments/HoldingsTab';
-import { TransactionsTab } from './investments/TransactionsTab';
-import { CashflowTab } from './investments/CashflowTab';
-import { AllocationTab } from './investments/AllocationTab';
-import { WatchlistTab } from './investments/WatchlistTab';
-import { MappingsTab } from './investments/MappingsTab';
-import { FilesTab } from './investments/FilesTab';
-import { InstrumentDetailModal } from './investments/InstrumentDetailModal';
+import type { Portfolio } from '../shared/types';
+import { api } from './lib/api';
+import { OverviewTab } from './tabs/OverviewTab';
+import { HoldingsTab } from './tabs/HoldingsTab';
+import { TransactionsTab } from './tabs/TransactionsTab';
+import { CashflowTab } from './tabs/CashflowTab';
+import { AllocationTab } from './tabs/AllocationTab';
+import { ResearchTab } from './tabs/ResearchTab';
+import { InstrumentsTab } from './tabs/InstrumentsTab';
+import { FilesTab } from './tabs/FilesTab';
+import { InstrumentDetailModal } from './InstrumentDetailModal';
 
 type NavPage =
   | 'overview'
@@ -32,9 +32,8 @@ type NavPage =
   | 'transactions'
   | 'cashflow'
   | 'allocation'
-  | 'watchlist'
-  | 'mappings'
-  | 'upload'
+  | 'research'
+  | 'instruments'
   | 'files';
 
 interface NavItem {
@@ -59,34 +58,24 @@ const NAV_GROUPS: NavGroup[] = [
       { page: 'transactions', label: 'Transactions', icon: '↹' },
       { page: 'cashflow', label: 'Cashflow', icon: '⇅' },
       { page: 'allocation', label: 'Allocation', icon: '◐' },
-      { page: 'watchlist', label: 'Watchlist', icon: '★' },
+      { page: 'research', label: 'Research', icon: '★' },
     ],
   },
   {
     label: 'Data',
-    icon: '↑',
+    icon: '⇄',
     items: [
-      { page: 'mappings', label: 'Mappings', icon: '⇄' },
-      { page: 'upload', label: 'Upload', icon: '↑' },
+      { page: 'instruments', label: 'Instruments', icon: '⇄' },
       { page: 'files', label: 'Files', icon: '⌘' },
     ],
   },
 ];
 
+const ALL_PAGES: NavPage[] = NAV_GROUPS.flatMap(g => g.items.map(i => i.page));
+
 function getInitialPage(): NavPage {
   const screen = new URLSearchParams(window.location.search).get('screen');
-  const all: NavPage[] = [
-    'overview',
-    'holdings',
-    'transactions',
-    'cashflow',
-    'allocation',
-    'watchlist',
-    'mappings',
-    'upload',
-    'files',
-  ];
-  return (all.includes(screen as NavPage) ? (screen as NavPage) : 'overview');
+  return ALL_PAGES.includes(screen as NavPage) ? (screen as NavPage) : 'overview';
 }
 
 function Sidebar({
@@ -127,18 +116,12 @@ function Sidebar({
   );
 }
 
-function BottomTabs({
-  active,
-  onNavigate,
-}: {
-  active: NavPage;
-  onNavigate: (p: NavPage) => void;
-}) {
+function BottomTabs({ active, onNavigate }: { active: NavPage; onNavigate: (p: NavPage) => void }) {
   const tabs: { icon: string; label: string; page: NavPage }[] = [
     { icon: '◎', label: 'Overview', page: 'overview' },
     { icon: '≡', label: 'Holdings', page: 'holdings' },
     { icon: '↹', label: 'Transactions', page: 'transactions' },
-    { icon: '↑', label: 'Upload', page: 'upload' },
+    { icon: '⌘', label: 'Files', page: 'files' },
   ];
   return (
     <div className="lh-bottom-tabs">
@@ -160,31 +143,31 @@ function BottomTabs({
 
 function App() {
   const [page, setPage] = useState<NavPage>(getInitialPage);
-  const [snapshot, setSnapshot] = useState<PortfolioSnapshot | null>(null);
+  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [openInstrument, setOpenInstrument] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    setLoading(snapshot === null);
+    setLoading(prev => prev && portfolio === null);
     setError(null);
     try {
-      const snap = await api.portfolio();
-      setSnapshot(snap);
+      const p = await api.portfolio();
+      setPortfolio(p);
     } catch (e: any) {
       setError(e?.message || 'Failed to load portfolio');
     } finally {
       setLoading(false);
     }
-  }, [snapshot]);
+  }, [portfolio]);
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
     try {
       await api.refresh();
-      const snap = await api.portfolio();
-      setSnapshot(snap);
+      const p = await api.portfolio();
+      setPortfolio(p);
     } catch (e: any) {
       setError(e?.message || 'Refresh failed');
     } finally {
@@ -213,53 +196,44 @@ function App() {
 
   const statusDot = error ? (
     <span className="lh-status-dot lh-status-dot-red" />
-  ) : snapshot?.unresolved?.length ? (
+  ) : portfolio?.unmapped?.length ? (
     <span className="lh-status-dot lh-status-dot-yellow" />
-  ) : snapshot ? (
+  ) : portfolio ? (
     <span className="lh-status-dot lh-status-dot-green" />
   ) : null;
 
   const content = () => {
-    if (loading && !snapshot) {
+    if (loading && !portfolio) {
       return (
         <Center py="xl">
           <Loader size="sm" />
         </Center>
       );
     }
-    if (error && !snapshot) {
+    if (error && !portfolio) {
       return (
         <Alert color="red" title="Unable to load portfolio">
           {error}
         </Alert>
       );
     }
-    if (!snapshot) return null;
+    if (!portfolio) return null;
 
     switch (page) {
       case 'overview':
-        return <OverviewTab snapshot={snapshot} />;
+        return <OverviewTab portfolio={portfolio} onOpenInstrument={id => setOpenInstrument(id)} />;
       case 'holdings':
-        return (
-          <HoldingsTab
-            snapshot={snapshot}
-            onOpenInstrument={id => setOpenInstrument(id)}
-          />
-        );
+        return <HoldingsTab portfolio={portfolio} onOpenInstrument={id => setOpenInstrument(id)} />;
       case 'transactions':
         return <TransactionsTab />;
       case 'cashflow':
         return <CashflowTab />;
       case 'allocation':
-        return <AllocationTab snapshot={snapshot} />;
-      case 'watchlist':
-        return (
-          <WatchlistTab onOpenInstrument={id => setOpenInstrument(id)} />
-        );
-      case 'mappings':
-        return <MappingsTab />;
-      case 'upload':
-        return <UploadTab />;
+        return <AllocationTab portfolio={portfolio} />;
+      case 'research':
+        return <ResearchTab onOpenInstrument={id => setOpenInstrument(id)} />;
+      case 'instruments':
+        return <InstrumentsTab onChanged={load} />;
       case 'files':
         return <FilesTab />;
       default:
@@ -277,18 +251,12 @@ function App() {
           <Group justify="space-between" mb="lg">
             <Title order={4}>{title}</Title>
             <Group gap="xs">
-              {snapshot && (
+              {portfolio && (
                 <Text size="xs" c="dimmed">
-                  As of {new Date(snapshot.asOf).toLocaleString()}
+                  As of {new Date(portfolio.asOf).toLocaleString()}
                 </Text>
               )}
-              <Button
-                variant="default"
-                size="xs"
-                onClick={refresh}
-                loading={refreshing}
-                disabled={loading}
-              >
+              <Button variant="default" size="xs" onClick={refresh} loading={refreshing} disabled={loading}>
                 Refresh
               </Button>
             </Group>
@@ -297,10 +265,7 @@ function App() {
         </div>
       </div>
       <BottomTabs active={page} onNavigate={navigate} />
-      <InstrumentDetailModal
-        instrumentId={openInstrument}
-        onClose={() => setOpenInstrument(null)}
-      />
+      <InstrumentDetailModal instrumentId={openInstrument} onClose={() => setOpenInstrument(null)} />
     </div>
   );
 }

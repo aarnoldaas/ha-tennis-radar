@@ -26,7 +26,7 @@ const sharedBrowserOpts = {
 
 // Backend
 await esbuild.build({
-  entryPoints: ['src/index.ts'],
+  entryPoints: ['src/server/index.ts'],
   bundle: true,
   platform: 'node',
   format: 'cjs',

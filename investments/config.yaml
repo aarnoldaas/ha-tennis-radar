@@ -1,5 +1,5 @@
 name: "Investments"
-version: "1.56.0"
+version: "2.0.0"
 slug: "investments"
 description: "Merged-holdings portfolio tracker across Swedbank and Interactive Brokers"
 url: "https://github.com/aarnoldaas/ha-tennis-radar"

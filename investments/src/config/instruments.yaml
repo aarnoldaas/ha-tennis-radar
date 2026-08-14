@@ -1,233 +1,288 @@
 # Curated instrument master — the single source of truth for cross-broker identity.
 #
-# `id` is our stable internal identifier. `aliases` maps each broker to the
-# symbol it uses (string or list). `priceSource` tells the market layer where
-# to fetch the current price. For instruments that are fully liquidated and no
-# longer relevant we can omit `priceSource` — they'll still resolve but won't
-# have a market value.
+# `id` is the stable internal identifier. `symbol` is THE display symbol used
+# everywhere in the UI. `yahooSymbol` tells the market layer where to fetch
+# prices + fundamentals (null = unpriced, e.g. delisted positions). `aliases`
+# maps each broker to the symbol(s) it uses — always arrays.
 
 - id: ignitis-grupe
+  symbol: IGN1L
   name: Ignitis Grupė
   isin: LT0000115768
   currency: EUR
   assetClass: equity
-  priceSource: { provider: yahoo, symbol: IGN1L.VS }
+  yahooSymbol: IGN1L.VS
   aliases:
-    swedbank: IGN1L
-    interactive-brokers: IGN1L
+    swedbank: [IGN1L]
+    interactive-brokers: [IGN1L]
 
 - id: apranga
+  symbol: APG1L
   name: Apranga
   isin: LT0000102337
   currency: EUR
   assetClass: equity
-  priceSource: { provider: yahoo, symbol: APG1L.VS }
+  yahooSymbol: APG1L.VS
   aliases:
-    swedbank: APG1L
-    interactive-brokers: APG1L
+    swedbank: [APG1L]
+    interactive-brokers: [APG1L]
 
 - id: telia-lietuva
+  symbol: TEL1L
   name: Telia Lietuva
   isin: LT0000123911
   currency: EUR
   assetClass: equity
-  priceSource: { provider: yahoo, symbol: TEL1L.VS }
+  yahooSymbol: TEL1L.VS
   aliases:
-    swedbank: TEL1L
-    interactive-brokers: TEL1L
+    swedbank: [TEL1L]
+    interactive-brokers: [TEL1L]
 
 - id: artea-bankas
+  symbol: ROE1L
   name: Artea Bankas
   isin: LT0000102253
   currency: EUR
   assetClass: equity
-  priceSource: { provider: yahoo, symbol: ROE1L.VS }
+  yahooSymbol: ROE1L.VS
   aliases:
-    swedbank: ROE1L
-    interactive-brokers: ROE1L
+    swedbank: [ROE1L]
+    interactive-brokers: [ROE1L]
 
 - id: klaipedos-nafta
+  symbol: KNF1L
   name: Klaipėdos Nafta
+  isin: null
   currency: EUR
   assetClass: equity
+  yahooSymbol: null
   aliases:
-    swedbank: KNF1L
+    swedbank: [KNF1L]
 
 - id: novaturas
+  symbol: NTU1L
   name: Novaturas
+  isin: null
   currency: EUR
   assetClass: equity
+  yahooSymbol: null
   aliases:
-    swedbank: NTU1L
+    swedbank: [NTU1L]
 
 - id: siauliu-bankas-legacy
+  symbol: SFG1T
   name: Šiaulių Bankas (pre-merger)
+  isin: null
   currency: EUR
   assetClass: equity
+  yahooSymbol: null
   aliases:
-    swedbank: SFG1T
+    swedbank: [SFG1T]
 
 - id: vilkyskiu-pienine
+  symbol: VLP1L
   name: Vilkyškių Pieninė
+  isin: null
   currency: EUR
   assetClass: equity
+  yahooSymbol: null
   aliases:
-    swedbank: VLP1L
+    swedbank: [VLP1L]
 
 - id: snoras
+  symbol: SNG1L
   name: Snoras (historical)
+  isin: null
   currency: EUR
   assetClass: equity
+  yahooSymbol: null
   aliases:
-    swedbank: SNG1L
+    swedbank: [SNG1L]
 
 - id: utenos-trikotazas
+  symbol: UTR1L
   name: Utenos Trikotažas
+  isin: null
   currency: EUR
   assetClass: equity
+  yahooSymbol: null
   aliases:
-    swedbank: UTR1L
+    swedbank: [UTR1L]
 
 - id: nordic-capital-hedge
+  symbol: NHCBHFFT
   name: Nordic Capital Hedge Fund
+  isin: null
   currency: EUR
   assetClass: etf
+  yahooSymbol: null
   aliases:
-    swedbank: NHCBHFFT
+    swedbank: [NHCBHFFT]
 
 - id: dcx
+  symbol: DCX
   name: DCX
+  isin: null
   currency: EUR
   assetClass: equity
+  yahooSymbol: null
   aliases:
-    swedbank: DCX
+    swedbank: [DCX]
 
 - id: novo-nordisk-ger
+  symbol: NOVC-GY
   name: Novo Nordisk (GY legacy)
+  isin: null
   currency: EUR
   assetClass: equity
+  yahooSymbol: null
   aliases:
-    swedbank:
-      - NOVC-GY
-      - NOV-GY
+    swedbank: [NOVC-GY, NOV-GY]
 
 - id: alphabet-class-c
+  symbol: GOOG
   name: Alphabet Class C
+  isin: null
   currency: USD
   assetClass: equity
-  priceSource: { provider: yahoo, symbol: GOOG }
+  yahooSymbol: GOOG
   aliases:
-    interactive-brokers: GOOG
+    interactive-brokers: [GOOG]
 
 - id: asml-holding
+  symbol: ASML
   name: ASML Holding
+  isin: null
   currency: EUR
   assetClass: equity
-  priceSource: { provider: yahoo, symbol: ASML.AS }
+  yahooSymbol: ASML.AS
   aliases:
-    interactive-brokers: ASML
+    interactive-brokers: [ASML]
 
 - id: alibaba-group
+  symbol: BABA
   name: Alibaba Group
+  isin: null
   currency: USD
   assetClass: equity
-  priceSource: { provider: yahoo, symbol: BABA }
+  yahooSymbol: BABA
   aliases:
-    interactive-brokers: BABA
+    interactive-brokers: [BABA]
 
 - id: mcdonalds
+  symbol: MCD
   name: McDonald's
+  isin: null
   currency: USD
   assetClass: equity
-  priceSource: { provider: yahoo, symbol: MCD }
+  yahooSymbol: MCD
   aliases:
-    interactive-brokers: MCD
+    interactive-brokers: [MCD]
 
 - id: nomad-foods
+  symbol: NOMD
   name: Nomad Foods
+  isin: null
   currency: USD
   assetClass: equity
-  priceSource: { provider: yahoo, symbol: NOMD }
+  yahooSymbol: NOMD
   aliases:
-    interactive-brokers: NOMD
+    interactive-brokers: [NOMD]
 
 - id: sunnova-energy
+  symbol: NOVA
   name: Sunnova Energy (delisted)
+  isin: null
   currency: USD
   assetClass: equity
+  yahooSymbol: null
   aliases:
-    interactive-brokers: NOVA
+    interactive-brokers: [NOVA]
 
 - id: petrobras
+  symbol: PBR
   name: Petrobras
+  isin: null
   currency: USD
   assetClass: equity
-  priceSource: { provider: yahoo, symbol: PBR }
+  yahooSymbol: PBR
   aliases:
-    interactive-brokers: PBR
+    interactive-brokers: [PBR]
 
 - id: byd-company
+  symbol: BYD
   name: BYD Company
   isin: CNE100001526
   currency: CNY
   assetClass: equity
-  priceSource: { provider: yahoo, symbol: 002594.SZ }
+  yahooSymbol: 002594.SZ
   aliases:
-    interactive-brokers: "002594"
+    interactive-brokers: ["002594"]
 
 # IB symbol "89988" (and post-rename "89988.OLD") is the HK-listed RMB counter
 # of Alibaba — a different security from the US-listed BABA ADR
-# (alibaba-group), so it has its own canonical id. Currency CNY matches the
-# IB trade currency (CNH, normalized via the FX layer); no priceSource yet
-# because the position is closed and the dual-counter HKD/CNY price quoting
-# on Yahoo doesn't cleanly match.
+# (alibaba-group), so it has its own canonical id. No yahooSymbol: the
+# position is closed and the dual-counter HKD/CNY quoting on Yahoo doesn't
+# cleanly match.
 - id: alibaba-group-hk
+  symbol: 9988.HK
   name: Alibaba Group (HK)
   isin: KYG017191225
   currency: CNY
   assetClass: equity
+  yahooSymbol: null
   aliases:
-    interactive-brokers:
-      - "89988"
-      - "89988.OLD"
+    interactive-brokers: ["89988", "89988.OLD"]
 
 - id: wisdomtree-physical-gold
+  symbol: E3G1
   name: WisdomTree Physical Gold (E3G1)
+  isin: null
   currency: EUR
   assetClass: etf
+  yahooSymbol: null
   aliases:
-    interactive-brokers: E3G1
+    interactive-brokers: [E3G1]
 
 # Samsung Electronics has two distinct GDR lines on IB: SMSN is the common
 # 1/2 NV GDR (USD-traded, Reg S) and SSUN is the preferred GDR (EUR-traded
 # on Frankfurt). They're separate securities, not a join.
 - id: samsung-electronics-common-gdr
+  symbol: SMSN
   name: Samsung Electronics (Common GDR)
+  isin: null
   currency: USD
   assetClass: equity
-  priceSource: { provider: yahoo, symbol: SMSN.IL }
+  yahooSymbol: SMSN.IL
   aliases:
-    interactive-brokers: SMSN
+    interactive-brokers: [SMSN]
 
 - id: samsung-electronics
+  symbol: SSUN
   name: Samsung Electronics (Preferred GDR)
+  isin: null
   currency: EUR
   assetClass: equity
-  priceSource: { provider: yahoo, symbol: SSUN.F }
+  yahooSymbol: SSUN.F
   aliases:
-    interactive-brokers: SSUN
+    interactive-brokers: [SSUN]
 
 - id: archer-daniels-midland
+  symbol: ADM
   name: Archer Daniels Midland
+  isin: null
   currency: USD
   assetClass: equity
-  priceSource: { provider: yahoo, symbol: ADM }
+  yahooSymbol: ADM
   aliases:
-    interactive-brokers: ADM
+    interactive-brokers: [ADM]
 
 - id: amr-legacy
+  symbol: AMR
   name: AMR Corp (legacy)
+  isin: null
   currency: USD
   assetClass: equity
+  yahooSymbol: null
   aliases:
-    interactive-brokers: AMR
+    interactive-brokers: [AMR]

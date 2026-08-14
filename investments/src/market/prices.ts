@@ -1,47 +1,37 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import type { PriceSource } from '../parsers/types.js';
 
 /**
- * Spot market price fetcher. Supports two providers:
- *   - `stooq` — Stooq free daily-close endpoint, mostly for Baltic tickers
- *     (e.g. `ign1l.lt`). Returns the previous close.
- *   - `yahoo` — Yahoo Finance quote endpoint, for US / ADR / European names.
+ * Spot price fetcher — Yahoo Finance only (the v8 chart endpoint, auth-free).
  *
- * Values are cached to `<dataDir>/price-cache.json` with a per-symbol timestamp
- * so a reprice doesn't hammer external services. Callers pass a `maxAgeMs`;
- * stale entries are refreshed. Failures fall back to the last cached value.
+ * Quotes are cached to `<dataDir>/price-cache.json` keyed by the bare
+ * uppercase Yahoo symbol, with a per-symbol timestamp. Stale entries are
+ * refreshed; fetch failures fall back to the last cached value so a flaky
+ * network never blanks out the portfolio.
  */
 
-interface PriceCacheEntry {
+export interface Quote {
   price: number;
   currency: string;
   asOf: string;
-  provider: string;
-  symbol: string;
 }
 
 interface PriceCacheFile {
-  entries: Record<string, PriceCacheEntry>;
+  entries: Record<string, Quote>;
 }
 
-export interface PriceQuote {
-  price: number | null;
-  currency: string | null;
-  asOf: string | null;
-  provider: string | null;
-}
+const DEFAULT_MAX_AGE_MS = 6 * 60 * 60 * 1000;
 
 export class PriceService {
   private readonly cachePath: string;
   private cache: PriceCacheFile;
   private readonly maxAgeMs: number;
 
-  constructor(dataDir: string, maxAgeMs = 6 * 60 * 60 * 1000) {
+  constructor(dataDir: string, maxAgeMs = DEFAULT_MAX_AGE_MS) {
     this.cachePath = join(dataDir, 'price-cache.json');
     this.maxAgeMs = maxAgeMs;
     this.cache = existsSync(this.cachePath)
-      ? JSON.parse(readFileSync(this.cachePath, 'utf-8'))
+      ? safeParse(readFileSync(this.cachePath, 'utf-8'))
       : { entries: {} };
   }
 
@@ -49,75 +39,55 @@ export class PriceService {
     try {
       writeFileSync(this.cachePath, JSON.stringify(this.cache, null, 2));
     } catch {
-      /* ignore — non-fatal for portfolio service */
+      /* non-fatal */
     }
   }
 
-  private key(src: PriceSource): string {
-    return `${src.provider}:${src.symbol}`;
-  }
-
-  private isFresh(entry: PriceCacheEntry): boolean {
-    const age = Date.now() - new Date(entry.asOf).getTime();
+  private isFresh(quote: Quote): boolean {
+    const age = Date.now() - new Date(quote.asOf).getTime();
     return age >= 0 && age < this.maxAgeMs;
   }
 
-  async get(source: PriceSource): Promise<PriceQuote> {
-    const key = this.key(source);
+  async get(symbol: string): Promise<Quote | null> {
+    const key = symbol.trim().toUpperCase();
+    if (!key) return null;
     const cached = this.cache.entries[key];
-    if (cached && this.isFresh(cached)) {
-      return { price: cached.price, currency: cached.currency, asOf: cached.asOf, provider: source.provider };
-    }
+    if (cached && this.isFresh(cached)) return cached;
 
-    let fresh: Omit<PriceCacheEntry, 'asOf' | 'provider' | 'symbol'> | null = null;
+    let verified: YahooVerifyData | null = null;
     try {
-      if (source.provider === 'stooq') fresh = await fetchStooq(source.symbol);
-      else if (source.provider === 'yahoo') fresh = await fetchYahoo(source.symbol);
+      verified = await verifyYahooSymbol(symbol);
     } catch {
-      fresh = null;
+      verified = null;
     }
 
-    if (fresh) {
-      const entry: PriceCacheEntry = {
-        ...fresh,
+    if (verified) {
+      const quote: Quote = {
+        price: verified.price,
+        currency: verified.currency,
         asOf: new Date().toISOString(),
-        provider: source.provider,
-        symbol: source.symbol,
       };
-      this.cache.entries[key] = entry;
+      this.cache.entries[key] = quote;
       this.save();
-      return { price: entry.price, currency: entry.currency, asOf: entry.asOf, provider: source.provider };
+      return quote;
     }
 
-    if (cached) {
-      return { price: cached.price, currency: cached.currency, asOf: cached.asOf, provider: source.provider };
-    }
-    return { price: null, currency: null, asOf: null, provider: source.provider };
+    return cached ?? null;
   }
 
-  async getMany(sources: PriceSource[]): Promise<Map<string, PriceQuote>> {
-    const out = new Map<string, PriceQuote>();
+  async getMany(symbols: string[]): Promise<Map<string, Quote>> {
+    const out = new Map<string, Quote>();
     await Promise.all(
-      sources.map(async src => {
-        out.set(this.key(src), await this.get(src));
+      symbols.map(async symbol => {
+        const quote = await this.get(symbol);
+        if (quote) out.set(symbol.trim().toUpperCase(), quote);
       }),
     );
     return out;
   }
 }
 
-/**
- * Yahoo Finance chart API returns up-to-date quotes for stocks, ETFs, and
- * FX pairs without auth. We prefer it over Stooq because it also reports
- * the native currency on the quote meta.
- */
-async function fetchYahoo(symbol: string): Promise<{ price: number; currency: string } | null> {
-  const verified = await verifyYahooSymbol(symbol);
-  if (!verified) return null;
-  return { price: verified.price, currency: verified.currency };
-}
-
-export interface YahooVerifyResult {
+export interface YahooVerifyData {
   price: number;
   currency: string;
   symbol: string;
@@ -127,13 +97,11 @@ export interface YahooVerifyResult {
 }
 
 /**
- * Probe a Yahoo Finance symbol via the public v8 chart endpoint and return
- * the resolved currency / current price / display name. Used by the
- * Mappings tab so users can sanity-check a ticker before saving it. Throws
- * a descriptive error on HTTP failure or malformed response so the UI can
- * surface a meaningful message.
+ * Probe a Yahoo Finance symbol via the public v8 chart endpoint. Used both
+ * for price fetching and by the Instruments tab's Verify button. Throws a
+ * descriptive error on HTTP failure so the UI can surface a message.
  */
-export async function verifyYahooSymbol(symbol: string): Promise<YahooVerifyResult | null> {
+export async function verifyYahooSymbol(symbol: string): Promise<YahooVerifyData | null> {
   const trimmed = symbol.trim();
   if (!trimmed) return null;
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(trimmed)}?interval=1d&range=1d`;
@@ -160,22 +128,24 @@ export async function verifyYahooSymbol(symbol: string): Promise<YahooVerifyResu
   };
 }
 
-/**
- * Stooq end-of-day close fallback. Intentionally light — some Baltic symbols
- * are flaky on Yahoo around market open.
- */
-async function fetchStooq(symbol: string): Promise<{ price: number; currency: string } | null> {
-  const url = `https://stooq.com/q/l/?s=${encodeURIComponent(symbol.toLowerCase())}&i=d&f=sd2t2ohlcvn&h&e=csv`;
-  const res = await fetch(url);
-  if (!res.ok) return null;
-  const text = await res.text();
-  const lines = text.trim().split(/\r?\n/);
-  if (lines.length < 2) return null;
-  const cells = lines[1].split(',');
-  const close = Number(cells[6]);
-  if (!Number.isFinite(close) || close <= 0) return null;
-  const suffix = symbol.toLowerCase().split('.').pop() ?? '';
-  const currency =
-    suffix === 'uk' ? 'GBP' : ['lt', 'de', 'fr', 'it', 'es', 'nl'].includes(suffix) ? 'EUR' : 'USD';
-  return { price: close, currency };
+function safeParse(text: string): PriceCacheFile {
+  try {
+    const parsed = JSON.parse(text);
+    if (parsed && typeof parsed === 'object' && parsed.entries && typeof parsed.entries === 'object') {
+      // Keep only entries in the new shape (bare-symbol key, {price, currency,
+      // asOf}); pre-2.0 `provider:symbol` entries are simply dropped and
+      // refetched.
+      const entries: Record<string, Quote> = {};
+      for (const [key, value] of Object.entries(parsed.entries as Record<string, any>)) {
+        if (key.includes(':')) continue;
+        if (typeof value?.price === 'number' && typeof value?.currency === 'string' && typeof value?.asOf === 'string') {
+          entries[key] = { price: value.price, currency: value.currency, asOf: value.asOf };
+        }
+      }
+      return { entries };
+    }
+  } catch {
+    /* fall through */
+  }
+  return { entries: {} };
 }

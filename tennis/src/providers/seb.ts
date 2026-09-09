@@ -49,6 +49,36 @@ export class SebProvider implements ICourtProvider {
     }
   }
 
+  /** Pay only an exact, single-court cart. The caller persists the attempt before POST. */
+  async checkoutWithCredit(code: string, slot: TimeSlot, maxPriceEur: number, beforePayment: (amount: number) => void): Promise<number> {
+    if (!Number.isFinite(maxPriceEur) || maxPriceEur <= 0 || maxPriceEur > 100) throw new Error('Invalid payment limit');
+    const user = await this.cartRequest('/v1/checkToken', 'POST', {session_token: this.sessionToken});
+    if (!user?.subject) throw new Error('SEB session expired — update the session token');
+    const cart = await this.cartRequest(`/v2/carts/${encodeURIComponent(code)}`);
+    const rows = cart?.inside?.court_reservations;
+    const row = Array.isArray(rows) && rows.length === 1 ? rows[0] : undefined;
+    if (!row || String(row.service_id) !== slot.courtId || String(row.client_id) !== String(user.subject)
+      || row.from !== `${slot.date} ${slot.startTime}:00` || row.till !== `${slot.date} ${slot.endTime}:00`
+      || Number(row.quantity) !== 1) throw new Error('Cart does not match the selected court, time and account');
+    if (Object.entries(cart.inside).some(([key, value]) => key !== 'court_reservations' && (!Array.isArray(value) || value.length > 0))) {
+      throw new Error('Cart contains additional items; automatic payment stopped');
+    }
+    if (cart.status?.status !== 1 || typeof cart.status.expiration !== 'string'
+      || typeof cart.system?.current_date_time !== 'string' || cart.status.expiration <= cart.system.current_date_time) {
+      throw new Error('Cart expired or is no longer available for payment');
+    }
+    const amountText = String(cart.total?.total ?? '');
+    if (!/^\d+(\.\d{1,2})?$/.test(amountText)) throw new Error('SEB did not return a valid checkout price');
+    const amount = Number(amountText);
+    if (amount <= 0 || Math.round(amount * 100) > Math.round(maxPriceEur * 100)) {
+      throw new Error(`Cart price €${amount.toFixed(2)} exceeds the allowed €${maxPriceEur.toFixed(2)} or is invalid`);
+    }
+    beforePayment(amount);
+    const paid = await this.cartRequest(`/v2/carts/${encodeURIComponent(code)}/user_account_order`, 'POST', {session_token: this.sessionToken});
+    if (paid !== true) throw new Error('SEB did not confirm payment');
+    return amount;
+  }
+
   async getBookings(): Promise<Booking[]> {
     const today = new Date().toISOString().slice(0, 10);
     // Fetch bookings for the next 6 months

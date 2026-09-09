@@ -13,3 +13,13 @@ it('includes one cart action and a working booking URI, and deduplicates repeate
   expect(create).toHaveBeenCalledTimes(1);
   expect(push).toHaveBeenCalledTimes(1);
 });
+
+it('makes payment and the limit explicit in new credit-booking notifications', async () => {
+  const notifier = new HomeAssistantNotifier(() => ({action:'TENNIS_BOOK_test',title:'Book & pay ≤€100 (60 min)'}));
+  vi.spyOn(notifier,'sendPersistentNotification').mockResolvedValue();
+  const push = vi.spyOn(notifier,'sendMobilePush').mockResolvedValue();
+  await notifier.sendCourtAlert([{courtId:'145',courtName:'SEB 21',date:'2026-09-16',startTime:'13:00',endTime:'14:00',durationMinutes:60,status:'available',provider:'SEB'}],'test-device');
+  expect(push.mock.calls[0][2]).toContain('SEB account credit, up to €100');
+  expect(push.mock.calls[0][2]).toContain('This completes a paid booking');
+  expect(push.mock.calls[0][3]?.[0]).toEqual({action:'TENNIS_BOOK_test',title:'Book & pay ≤€100 (60 min)'});
+});

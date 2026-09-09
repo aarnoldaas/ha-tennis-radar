@@ -32,6 +32,8 @@ it('authenticates, subscribes, routes notification actions, and reconnects', asy
   expect(action).not.toHaveBeenCalled();
   socket.message({id:1,type:'event',event:{event_type:'mobile_app_notification_action',data:{action:'TENNIS_CART_test'}}});
   expect(action).toHaveBeenCalledWith('TENNIS_CART_test');
+  socket.message({id:1,type:'event',event:{event_type:'mobile_app_notification_action',data:{action:'TENNIS_BOOK_test'}}});
+  expect(action).toHaveBeenCalledWith('TENNIS_BOOK_test');
   socket.close();
   expect(events.connected).toBe(false);
   await vi.advanceTimersByTimeAsync(10_000);

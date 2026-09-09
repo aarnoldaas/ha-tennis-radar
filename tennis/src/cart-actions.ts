@@ -11,17 +11,23 @@ export interface CartAction {
   expiresAt: string;
   credentialHash: string;
   slots: TimeSlot[];
-  state: 'pending' | 'processing' | 'added' | 'failed';
+  state: 'pending' | 'processing' | 'added' | 'paid' | 'payment_unknown' | 'failed';
+  checkout?: 'credit';
+  maxPriceEur?: number;
+  paymentAttempted?: boolean;
+  amountEur?: number;
   cartCode?: string;
   selected?: TimeSlot;
   message?: string;
 }
 export const sebCartUrl = (code: string) => `https://book.sebarena.lt/#/rezervuoti/tenisas?tennisRadarCart=${encodeURIComponent(code)}`;
+export const SEB_BOOKINGS_URL = 'https://book.sebarena.lt/#/rezervacijos';
 const fingerprint = (token: string) => createHash('sha256').update(token).digest('hex');
 
 export class CartActions {
   private actions: CartAction[] = [];
   private busy = false;
+  private storeHealthy = true;
   constructor(private getOptions: () => AddonOptions, private path = `${process.env.DATA_DIR || '/data'}/cart-actions.json`) {
     if (existsSync(path)) {
       try {
@@ -31,34 +37,37 @@ export class CartActions {
       } catch {
         console.warn('[Cart actions] Could not load saved actions; old notification buttons are invalid.');
         this.actions = [];
+        this.storeHealthy = false;
       }
       for (const action of this.actions) {
         if (action.state === 'processing') {
-          action.state = 'failed';
-          action.message = 'Interrupted while adding. Check the retained cart before trying again.';
+          action.state = action.paymentAttempted ? 'payment_unknown' : 'failed';
+          action.message = action.paymentAttempted ? 'Interrupted during payment. Check SEB bookings and credit; payment will not be retried.' : 'Interrupted while adding. Check the retained cart before trying again.';
         }
       }
-      this.save();
+      if (this.storeHealthy) this.save();
     }
   }
   private save(): void {
     mkdirSync(dirname(this.path), {recursive: true});
-    writeFileSync(`${this.path}.tmp`, JSON.stringify(this.actions), {mode: 0o600});
+    writeFileSync(`${this.path}.tmp`, JSON.stringify(this.actions), {mode: 0o600, flush: true});
     renameSync(`${this.path}.tmp`, this.path);
   }
-  create(slots: TimeSlot[]): {action: string; title: string} | undefined {
+  create(slots: TimeSlot[], checkout?: 'credit'): {action: string; title: string} | undefined {
+    if (!this.storeHealthy) return;
     const options = this.getOptions();
     if (!Number.isInteger(options.preferred_duration_minutes) || options.preferred_duration_minutes < 30 || options.preferred_duration_minutes > 180) return;
     const ranked = rankSebCourts(slots.filter(slot => slot.status === 'available' && slot.durationMinutes >= options.preferred_duration_minutes)).map(slot => bookingSlot(slot, options.preferred_duration_minutes));
     if (!options.seb_enabled || !options.seb_session_token || !ranked.length) return;
-    this.actions = this.actions.filter(a => a.state !== 'pending' || Date.parse(a.expiresAt) > Date.now()).slice(-99);
-    const id = `TENNIS_CART_${randomUUID()}`;
-    this.actions.push({id, slots: ranked, expiresAt: new Date(Date.now() + 15 * 60_000).toISOString(), credentialHash: fingerprint(options.seb_session_token), state: 'pending'});
+    // Keep payment attempts: later alerts must not charge for the same session again.
+    this.actions = this.actions.filter(a => a.state !== 'pending' || Date.parse(a.expiresAt) > Date.now());
+    const id = `${checkout ? 'TENNIS_BOOK_' : 'TENNIS_CART_'}${randomUUID()}`;
+    this.actions.push({id, slots: ranked, checkout, maxPriceEur: checkout ? 100 : undefined, expiresAt: new Date(Date.now() + 15 * 60_000).toISOString(), credentialHash: fingerprint(options.seb_session_token), state: 'pending'});
     this.save();
-    return {action: id, title: `Add to cart (${options.preferred_duration_minutes} min)`};
+    return {action: id, title: checkout ? `Book & pay ≤€100 (${options.preferred_duration_minutes} min)` : `Add to cart (${options.preferred_duration_minutes} min)`};
   }
   list() {
-    return this.actions.filter(a => a.state !== 'pending').slice(-5).reverse().map(({credentialHash: _, slots: __, ...action}) => ({...action, cartUrl: action.cartCode ? sebCartUrl(action.cartCode) : undefined}));
+    return this.actions.filter(a => a.state !== 'pending').slice(-5).reverse().map(({credentialHash: _, slots: __, ...action}) => ({...action, cartUrl: action.cartCode && !action.paymentAttempted ? sebCartUrl(action.cartCode) : undefined, bookingsUrl: action.paymentAttempted ? SEB_BOOKINGS_URL : undefined}));
   }
   async handle(id: string): Promise<string | undefined> {
     const action = this.actions.find(a => a.id === id);
@@ -82,12 +91,30 @@ export class CartActions {
         slot.courtId === candidate.courtId && slot.date === candidate.date && slot.status === 'available' && slot.startTime <= candidate.startTime && slot.endTime >= candidate.endTime));
       if (!selected) throw new Error('The courts in this notification are no longer available. Wait for a new notification.');
       action.selected = selected;
+      if (action.checkout === 'credit') {
+        const overlaps = (other: {date: string; startTime: string; endTime: string}) => other.date === selected.date && other.startTime < selected.endTime && other.endTime > selected.startTime;
+        if (this.actions.some(other => other.id !== action.id && other.paymentAttempted && other.selected && overlaps(other.selected))) {
+          throw new Error('An overlapping booking was already paid or its payment is uncertain. Check SEB bookings; no additional payment attempted');
+        }
+        const bookings = await provider.getBookings();
+        if (bookings.some(overlaps)) throw new Error('You already have a booking at this time; no additional payment attempted');
+      }
       const result = await provider.addToCart(selected, code => {action.cartCode = code; this.save();});
-      action.state = 'added';
-      action.message = `${selected.courtName}, ${selected.date} ${selected.startTime}–${selected.endTime}: added to cart. ${result.warning || 'The cart is temporary; no purchase has been made.'}`;
+      if (action.checkout === 'credit') {
+        const amount = await provider.checkoutWithCredit(result.cartCode, selected, action.maxPriceEur ?? 0, amount => {
+          action.paymentAttempted = true;
+          action.amountEur = amount;
+          this.save();
+        });
+        action.state = 'paid';
+        action.message = `${selected.courtName}, ${selected.date} ${selected.startTime}–${selected.endTime}: booked and paid €${amount.toFixed(2)} using SEB account credit.`;
+      } else {
+        action.state = 'added';
+        action.message = `${selected.courtName}, ${selected.date} ${selected.startTime}–${selected.endTime}: added to cart. ${result.warning || 'The cart is temporary; no purchase has been made.'}`;
+      }
     } catch (error) {
-      action.state = 'failed';
-      action.message = `${error instanceof Error ? error.message : 'Could not add court'}.${action.cartCode ? ' A cart was created; the add result may be uncertain. Check this cart before trying again.' : ''}`;
+      action.state = action.paymentAttempted ? 'payment_unknown' : 'failed';
+      action.message = `${error instanceof Error ? error.message : 'Could not book court'}.${action.paymentAttempted ? ' Payment result is uncertain. Check SEB bookings and credit. Payment will not be retried.' : action.cartCode ? ' A temporary cart was created; its contents may be uncertain. No payment was attempted; check the cart before trying again.' : ''}`;
     } finally {
       this.busy = false;
       this.save();

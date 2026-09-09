@@ -50,7 +50,7 @@ This repository contains only the Tennis Radar add-on.
 ## Notifications
 
 - **Home Assistant persistent notifications** in the HA notification panel
-- **Mobile push notifications** to a configured device with action buttons (Open Booking Site / Dismiss)
+- **Mobile push notifications** to a configured device with action buttons (Book & pay up to €100 / Open Booking Site / Dismiss)
 - **Deduplication** — suppresses duplicate alerts for the same slot within 1 hour
 - **Error alerts** after 3 consecutive provider failures, once per outage; automatic retries continue
 - **Booking reminders** — automatic reminders at 72 hours (3 days) and 49 hours before each existing booking. Bookings are fetched from providers every 6 hours and cached in memory; a lightweight in-memory tick re-evaluates the cache every 30 minutes so threshold crossings fire promptly without re-hitting the network. Each `(booking, threshold)` fires at most once with state persisted to `/data/booking-reminders.json` so restarts don't resend. If the addon comes online late, only the most-imminent applicable threshold fires.
@@ -65,7 +65,7 @@ Navigation: **Tennis Radar** (Courts, Bookings) + **Settings**.
 - Available slots grouped by date with cards showing court name, time range, duration, provider
 - Summary of matching time slots, with venue and date filters and a clear-filters recovery action
 - Search preferences shortcut; separate loading, first-scan, empty, filtered-empty, and stale connection states
-- Collapsible scan statistics and Safari cart setup details
+- Collapsible scan statistics and booking setup details
 
 ### Bookings Screen
 - User's existing bookings from all providers with configured credentials, grouped by date — bookings are returned regardless of whether the provider is enabled for radar polling
@@ -118,9 +118,43 @@ Navigation: **Tennis Radar** (Courts, Bookings) + **Settings**.
 - **Design tokens**: DM Sans + JetBrains Mono, warm dark theme, amber/gold accent, CSS custom properties
 - **Cache control**: all responses include no-cache headers; content-hashed bundle filenames (`app-[HASH].js`) ensure fresh assets after deploys
 
-## Add SEB courts from notifications
+## Book and pay for SEB courts from notifications
 
-- Mobile notifications offer **Add to cart** for SEB matches. Tapping sends a
+- Version 1.51.0 adds **Book & pay ≤€100** to new phone court alerts. Touch and
+  hold the push notification on iPhone to see actions. HA persistent notifications
+  and booking reminders do not have this button.
+- An explicit tap reserves one available court, then pays using **SEB account
+  credit**, with a hard **€100 per-booking maximum**. It does not run from polling
+  alone. No Safari extension, Shortcut, or browser localStorage handoff is needed
+  for successful paid bookings. Open **View SEB bookings** in Chrome or Safari
+  signed into the same account.
+- Before payment, the add-on checks existing bookings for overlapping times,
+  then reads the fresh cart and validates exactly one court, account, date,
+  start/end time, quantity, no extra items, unexpired unpaid status and total.
+  Missing/invalid prices or a total above €100 stop payment.
+- Credit checkout sends multipart `session_token` to
+  `POST /v2/carts/{code}/user_account_order`, requiring the observed
+  `{status: "success", data: true}` response before reporting payment success.
+  There is no bank/card fallback. A rejected or uncertain payment is not retried.
+- Payment intent and price are saved before the POST. Paid/uncertain attempts
+  survive restart and prevent another overlapping payment from a later alert.
+  A corrupted state file disables new cart actions rather than discarding the
+  payment history. Operators must reconcile uncertain results against SEB
+  bookings/credit before manually attempting another payment.
+- New paid actions use `TENNIS_BOOK_`; old `TENNIS_CART_` buttons retain their
+  original unpaid behavior. Results appear on Courts and in mobile/persistent
+  notifications. Successful payment refreshes the booking reminder cache.
+- Live checkout verified on 2026-09-09 in Chrome: SEB 21, 2026-09-16,
+  13:00–14:00, €36, booking 4305281. **Sumokėti** only opens payment methods
+  (no request); **Kreditus → Taip** sends the account-credit order request.
+  The live browser payment was verified separately from the mocked automated
+  flow tests; deployment to Home Assistant is not part of that validation.
+- The API exposes no client price-cap parameter in the observed payment request;
+  the €100 check is performed immediately before payment against the cart total.
+
+### Legacy unpaid cart handoff
+
+- Older mobile notifications offer **Add to cart** for SEB matches. Tapping sends a
   `mobile_app_notification_action` event, handled via the Supervisor WebSocket;
   no separate Home Assistant automation is required. Reconnects automatically.
 - The action rechecks availability, selects one court in descending **SEB 21,
@@ -135,7 +169,7 @@ Navigation: **Tennis Radar** (Courts, Bookings) + **Settings**.
 - Results appear on Courts and in a follow-up notification with **Open SEB cart**.
   This is a separate cart from any previously open browser cart.
 
-### iPhone Safari setup
+### iPhone Safari setup for legacy unpaid carts
 
 1. Install [Userscripts](https://apps.apple.com/app/userscripts/id1463298887)
    and enable its Safari extension for `book.sebarena.lt`.

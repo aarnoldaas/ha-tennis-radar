@@ -4,7 +4,7 @@ import { PollingManager } from './polling.js';
 import { CourtProviderManager } from './providers/manager.js';
 import { HomeAssistantNotifier } from './notifications.js';
 import { BookingReminderManager } from './booking-reminders.js';
-import { CartActions, sebCartUrl } from './cart-actions.js';
+import { CartActions } from './cart-actions.js';
 import { HomeAssistantEvents } from './ha-events.js';
 import { matchingSlots } from './providers/matching.js';
 import type { Booking } from './providers/types.js';
@@ -32,13 +32,19 @@ if (configWarnings.length > 0) {
 }
 
 const cartActions = new CartActions(() => options);
-const notifier = new HomeAssistantNotifier(slots => cartActions.create(slots));
+const notifier = new HomeAssistantNotifier(slots => cartActions.create(slots, 'credit'));
 const haEvents = new HomeAssistantEvents(async action => {
   const message = await cartActions.handle(action);
   if (!message) return;
-  await notifier.sendPersistentNotification(message, 'SEB cart', 'tennis_cart_result');
   const result = cartActions.list().find(item => item.id === action);
-  if (options.notify_device) await notifier.sendMobilePush(options.notify_device, 'SEB cart', message, result?.cartCode ? [{action: 'URI', title: 'Open SEB cart', uri: sebCartUrl(result.cartCode)}] : undefined);
+  const title = result?.state === 'paid' ? 'SEB booking confirmed' : 'SEB booking result';
+  await Promise.allSettled([
+    notifier.sendPersistentNotification(message, title, 'tennis_cart_result'),
+    ...(options.notify_device ? [notifier.sendMobilePush(options.notify_device, title, message,
+      result?.bookingsUrl ? [{action: 'URI', title: 'View SEB bookings', uri: result.bookingsUrl}]
+        : result?.cartUrl ? [{action: 'URI', title: 'Open SEB cart', uri: result.cartUrl}] : undefined)] : []),
+  ]).then(results => results.forEach(result => { if (result.status === 'rejected') console.error('[SEB booking] Result notification failed:', result.reason); }));
+  if (result?.state === 'paid') void refetchBookingsAndTick();
 });
 haEvents.start();
 const reminderManager = new BookingReminderManager();

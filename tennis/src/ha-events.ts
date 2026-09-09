@@ -32,7 +32,7 @@ export class HomeAssistantEvents {
         } else if (message.type === 'pong') this.awaitingPong = false;
         else if (message.type === 'event' && message.id === 1 && message.event?.event_type === 'mobile_app_notification_action') {
           const action = message.event.data?.action;
-          if (typeof action === 'string' && action.startsWith('TENNIS_CART_')) {
+          if (typeof action === 'string' && (action.startsWith('TENNIS_CART_') || action.startsWith('TENNIS_BOOK_'))) {
             void this.onAction(action).catch(error => console.error('[HA actions] Handler failed:', error.message));
           }
         }

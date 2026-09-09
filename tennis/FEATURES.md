@@ -20,11 +20,11 @@ This repository contains only the Tennis Radar add-on.
 - **Automatic polling** with configurable interval (10–3600 seconds, default 30s)
 - **Multi-provider support** — query multiple tennis court systems simultaneously
 - **Date scanning** — check only explicitly selected dates from tomorrow through 14 days ahead. No selection means no near-term scans; expired and out-of-window dates are ignored. There is no automatic seven-day fallback
-- **Skip booked future dates** — before each future availability scan, refresh bookings from all configured providers through the latest scan date. Any existing booking excludes the whole date from availability requests and alerts. If booking lookup fails, defer the future scan and show the error. Scan details report the skipped date count. Near-term selected dates are unchanged.
-- **Future SEB scans** — selected weekdays 15 days to six months ahead use a separate schedule, default **2 hours** (configurable **1–24 hours**). Optional weekday checkboxes add recurring dates in that future window. No weekdays are enabled by default. Near-term dates keep the regular interval around the clock. Baltic Tennis only receives near-term dates.
-- **SEB request batches** — sequential batches of at most **7 dates**, for both near and future scans. Each request retains its 20-second timeout. Future results stay visible between scans, with the last/next scan and date count in Scan details. Changing settings clears old results and restarts the future schedule.
+- **Skip booked future dates** — before each future availability scan, read the shared hourly booking cache covering all configured providers through the latest scan date. Future scans, the bookings page, and reminders share one network refresh per hour, including simultaneous requests. Failed lookups are also cached for an hour. Startup, settings changes, and successful in-app payment refresh immediately. External bookings and cancellations may take up to one hour to appear. Any existing booking excludes the whole date from availability requests and alerts. If booking lookup fails, defer the future scan and show the error. Scan details report the skipped date count. Near-term selected dates are unchanged.
+- **Future SEB scans** — selected weekdays from 15 days ahead to the configured horizon, default **6 months** (configurable **1–12 whole months** in Settings), use a separate schedule, default **2 hours** (configurable **1–24 hours**). Optional weekday checkboxes add recurring dates in that future window. No weekdays are enabled by default. Near-term dates keep the regular interval around the clock. Baltic Tennis only receives near-term dates.
+- **SEB request batches** — sequential batches of at most **7 dates**, for both near and future scans. Future scans pause **2 seconds** after each completed batch before starting the next request; near-term scans have no added pause. Each request retains its 20-second timeout. Future results stay visible between scans, with the last/next scan and date count in Scan details. Changing settings clears old results and restarts the future schedule.
 - **Container date compatibility** — assemble machine-readable dates from named Intl parts instead of parsing locale-formatted text. Supports English-only ICU runtimes for scanning, reminder cleanup and booking freshness checks.
-- **Calendar boundary** — future planning uses Europe/Vilnius dates and a six-calendar-month horizon. Recurring weekdays apply only to the future window.
+- **Calendar boundary** — future planning uses Europe/Vilnius dates and the configured calendar-month horizon (default 6 months), clamped to the last day of the target month. Recurring weekdays apply only to the future window.
 - **Time preferences** — filter by earliest start time and latest end time
 - **Duration filtering** — minimum booking duration (30–180 minutes)
 - **Slot merging** — consecutive 30-minute slots merged into continuous blocks
@@ -36,7 +36,7 @@ This repository contains only the Tennis Radar add-on.
 - Queries the Teniso Pasaulis API for court availability
 - Session token authentication
 - Fetches court name, surface type, price, and slot status
-- Retrieves user's existing bookings (next 6 months) with pricing
+- Retrieves user's existing bookings (next 6 months, extended through the latest future scan date when needed) with pricing
 
 ### Baltic Tennis
 
@@ -60,7 +60,7 @@ This repository contains only the Tennis Radar add-on.
 - **Mobile push notifications** to a configured device with action buttons (Book & pay up to €100 / Open Booking Site / Dismiss)
 - **Deduplication** — suppresses duplicate alerts for the same slot within 1 hour
 - **Error alerts** after 3 consecutive provider failures, once per outage; automatic retries continue
-- **Booking reminders** — automatic reminders at 168 hours (1 week), 72 hours (3 days) and 49 hours before each existing booking, using Europe/Vilnius time including daylight-saving changes. Bookings are fetched from providers every 6 hours and cached in memory; a lightweight in-memory tick re-evaluates the cache every 30 minutes so threshold crossings fire promptly without re-hitting the network. Each `(booking, threshold)` fires at most once with state persisted to `/data/booking-reminders.json` so restarts don't resend. If the addon comes online late, only the most-imminent applicable threshold fires.
+- **Booking reminders** — automatic reminders at 168 hours (1 week), 72 hours (3 days) and 49 hours before each existing booking, using Europe/Vilnius time including daylight-saving changes. Bookings are fetched from providers every hour and cached in memory; a lightweight in-memory tick re-evaluates the cache every 30 minutes so threshold crossings fire promptly without re-hitting the network. Each `(booking, threshold)` fires at most once with state persisted to `/data/booking-reminders.json` so restarts don't resend. If the addon comes online late, only the most-imminent applicable threshold fires.
 
 ## Web UI
 

@@ -133,6 +133,10 @@ export function createServer(options: { getScanStatus?: () => unknown; testNotif
       seb_places: normalizeSebPlaces(body.seb_places ?? current.seb_places),
     };
 
+    if (!Number.isInteger(updated.seb_future_months) || updated.seb_future_months < 1 || updated.seb_future_months > 12) {
+      return reply.code(400).send({error:'Future scan months must be a whole number between 1 and 12.'});
+    }
+
     if (!Number.isInteger(updated.seb_future_interval_hours) || updated.seb_future_interval_hours < 1 || updated.seb_future_interval_hours > 24
       || !Array.isArray(updated.seb_future_weekdays) || updated.seb_future_weekdays.some(day=>!Number.isInteger(day) || day<0 || day>6)) {
       return reply.code(400).send({error:'Future scan interval must be 1–24 hours and weekdays must be between 0 and 6.'});

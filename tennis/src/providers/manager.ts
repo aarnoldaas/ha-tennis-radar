@@ -25,12 +25,12 @@ export class CourtProviderManager {
   private providerErrors = new Map<string, ProviderErrorInfo>();
   private consecutiveFailures = new Map<string, number>();
 
-  constructor(options: AddonOptions) {
+  constructor(options: AddonOptions, sebBatchDelayMs = 0) {
     // Instantiate every provider that has credentials so bookings can always be
     // fetched. The *_enabled flags only control whether the provider participates
     // in radar polling.
     if (options.seb_session_token) {
-      const seb = new SebProvider(options.seb_session_token, options.seb_places);
+      const seb = new SebProvider(options.seb_session_token, options.seb_places, sebBatchDelayMs);
       this.providers.push(seb);
       if (options.seb_enabled) this.radarEnabled.add(seb.name);
     }

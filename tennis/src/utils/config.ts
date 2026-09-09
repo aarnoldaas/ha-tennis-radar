@@ -7,6 +7,7 @@ export interface AddonOptions {
   scan_dates: string[];
   seb_future_weekdays: number[];
   seb_future_interval_hours: number;
+  seb_future_months: number;
   preferred_start_time: string;
   preferred_end_time: string;
   preferred_duration_minutes: number;
@@ -28,6 +29,7 @@ const DEFAULTS: AddonOptions = {
   scan_dates: [],
   seb_future_weekdays: [],
   seb_future_interval_hours: 2,
+  seb_future_months: 6,
   preferred_start_time: '17:00',
   preferred_end_time: '21:00',
   preferred_duration_minutes: 60,
@@ -71,6 +73,7 @@ function migrateKeys(obj: Record<string, any>): Record<string, any> {
   result.seb_future_weekdays = Array.isArray(result.seb_future_weekdays)
     ? [...new Set(result.seb_future_weekdays.filter((day: unknown) => Number.isInteger(day) && Number(day) >= 0 && Number(day) <= 6))] : [];
   if (!Number.isInteger(result.seb_future_interval_hours) || result.seb_future_interval_hours < 1 || result.seb_future_interval_hours > 24) result.seb_future_interval_hours = 2;
+  if (!Number.isInteger(result.seb_future_months) || result.seb_future_months < 1 || result.seb_future_months > 12) result.seb_future_months = 6;
   return result;
 }
 

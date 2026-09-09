@@ -1,3 +1,4 @@
+import { BookingCache } from './booking-cache.js';
 import { checkFutureAvailability } from './future-scan.js';
 import { loadOptions, validateConfig, getEffectiveIntervalMs, type AddonOptions } from './utils/config.js';
 import { createServer, globalState } from './server.js';
@@ -13,10 +14,9 @@ import type { CheckResult } from './providers/manager.js';
 import type { Booking } from './providers/types.js';
 
 // Booking fetches are network-heavy (BT does an HTML scrape with login), so the
-// HTTP fetch runs every 6h. A cheap in-memory tick re-evaluates the cached
+// shared HTTP cache refreshes hourly. A cheap in-memory tick re-evaluates the cached
 // bookings against the current time every 30 min so threshold crossings are
 // detected promptly between fetches.
-const BOOKING_FETCH_INTERVAL_MS = 6 * 60 * 60 * 1000;
 const BOOKING_TICK_INTERVAL_MS = 30 * 60 * 1000;
 
 let options = loadOptions();
@@ -46,13 +46,21 @@ const haEvents = new HomeAssistantEvents(async action => {
     ...(options.notify_device ? [notifier.sendMobilePush(options.notify_device, title, message,
       result?.bookingsUrl ? [{action: 'URI', title: 'View SEB bookings', uri: result.bookingsUrl}] : undefined)] : []),
   ]).then(results => results.forEach(result => { if (result.status === 'rejected') console.error('[SEB booking] Result notification failed:', result.reason); }));
-  if (result?.state === 'paid') void refetchBookingsAndTick();
+  if (result?.state === 'paid') {
+    bookingCache = createBookingCache();
+    void refetchBookingsAndTick();
+  }
 });
 haEvents.start();
 const reminderManager = new BookingReminderManager();
 let providerManager = new CourtProviderManager(options);
 const futureOptions = () => ({...options,baltic_tennis_enabled:false});
-let futureProviderManager = new CourtProviderManager(futureOptions());
+let futureProviderManager = new CourtProviderManager(futureOptions(), 2_000);
+function createBookingCache(): BookingCache {
+  const manager = providerManager;
+  return new BookingCache(() => manager.fetchBookings(scanDatePlan(options).future.at(-1)));
+}
+let bookingCache = createBookingCache();
 let configRevision = 0;
 const scans: Record<'near' | 'future', CheckResult> = {near:{slots:[],errors:[]},future:{slots:[],errors:[]}};
 const futureIntervalMs = () => options.seb_future_interval_hours * 60 * 60_000;
@@ -83,12 +91,10 @@ async function tickBookingReminders(): Promise<void> {
 }
 
 async function refetchBookingsAndTick(): Promise<void> {
-  if (providerManager.providerCount === 0) {
-    cachedBookings = [];
-    return;
-  }
+  const cache = bookingCache;
   try {
-    const { bookings, errors } = await providerManager.fetchBookings();
+    const { bookings, errors } = await cache.get();
+    if (cache !== bookingCache) return;
     if (errors.length > 0) {
       console.warn('[BookingReminders] Some providers failed to return bookings:', errors.join('; '));
     }
@@ -107,7 +113,14 @@ let bookingTickTimer: ReturnType<typeof setInterval> | null = null;
 function startBookingTimers(): void {
   if (bookingFetchTimer) clearInterval(bookingFetchTimer);
   if (bookingTickTimer) clearInterval(bookingTickTimer);
-  bookingFetchTimer = setInterval(() => void refetchBookingsAndTick(), BOOKING_FETCH_INTERVAL_MS);
+  const revision = configRevision;
+  const refresh = async () => {
+    await refetchBookingsAndTick();
+    if (revision === configRevision) {
+      bookingFetchTimer = setTimeout(() => void refresh(), Math.max(1, bookingCache.refreshInMs));
+    }
+  };
+  void refresh();
   bookingTickTimer = setInterval(() => void tickBookingReminders(), BOOKING_TICK_INTERVAL_MS);
 }
 
@@ -130,7 +143,7 @@ async function scan(scope: 'near' | 'future') {
     if (scope === 'future') {
       try {
         const checked = await checkFutureAvailability(dates,
-          throughDate => manager.fetchBookings(throughDate),
+          () => bookingCache.get(),
           remaining => revision === configRevision ? manager.checkAll(remaining) : Promise.resolve({slots:[],errors:[]}));
         result = checked.result;
         dates = checked.dates;
@@ -188,8 +201,10 @@ function onConfigChange(newOptions: AddonOptions) {
   globalState.futureScan = null;
   providerManager.disposeAll();
   providerManager = new CourtProviderManager(options);
+  bookingCache = createBookingCache();
+  cachedBookings = [];
   futureProviderManager.disposeAll();
-  futureProviderManager = new CourtProviderManager(futureOptions());
+  futureProviderManager = new CourtProviderManager(futureOptions(), 2_000);
   globalState.providerErrors = [];
   globalState.disabledProviders = [];
   notifiedErrors.clear();
@@ -198,7 +213,6 @@ function onConfigChange(newOptions: AddonOptions) {
   futurePoller.updateInterval(futureIntervalMs());
   futurePoller.requestPoll();
   startBookingTimers();
-  void refetchBookingsAndTick();
 }
 
 function onResumeProviders() {
@@ -222,16 +236,16 @@ createServer({
   getOptions: () => options,
   onConfigChange,
   onResumeProviders,
-  fetchBookings: () => providerManager.fetchBookings(),
+  fetchBookings: () => bookingCache.get(),
   getCartStatus: () => ({connected: haEvents.connected, actions: cartActions.list()}),
 });
 poller.start();
 futurePoller.start();
 startBookingTimers();
-void refetchBookingsAndTick();
 
 const shutdown = async (signal: string) => {
   console.log(`[TennisRadar] Received ${signal}, shutting down...`);
+  configRevision++;
   stopBookingTimers();
   haEvents.stop();
   await Promise.all([poller.stop(),futurePoller.stop()]);

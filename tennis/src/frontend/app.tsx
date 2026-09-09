@@ -48,6 +48,7 @@ interface Config {
   scan_dates: string[];
   seb_future_weekdays: number[];
   seb_future_interval_hours: number;
+  seb_future_months: number;
   preferred_start_time: string;
   preferred_end_time: string;
   preferred_duration_minutes: number;
@@ -495,12 +496,13 @@ function SettingsPanel({ onSaved }: { onSaved: () => void }) {
             ))}
           </SimpleGrid>
           <Text fw={600} size="sm" mt="lg">SEB future weekdays</Text>
-          <Text size="xs" c="dimmed" mb="sm">Also check these weekdays from 15 days to six months ahead. Leave all weekdays off to scan only the dates selected above.</Text>
+          <Text size="xs" c="dimmed" mb="sm">Also check these weekdays from 15 days to {config.seb_future_months ?? 6} months ahead. Leave all weekdays off to scan only the dates selected above.</Text>
           <Group gap="sm">
             {[['Mon',1],['Tue',2],['Wed',3],['Thu',4],['Fri',5],['Sat',6],['Sun',0]].map(([label, day]) => (
               <Checkbox key={day} label={label} checked={(config.seb_future_weekdays ?? []).includes(Number(day))} onChange={event => update('seb_future_weekdays', event.currentTarget.checked ? [...(config.seb_future_weekdays ?? []), Number(day)] : (config.seb_future_weekdays ?? []).filter(value=>value!==day))} />
             ))}
           </Group>
+          <NumberInput mt="md" label="Future SEB scan months" description="How many months ahead to scan (1–12)." min={1} max={12} allowDecimal={false} value={config.seb_future_months ?? 6} onChange={value=>update('seb_future_months',Number(value)||6)} />
           <NumberInput mt="md" label="Future SEB scan interval (hours)" description="Near-term dates keep your regular scanning interval. SEB requests use batches of 7 dates." min={1} max={24} allowDecimal={false} value={config.seb_future_interval_hours ?? 2} onChange={value=>update('seb_future_interval_hours',Number(value)||2)} />
 
         </Card.Section>

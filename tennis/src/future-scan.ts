@@ -1,7 +1,7 @@
 import type { Booking } from './providers/types.js';
 import type { CheckResult } from './providers/manager.js';
 
-/** Refresh bookings before requesting availability, so booked dates never reach SEB. */
+/** Read the shared booking cache before requesting availability, so booked dates never reach SEB. */
 export async function checkFutureAvailability(
   dates: string[],
   fetchBookings: (throughDate?: string) => Promise<{bookings: Booking[]; errors: string[]}>,

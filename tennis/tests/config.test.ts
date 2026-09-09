@@ -15,6 +15,13 @@ it('persists selected dates without an automatic scan fallback and preserves fut
     expect(getEffectiveIntervalMs(options)).toBe(options.poll_interval_seconds * 1000);
     expect(options.scan_dates).toEqual(['2027-02-10']);
     expect(options.seb_future_weekdays).toEqual([1,5]);
+    expect(options.seb_future_months).toBe(6);
+    saveOptions({...options, seb_future_months: 3});
+    expect(loadOptions().seb_future_months).toBe(3);
+    for (const invalid of [0, 13, 1.5]) {
+      saveOptions({...options, seb_future_months: invalid});
+      expect(loadOptions().seb_future_months).toBe(6);
+    }
     expect(scanDatePlan(options,new Date('2026-09-09T12:00:00Z')).near).toEqual([]);
     saveOptions({...options,...{scan_dates:['2027-02-10']}});
     expect(JSON.parse(readFileSync(join(dir,'config.json'),'utf8')).scan_dates).toEqual(['2027-02-10']);

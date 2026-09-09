@@ -9,7 +9,7 @@ export class SebProvider implements ICourtProvider {
   private readonly places: number[];
   private readonly sessionToken: string;
 
-  constructor(sessionToken: string, places?: number[]) {
+  constructor(sessionToken: string, places?: number[], private readonly batchDelayMs = 0) {
     this.sessionToken = sessionToken;
     this.places = normalizeSebPlaces(places);
   }
@@ -141,6 +141,9 @@ export class SebProvider implements ICourtProvider {
     // Sequential batches keep the long-horizon scan from flooding SEB.
     const slots: TimeSlot[] = [];
     for (let offset = 0; offset < dates.length; offset += 7) {
+      if (offset > 0 && this.batchDelayMs > 0) {
+        await new Promise(resolve => setTimeout(resolve, this.batchDelayMs));
+      }
       slots.push(...await this.getAvailabilityBatch(dates.slice(offset, offset + 7)));
     }
     return slots;

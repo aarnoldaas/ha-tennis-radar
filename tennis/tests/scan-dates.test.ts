@@ -44,3 +44,39 @@ it('independent future polling runs once per two hours while near polling contin
   await vi.advanceTimersByTimeAsync(1);expect(future).toHaveBeenCalledTimes(2);
   await Promise.all([nearPoller.stop(),futurePoller.stop()]);
 });
+
+it('pauses two seconds between future batches, with no initial or final pause', async () => {
+  vi.useFakeTimers();
+  const fetch = vi.fn().mockImplementation(async () => Response.json({data: []}));
+  vi.stubGlobal('fetch', fetch);
+  const dates = Array.from({length: 16}, (_, i) => `2027-01-${String(i + 1).padStart(2, '0')}`);
+  const scan = new SebProvider('test', undefined, 2_000).getAvailability(dates);
+  await vi.advanceTimersByTimeAsync(0);
+  expect(fetch).toHaveBeenCalledTimes(1);
+  await vi.advanceTimersByTimeAsync(1_999);
+  expect(fetch).toHaveBeenCalledTimes(1);
+  await vi.advanceTimersByTimeAsync(1);
+  expect(fetch).toHaveBeenCalledTimes(2);
+  await vi.advanceTimersByTimeAsync(1_999);
+  expect(fetch).toHaveBeenCalledTimes(2);
+  await vi.advanceTimersByTimeAsync(1);
+  expect(fetch).toHaveBeenCalledTimes(3);
+  expect(await scan).toEqual([]);
+  expect(vi.getTimerCount()).toBe(0);
+});
+
+it.each([1, 3, 6, 12])('limits future scanning to the configured %i months', months => {
+  const options = {scan_dates: ['2026-09-10'], seb_future_weekdays: [0,1,2,3,4,5,6], seb_future_months: months};
+  const plan = scanDatePlan(options, now);
+  const end = new Date(now);
+  end.setUTCMonth(end.getUTCMonth() + months);
+  expect(plan.future[0]).toBe('2026-09-24');
+  expect(plan.future.at(-1)).toBe(end.toISOString().slice(0,10));
+  expect(plan.near).toEqual(['2026-09-10']);
+});
+
+it('clamps configurable horizons at month-end and across leap years', () => {
+  expect(scanDateBounds(new Date('2026-01-31T12:00:00Z'), 1).futureEnd).toBe('2026-02-28');
+  expect(scanDateBounds(new Date('2028-01-31T12:00:00Z'), 1).futureEnd).toBe('2028-02-29');
+  expect(scanDateBounds(new Date('2028-02-29T12:00:00Z'), 12).futureEnd).toBe('2029-02-28');
+});

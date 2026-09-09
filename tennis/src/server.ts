@@ -1,3 +1,4 @@
+import { scanDatePlan } from './utils/scan-dates.js';
 import Fastify from 'fastify';
 import fastifyStatic from '@fastify/static';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -46,7 +47,7 @@ function findAsset(dir: string, base: string, ext: string): string {
   return match || `${base}.${ext}`;
 }
 
-export function createServer(options: { getCartStatus?: () => unknown; port: number; getOptions: () => AddonOptions; onConfigChange: (opts: AddonOptions) => void; onResumeProviders: () => void; fetchBookings: () => Promise<{ bookings: any[]; errors: string[] }> }) {
+export function createServer(options: { getScanStatus?: () => unknown; testNotification?: () => Promise<void>; getCartStatus?: () => unknown; port: number; getOptions: () => AddonOptions; onConfigChange: (opts: AddonOptions) => void; onResumeProviders: () => void; fetchBookings: () => Promise<{ bookings: any[]; errors: string[] }> }) {
   const app = Fastify({ logger: true });
   const appDir = resolve(process.env.APP_DIR || '/app');
   const publicDir = join(appDir, 'public');
@@ -87,8 +88,13 @@ export function createServer(options: { getCartStatus?: () => unknown; port: num
   // API: return current status
   app.get('/api/status', async () => {
     const opts = options.getOptions();
+    const dates = scanDatePlan(opts);
+    const sebActive = opts.seb_enabled && !!opts.seb_session_token && opts.seb_places.length > 0;
+    const btActive = opts.baltic_tennis_enabled && !!opts.baltic_tennis_username && !!opts.baltic_tennis_password;
     return {
-      running: true,
+      running: (dates.near.length > 0 && (sebActive || btActive)) || (sebActive && dates.future.length > 0),
+      scanDates: dates,
+      scanStatus: options.getScanStatus?.(),
       lastPoll: globalState.lastPollTime,
       futureScan: globalState.futureScan,
       totalSlots: globalState.latestResults.length,
@@ -99,6 +105,16 @@ export function createServer(options: { getCartStatus?: () => unknown; port: num
       cart: options.getCartStatus?.(),
       availableSlots: matchingSlots(globalState.latestResults, opts),
     };
+  });
+
+  app.post('/api/notifications/test', async (_request, reply) => {
+    if (!options.testNotification) return reply.code(503).send({error: 'Notification testing unavailable.'});
+    try {
+      await options.testNotification();
+      return {success: true};
+    } catch (error) {
+      return reply.code(502).send({error: error instanceof Error ? error.message : 'Notification delivery failed.'});
+    }
   });
 
   // API: get config

@@ -45,7 +45,6 @@ interface TimeSlot {
 
 interface Config {
   poll_interval_seconds: number;
-  night_poll_interval_seconds: number;
   scan_dates: string[];
   seb_future_weekdays: number[];
   seb_future_interval_hours: number;
@@ -267,11 +266,14 @@ function CourtsPanel({ status, onSettings }: { status: any; onSettings: () => vo
         </Alert>
       ))}
       {!status ? <Center py={48}><Stack align="center"><Loader size="sm" /><Text c="dimmed">Loading your radar…</Text></Stack></Center>
+        : status.scanDates && !status.scanDates.near.length && !status.scanDates.future.length ? <Paper p="xl" withBorder ta="center"><Text fw={600}>No scan dates selected</Text><Text c="dimmed" size="sm">Select dates in Settings and save to start scanning.</Text><Button mt="md" onClick={onSettings}>Choose dates</Button></Paper>
         : !status.lastPoll && slots.length === 0 ? <Paper p="xl" withBorder ta="center"><Text fw={600}>Waiting for the first scan</Text><Text c="dimmed" size="sm">Results will appear automatically when the scan finishes.</Text></Paper>
         : slots.length > 0 && visible.length === 0 ? <Paper p="xl" withBorder ta="center"><Text fw={600}>No slots match these filters</Text><Button mt="md" variant="light" onClick={() => { setProvider('All venues'); setDate(null); }}>Clear filters</Button></Paper>
         : <SlotTable slots={visible} hasErrors={status?.providerErrors?.length > 0} />}
       {status?.lastPoll && slots.length === 0 && <Center><Button variant="light" onClick={onSettings}>Adjust dates or times</Button></Center>}
       <details className="scan-details"><summary>Scan details & booking setup</summary>
+        <Text size="sm" mt="sm">Selected near-term dates: {status?.scanDates?.near?.join(', ') || 'none — scanning off'}.</Text>
+        {status?.scanStatus?.near && <Text size="sm">Near-term scanner: {status.scanStatus.near.inProgress ? 'checking now' : status.scanStatus.near.running ? 'scheduled' : 'stopped'}{status.scanStatus.near.nextPoll ? `; next check ${new Date(status.scanStatus.near.nextPoll).toLocaleTimeString()}` : ''}.</Text>}
         <Text size="sm" c="dimmed" mt="sm">Cart notifications: {status?.cart?.connected ? 'connected to Home Assistant' : 'Home Assistant connection unavailable'}.</Text>
         <Text size="sm" mt="sm">Touch and hold a phone court alert, then choose Book &amp; pay to complete one booking with SEB account credit, up to €100. No extension or Shortcut is needed. View the confirmed booking in Chrome or Safari while signed into SEB.</Text>
       {status?.futureScan && <Text size="xs" c="dimmed" mt="sm">Future SEB: {status.futureScan.datesChecked} dates, every {status.futureScan.intervalHours} hours. Last scan: {new Date(status.futureScan.lastScan).toLocaleString()}. Next: {new Date(status.futureScan.nextScan).toLocaleString()}.</Text>}
@@ -447,6 +449,8 @@ function SettingsPanel({ onSaved }: { onSaved: () => void }) {
   const [saved, setSaved] = useState<Config | null>(null);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [testingPush, setTestingPush] = useState(false);
+  const [pushResult, setPushResult] = useState<{ok: boolean; message: string} | null>(null);
   const [saveResult, setSaveResult] = useState<'ok' | 'error' | null>(null);
   const dirty = JSON.stringify(config) !== JSON.stringify(saved);
   const load = useCallback(async () => {
@@ -636,7 +640,6 @@ function SettingsPanel({ onSaved }: { onSaved: () => void }) {
               }
               size="sm"
             />
-            <NumberInput label="Night checks (seconds)" description="23:00–08:00, server local time" min={10} max={86400} value={config.night_poll_interval_seconds} onChange={v => update('night_poll_interval_seconds', typeof v === 'number' ? v : config.night_poll_interval_seconds)} />
             <TextInput
               label="Mobile notification device"
               placeholder="e.g. iphone"
@@ -646,6 +649,18 @@ function SettingsPanel({ onSaved }: { onSaved: () => void }) {
               size="sm"
             />
         </SimpleGrid>
+        <Button mt="md" variant="light" loading={testingPush} disabled={dirty || !config.notify_device.trim()} onClick={async () => {
+          setTestingPush(true); setPushResult(null);
+          try {
+            const response = await fetch(`${BASE}/api/notifications/test`, {method: 'POST'});
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'Notification delivery failed');
+            setPushResult({ok: true, message: 'Home Assistant accepted the test push. Check your phone.'});
+          } catch (error) { setPushResult({ok: false, message: error instanceof Error ? error.message : 'Notification test failed'}); }
+          finally { setTestingPush(false); }
+        }}>Send test notification</Button>
+        <Text size="xs" c="dimmed" mt="xs">Save your device first, then test delivery without waiting for an available court.</Text>
+        {pushResult && <Alert mt="sm" color={pushResult.ok ? 'green' : 'red'}>{pushResult.message}</Alert>}
         <details className="scan-details"><summary>Advanced options</summary><Switch mt="md" label="Debug logging" description="Include detailed diagnostics in add-on logs." checked={config.debug} onChange={e => update('debug', e.currentTarget.checked)} /></details>
       </Card>
       </fieldset>

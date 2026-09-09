@@ -14,3 +14,36 @@ it('continues polling after 10 unexpected failures and recovers', async () => {
   expect(poll).toHaveBeenCalledTimes(before + 1);
   await manager.stop();
 });
+it('runs immediately on request and replaces the pending timer', async () => {
+  vi.useFakeTimers();
+  const poll = vi.fn().mockResolvedValue(undefined);
+  const manager = new PollingManager(poll, {intervalMs: 900_000});
+  manager.start();
+  await vi.advanceTimersByTimeAsync(1000);
+  manager.requestPoll();
+  await vi.advanceTimersByTimeAsync(0);
+  expect(poll).toHaveBeenCalledTimes(2);
+  expect(manager.getStatus().nextPoll).not.toBeNull();
+  await vi.advanceTimersByTimeAsync(899_000);
+  expect(poll).toHaveBeenCalledTimes(2);
+  await vi.advanceTimersByTimeAsync(1000);
+  expect(poll).toHaveBeenCalledTimes(3);
+  await manager.stop();
+});
+it('queues one fresh scan after settings change during a scan without overlap', async () => {
+  vi.useFakeTimers();
+  let release!: () => void;
+  const poll = vi.fn().mockImplementationOnce(() => new Promise<void>(resolve => { release = resolve; })).mockResolvedValue(undefined);
+  const manager = new PollingManager(poll, {intervalMs: 30_000});
+  manager.start();
+  manager.requestPoll(); manager.requestPoll();
+  expect(poll).toHaveBeenCalledTimes(1);
+  expect(manager.getStatus().inProgress).toBe(true);
+  release();
+  await vi.advanceTimersByTimeAsync(0);
+  expect(poll).toHaveBeenCalledTimes(2);
+  await manager.stop();
+  await vi.advanceTimersByTimeAsync(60_000);
+  expect(poll).toHaveBeenCalledTimes(2);
+  expect(manager.getStatus()).toEqual({running: false, inProgress: false, nextPoll: null});
+});

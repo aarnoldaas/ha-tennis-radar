@@ -1,9 +1,9 @@
+import { scanDatePlan } from './scan-dates.js';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { normalizeSebPlaces } from '../providers/seb-places.js';
 
 export interface AddonOptions {
   poll_interval_seconds: number;
-  night_poll_interval_seconds: number;
   scan_dates: string[];
   seb_future_weekdays: number[];
   seb_future_interval_hours: number;
@@ -25,7 +25,6 @@ const CONFIG_PATH = `${DATA_DIR}/config.json`;
 
 const DEFAULTS: AddonOptions = {
   poll_interval_seconds: 30,
-  night_poll_interval_seconds: 900,
   scan_dates: [],
   seb_future_weekdays: [],
   seb_future_interval_hours: 2,
@@ -57,6 +56,7 @@ function migrateKeys(obj: Record<string, any>): Record<string, any> {
   }
   result.scan_dates = Array.isArray(result.scan_dates)
     ? [...new Set(result.scan_dates.filter((date: unknown) => typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)))] : [];
+  delete result['night_poll_interval_seconds'];
   delete result['baltic_tennis_session_token'];
   if ('teniso_pasaulis_places' in result && !('seb_places' in result)) {
     result['seb_places'] = result['teniso_pasaulis_places'];
@@ -104,6 +104,10 @@ export interface ConfigWarning {
 export function validateConfig(opts: AddonOptions): ConfigWarning[] {
   const warnings: ConfigWarning[] = [];
 
+  if (!scanDatePlan(opts).near.length) {
+    warnings.push({field: 'scan_dates', message: 'Near-term scanning is off: select dates in the next two weeks in Settings and save. Expired dates are not scanned.'});
+  }
+
   if (!opts.notify_device.trim()) {
     warnings.push({ field: 'notify_device', message: 'No mobile notification device configured — alerts appear only in the Home Assistant notification panel' });
   }
@@ -146,11 +150,6 @@ export function saveOptions(options: AddonOptions): void {
   writeFileSync(CONFIG_PATH, JSON.stringify(migrateKeys(options), null, 2));
 }
 
-export function isNightHours(): boolean {
-  const hour = new Date().getHours();
-  return hour >= 23 || hour < 8;
-}
-
 export function getEffectiveIntervalMs(opts: AddonOptions): number {
-  return (isNightHours() ? opts.night_poll_interval_seconds : opts.poll_interval_seconds) * 1000;
+  return opts.poll_interval_seconds * 1000;
 }

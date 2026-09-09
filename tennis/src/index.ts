@@ -174,9 +174,9 @@ function onConfigChange(newOptions: AddonOptions) {
   globalState.disabledProviders = [];
   notifiedErrors.clear();
   poller.updateInterval(getEffectiveIntervalMs(options));
-  poller.start();
-  // Stop waits for an in-flight scan before restarting with the new date plan.
-  void futurePoller.stop().then(() => {futurePoller.updateInterval(futureIntervalMs());futurePoller.start();});
+  poller.requestPoll();
+  futurePoller.updateInterval(futureIntervalMs());
+  futurePoller.requestPoll();
   startBookingTimers();
   void refetchBookingsAndTick();
 }
@@ -187,11 +187,18 @@ function onResumeProviders() {
   globalState.providerErrors = [];
   globalState.disabledProviders = [];
   notifiedErrors.clear();
+  poller.requestPoll();
+  futurePoller.requestPoll();
   console.log('[TennisRadar] All providers resumed via UI');
 }
 
 createServer({
   port: 8099,
+  getScanStatus: () => ({near: poller.getStatus(), future: futurePoller.getStatus()}),
+  testNotification: async () => {
+    if (!options.notify_device.trim()) throw new Error('Save a mobile notification device first.');
+    await notifier.sendMobilePush(options.notify_device, 'Tennis Radar test', 'Phone notifications are working. Court alerts are sent when selected dates have matching availability.');
+  },
   getOptions: () => options,
   onConfigChange,
   onResumeProviders,

@@ -8,14 +8,17 @@ it('persists selected dates without an automatic scan fallback and preserves fut
   vi.stubEnv('DATA_DIR',dir);
   vi.resetModules();
   try {
-    writeFileSync(join(dir,'config.json'),JSON.stringify({scan_dates:['2027-02-10'],seb_future_weekdays:[1,5],seb_future_interval_hours:2}));
-    const {loadOptions,saveOptions,validateConfig} = await import('../src/utils/config.js');
+    writeFileSync(join(dir,'config.json'),JSON.stringify({scan_dates:['2027-02-10'],night_poll_interval_seconds:900,seb_future_weekdays:[1,5],seb_future_interval_hours:2}));
+    const {loadOptions,saveOptions,validateConfig,getEffectiveIntervalMs} = await import('../src/utils/config.js');
     const options = loadOptions();
+    expect(options).not.toHaveProperty('night_poll_interval_seconds');
+    expect(getEffectiveIntervalMs(options)).toBe(options.poll_interval_seconds * 1000);
     expect(options.scan_dates).toEqual(['2027-02-10']);
     expect(options.seb_future_weekdays).toEqual([1,5]);
     expect(scanDatePlan(options,new Date('2026-09-09T12:00:00Z')).near).toEqual([]);
     saveOptions({...options,...{scan_dates:['2027-02-10']}});
     expect(JSON.parse(readFileSync(join(dir,'config.json'),'utf8')).scan_dates).toEqual(['2027-02-10']);
     expect(validateConfig(options).some(w => w.field === 'notify_device')).toBe(true);
+    expect(validateConfig({...options,scan_dates:[]}).some(w => w.field === 'scan_dates')).toBe(true);
   } finally {vi.unstubAllEnvs(); vi.resetModules(); rmSync(dir,{recursive:true,force:true});}
 });

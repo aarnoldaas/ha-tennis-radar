@@ -10,6 +10,8 @@ export class PollingManager {
   private config: RequiredPollingConfig;
   private timeoutId: ReturnType<typeof setTimeout> | null = null;
   private running = false;
+  private immediateRequested = false;
+  private nextPollAt: string | null = null;
   private pollInProgress = false;
   private consecutiveFailures = 0;
   private currentIntervalMs: number;
@@ -35,8 +37,23 @@ export class PollingManager {
     this.executePoll();
   }
 
+  getStatus() {
+    return {running: this.running, inProgress: this.pollInProgress, nextPoll: this.nextPollAt};
+  }
+
+  requestPoll(): void {
+    if (!this.running) { this.start(); return; }
+    if (this.timeoutId) clearTimeout(this.timeoutId);
+    this.timeoutId = null;
+    this.nextPollAt = null;
+    if (this.pollInProgress) { this.immediateRequested = true; return; }
+    void this.executePoll();
+  }
+
   async stop(): Promise<void> {
     this.running = false;
+    this.immediateRequested = false;
+    this.nextPollAt = null;
     if (this.timeoutId) clearTimeout(this.timeoutId);
     while (this.pollInProgress) {
       await new Promise(r => setTimeout(r, 100));
@@ -55,6 +72,8 @@ export class PollingManager {
 
   private async executePoll(): Promise<void> {
     if (!this.running || this.pollInProgress) return;
+    this.timeoutId = null;
+    this.nextPollAt = null;
     this.pollInProgress = true;
 
     try {
@@ -77,11 +96,17 @@ export class PollingManager {
       this.pollInProgress = false;
     }
 
-    this.scheduleNext();
+    if (this.running && this.immediateRequested) {
+      this.immediateRequested = false;
+      void this.executePoll();
+    } else {
+      this.scheduleNext();
+    }
   }
 
   private scheduleNext(): void {
     if (!this.running) return;
+    this.nextPollAt = new Date(Date.now() + this.currentIntervalMs).toISOString();
     this.timeoutId = setTimeout(() => this.executePoll(), this.currentIntervalMs);
   }
 }

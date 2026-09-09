@@ -21,6 +21,8 @@ import {
   Alert,
   Loader,
   UnstyledButton,
+  Select,
+  SegmentedControl,
 } from '@mantine/core';
 import '@mantine/core/styles.css';
 import './custom.css';
@@ -43,6 +45,7 @@ interface TimeSlot {
 
 interface Config {
   poll_interval_seconds: number;
+  night_poll_interval_seconds: number;
   scan_dates: string[];
   preferred_start_time: string;
   preferred_end_time: string;
@@ -79,6 +82,7 @@ async function fetchStatus() {
 
 async function fetchConfig(): Promise<Config> {
   const res = await fetch(`${BASE}/api/config`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
 
@@ -89,7 +93,8 @@ async function saveConfig(config: Config): Promise<boolean> {
     body: JSON.stringify(config),
   });
   const result = await res.json();
-  return result.success;
+  if (!res.ok || !result.success) throw new Error(`Request failed (${res.status})`);
+  return true;
 }
 
 async function fetchBookings() {
@@ -101,7 +106,8 @@ async function fetchBookings() {
 async function resumeProviders(): Promise<boolean> {
   const res = await fetch(`${BASE}/api/resume`, { method: 'POST' });
   const result = await res.json();
-  return result.success;
+  if (!res.ok || !result.success) throw new Error(`Request failed (${res.status})`);
+  return true;
 }
 
 // ════════════════════════════════════════════════════════════
@@ -134,8 +140,8 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Tennis Radar',
     icon: '🎾',
     items: [
-      { page: 'tennis-courts', label: 'Courts', icon: '🏓' },
-      { page: 'tennis-bookings', label: 'Bookings', icon: '📋' },
+      { page: 'tennis-courts', label: 'Find a court', icon: '◉' },
+      { page: 'tennis-bookings', label: 'My bookings', icon: '▤' },
     ],
   },
   {
@@ -165,7 +171,7 @@ function DatePicker({ selected, onChange }: { selected: string[]; onChange: (dat
   for (let i = 1; i <= 14; i++) {
     const d = new Date(now);
     d.setDate(d.getDate() + i);
-    dateSet.add(d.toISOString().slice(0, 10));
+    dateSet.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
   }
   // Always include currently-selected dates, even if they fall outside the
   // default 14-day window (e.g. dates further out, or past dates that haven't
@@ -198,10 +204,16 @@ function DatePicker({ selected, onChange }: { selected: string[]; onChange: (dat
 
   return (
     <div>
+      <Group justify="space-between" mb="sm">
+        <Text size="sm" c="dimmed">Choose individual days, or let your search roll forward.</Text>
+        <Button variant="light" size="xs" onClick={() => onChange([])}>Use next 7 days</Button>
+      </Group>
       <div className="date-picker-grid">
         {days.map(d => (
           <UnstyledButton
             key={d.date}
+            aria-pressed={selected.includes(d.date)}
+            aria-label={formatDate(d.date)}
             className={`date-chip ${selected.includes(d.date) ? 'date-chip-selected' : ''} ${isWeekend(d.date) ? 'date-chip-weekend' : ''}`}
             onClick={() => toggle(d.date)}
           >
@@ -249,7 +261,7 @@ function SlotTable({ slots, hasErrors = false }: { slots: TimeSlot[]; hasErrors?
       <Group gap="xs" align="baseline">
         <Text size="2rem" fw={700} className="lh-mono" style={{ color: 'var(--lh-accent)' }} lh={1}>{slots.length}</Text>
         <Text size="sm" c="dimmed" fw={500}>
-          court{slots.length !== 1 ? 's' : ''} available
+          matching time slot{slots.length !== 1 ? 's' : ''}
         </Text>
       </Group>
       {Object.entries(byDate).sort().map(([date, dateSlots]) => (
@@ -282,7 +294,7 @@ function SlotTable({ slots, hasErrors = false }: { slots: TimeSlot[]; hasErrors?
                       {s.courtName}
                     </Text>
                     <Badge size="xs" variant="dot" color="yellow">
-                      {s.provider}
+                      {s.provider === 'BT' ? 'Baltic Tennis' : 'SEB Arena'}
                     </Badge>
                   </Group>
                 </Paper>
@@ -294,10 +306,27 @@ function SlotTable({ slots, hasErrors = false }: { slots: TimeSlot[]; hasErrors?
   );
 }
 
-function CourtsPanel({ status }: { status: any }) {
+function CourtsPanel({ status, onSettings }: { status: any; onSettings: () => void }) {
+  const [provider, setProvider] = useState('All venues');
+  const [date, setDate] = useState<string | null>(null);
+  const slots: TimeSlot[] = status?.availableSlots ?? [];
+  const dates = [...new Set(slots.map(slot => slot.date))].sort();
+  const visible = slots.filter(slot => (provider === 'All venues' || slot.provider === provider) && (!date || slot.date === date));
   return (
     <>
-      <Text size="xs" c="dimmed" mb="md">SEB cart notifications: {status?.cart?.connected ? 'connected' : 'Home Assistant connection unavailable'}. <a href={`${BASE}/seb-cart-handoff.user.js`} target="_blank" rel="noreferrer">Safari cart handoff script</a></Text>
+      <Paper className="search-hero" p="xl" radius="lg" mb="xl" withBorder>
+        <div className="court-art" aria-hidden="true"><i /><b /></div>
+        <div className="hero-copy">
+          <Text className="eyebrow">YOUR NEXT SESSION</Text>
+          <Title order={2}>More tennis.<br />Less checking.</Title>
+          <Text c="dimmed" size="sm" mt="sm" maw={360}>Your radar keeps looking for courts that fit your schedule. Find your next time on court below.</Text>
+          <Button variant="light" mt="lg" onClick={onSettings}>Edit search preferences ↗</Button>
+        </div>
+      </Paper>
+      <Group justify="space-between" mb="lg" className="results-toolbar">
+        <SegmentedControl aria-label="Filter by venue" value={provider} onChange={setProvider} data={[{ value: 'All venues', label: 'All venues' }, { value: 'SEB', label: 'SEB Arena' }, { value: 'BT', label: 'Baltic Tennis' }]} />
+        <Select aria-label="Filter by date" placeholder="All dates" clearable value={date} onChange={setDate} data={dates.map(value => ({ value, label: formatDate(value) }))} />
+      </Group>
       {status?.cart?.actions?.map((action: any) => (
         <Alert key={action.id} mb="md" title={action.state === 'added' ? 'SEB court added to cart' : action.state === 'processing' ? 'Adding SEB court…' : 'SEB cart needs attention'} color={action.state === 'added' ? 'green' : 'yellow'}>
           <Text size="sm">{action.message || 'Checking current availability…'}</Text>
@@ -306,11 +335,18 @@ function CourtsPanel({ status }: { status: any }) {
           <Text size="xs" c="dimmed" mt="xs">On iPhone, open in Safari with the Tennis Radar userscript enabled. It saves the cart in SEB’s local storage. Checkout remains on SEB.</Text>
         </Alert>
       ))}
-      <SlotTable slots={status?.availableSlots ?? []} hasErrors={status?.providerErrors?.length > 0} />
+      {!status ? <Center py={48}><Stack align="center"><Loader size="sm" /><Text c="dimmed">Loading your radar…</Text></Stack></Center>
+        : !status.lastPoll && slots.length === 0 ? <Paper p="xl" withBorder ta="center"><Text fw={600}>Waiting for the first scan</Text><Text c="dimmed" size="sm">Results will appear automatically when the scan finishes.</Text></Paper>
+        : slots.length > 0 && visible.length === 0 ? <Paper p="xl" withBorder ta="center"><Text fw={600}>No slots match these filters</Text><Button mt="md" variant="light" onClick={() => { setProvider('All venues'); setDate(null); }}>Clear filters</Button></Paper>
+        : <SlotTable slots={visible} hasErrors={status?.providerErrors?.length > 0} />}
+      {status?.lastPoll && slots.length === 0 && <Center><Button variant="light" onClick={onSettings}>Adjust dates or times</Button></Center>}
+      <details className="scan-details"><summary>Scan details & Safari setup</summary>
+        <Text size="sm" c="dimmed" mt="sm">Cart notifications: {status?.cart?.connected ? 'connected to Home Assistant' : 'Home Assistant connection unavailable'}.</Text>
+        <a href={`${BASE}/seb-cart-handoff.user.js`} target="_blank" rel="noreferrer">Install Safari cart handoff script ↗</a>
       {status?.lastPoll && (
         <Group gap={4} mt="md" wrap="wrap">
           <Text size="xs" c="dimmed">
-            Last poll: {new Date(status.lastPoll).toLocaleTimeString()}
+            Last checked: {new Date(status.lastPoll).toLocaleTimeString()}
           </Text>
           {status.pollStats && (
             <>
@@ -339,6 +375,7 @@ function CourtsPanel({ status }: { status: any }) {
           )}
         </Group>
       )}
+      </details>
     </>
   );
 }
@@ -385,8 +422,8 @@ function BookingsPanel() {
         <Center py={48}>
           <Stack align="center" gap="xs">
             <Text size="2.5rem" opacity={0.7}>&#128203;</Text>
-            <Text fw={600} size="md">No bookings</Text>
-            <Text size="sm" c="dimmed">No upcoming court bookings found.</Text>
+            <Text fw={600} size="md">{errors.length ? 'Bookings could not be fully checked' : 'Your next session starts here'}</Text>
+            <Text size="sm" c="dimmed">{errors.length ? 'Try refreshing to check your bookings again.' : 'Your upcoming bookings will appear here once you book with a connected venue.'}</Text>
           </Stack>
         </Center>
       ) : (
@@ -442,7 +479,7 @@ function BookingsPanel() {
                             {b.courtName}
                           </Text>
                           <Badge size="xs" variant="dot" color="yellow">
-                            {b.provider}
+                            {b.provider === 'BT' ? 'Baltic Tennis' : 'SEB Arena'}
                           </Badge>
                         </Group>
                         {(b.price || b.status) && (
@@ -473,46 +510,45 @@ function BookingsPanel() {
   );
 }
 
-function SettingsPanel() {
+function SettingsPanel({ onSaved }: { onSaved: () => void }) {
   const [config, setConfig] = useState<Config | null>(null);
+  const [saved, setSaved] = useState<Config | null>(null);
   const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [saveResult, setSaveResult] = useState<'ok' | 'error' | null>(null);
-
-  useEffect(() => {
-    fetchConfig().then(setConfig).catch(console.error);
+  const dirty = JSON.stringify(config) !== JSON.stringify(saved);
+  const load = useCallback(async () => {
+    setLoadError(false);
+    try { const value = await fetchConfig(); setConfig(value); setSaved(value); }
+    catch { setLoadError(true); }
   }, []);
-
+  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    const warn = (event: BeforeUnloadEvent) => { if (dirty) { event.preventDefault(); event.returnValue = ''; } };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [dirty]);
   const update = useCallback((key: keyof Config, value: any) => {
+    setSaveResult(null);
     setConfig(prev => (prev ? { ...prev, [key]: value } : prev));
   }, []);
-
+  const invalidTime = !!config && (!config.preferred_start_time || !config.preferred_end_time || config.preferred_start_time >= config.preferred_end_time);
   const handleSave = async () => {
-    if (!config) return;
+    if (!config || invalidTime) return;
     setSaving(true);
     setSaveResult(null);
-    try {
-      const ok = await saveConfig(config);
-      setSaveResult(ok ? 'ok' : 'error');
-    } catch {
-      setSaveResult('error');
-    }
+    try { await saveConfig(config); setSaved(config); setSaveResult('ok'); onSaved(); }
+    catch { setSaveResult('error'); }
     setSaving(false);
-    setTimeout(() => setSaveResult(null), 3000);
   };
-
-  if (!config) {
-    return (
-      <Center py="xl">
-        <Loader size="sm" />
-      </Center>
-    );
-  }
-
+  if (loadError) return <Alert color="red" title="Settings could not be loaded"><Button variant="light" color="red" onClick={load} mt="sm">Try again</Button></Alert>;
+  if (!config) return <Center py="xl"><Loader size="sm" /></Center>;
   return (
-    <Stack gap="md">
+    <Stack gap="lg" className="settings-form">
+      <fieldset disabled={saving} className="settings-fields">
       <Card withBorder radius="md" className="lh-card-accent">
         <Card.Section withBorder inheritPadding py="xs">
-          <Text fw={600} size="sm">Dates to Scan</Text>
+          <Text fw={600} size="sm">01 / When do you want to play?</Text>
         </Card.Section>
         <Card.Section inheritPadding py="md">
           <DatePicker
@@ -524,36 +560,27 @@ function SettingsPanel() {
 
       <Card withBorder radius="md">
         <Card.Section withBorder inheritPadding py="xs">
-          <Text fw={600} size="sm">General</Text>
+          <Text fw={600} size="sm">02 / Your playing preferences</Text>
         </Card.Section>
         <Card.Section inheritPadding py="md">
           <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
-            <NumberInput
-              label="Poll Interval (seconds)"
-              min={10}
-              max={3600}
-              value={config.poll_interval_seconds}
-              onChange={v =>
-                update('poll_interval_seconds', typeof v === 'number' ? v : config.poll_interval_seconds)
-              }
-              size="sm"
-            />
             <TextInput
-              label="Preferred Start Time"
+              label="Earliest start"
               type="time"
               value={config.preferred_start_time}
               onChange={e => update('preferred_start_time', e.currentTarget.value)}
               size="sm"
             />
             <TextInput
-              label="Preferred End Time"
+              label="Latest finish"
               type="time"
+              error={invalidTime ? "Choose a finish time after the start." : undefined}
               value={config.preferred_end_time}
               onChange={e => update('preferred_end_time', e.currentTarget.value)}
               size="sm"
             />
             <NumberInput
-              label="Min Duration (minutes)"
+              label="Minimum session (minutes)"
               min={30}
               max={180}
               step={30}
@@ -566,13 +593,6 @@ function SettingsPanel() {
               }
               size="sm"
             />
-            <TextInput
-              label="Notify Device"
-              placeholder="e.g. iphone"
-              value={config.notify_device}
-              onChange={e => update('notify_device', e.currentTarget.value)}
-              size="sm"
-            />
           </SimpleGrid>
         </Card.Section>
       </Card>
@@ -582,6 +602,7 @@ function SettingsPanel() {
           <Group justify="space-between" wrap="nowrap">
             <Text fw={600} size="sm">SEB Arena</Text>
             <Switch
+              aria-label="Scan SEB Arena"
               checked={config.seb_enabled}
               onChange={e => update('seb_enabled', e.currentTarget.checked)}
               size="sm"
@@ -591,8 +612,8 @@ function SettingsPanel() {
         {config.seb_enabled && (
           <Card.Section inheritPadding py="md">
             <Stack gap="sm">
-              <TextInput
-                label="Session Token"
+              <PasswordInput
+                label="Session token"
                 value={config.seb_session_token}
                 onChange={e => update('seb_session_token', e.currentTarget.value)}
                 autoComplete="off"
@@ -605,10 +626,7 @@ function SettingsPanel() {
                   <Checkbox
                     key={place.id}
                     label={
-                      <Group gap={6} wrap="nowrap">
-                        <Text size="sm">{place.label}</Text>
-                        <Text size="xs" c="dimmed">({place.description})</Text>
-                      </Group>
+                      <div><Text size="sm">{place.label}</Text><Text size="xs" c="dimmed">{place.description}</Text></div>
                     }
                     checked={config.seb_places.includes(place.id)}
                     onChange={e => {
@@ -631,6 +649,7 @@ function SettingsPanel() {
           <Group justify="space-between" wrap="nowrap">
             <Text fw={600} size="sm">Baltic Tennis</Text>
             <Switch
+              aria-label="Scan Baltic Tennis"
               checked={config.baltic_tennis_enabled}
               onChange={e => update('baltic_tennis_enabled', e.currentTarget.checked)}
               size="sm"
@@ -661,33 +680,40 @@ function SettingsPanel() {
       </Card>
 
       <Card withBorder radius="md">
-        <Card.Section withBorder inheritPadding py="xs">
-          <Group justify="space-between" wrap="nowrap">
-            <Text fw={600} size="sm">Advanced</Text>
-            <Switch
-              label="Debug Mode"
-              checked={config.debug}
-              onChange={e => update('debug', e.currentTarget.checked)}
+        <Text fw={600} mb="md">Notifications & scanning</Text>
+        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
+            <NumberInput
+              label="Check every (seconds)"
+              min={10}
+              max={3600}
+              value={config.poll_interval_seconds}
+              onChange={v =>
+                update('poll_interval_seconds', typeof v === 'number' ? v : config.poll_interval_seconds)
+              }
               size="sm"
             />
-          </Group>
-        </Card.Section>
+            <NumberInput label="Night checks (seconds)" description="23:00–08:00, server local time" min={10} max={86400} value={config.night_poll_interval_seconds} onChange={v => update('night_poll_interval_seconds', typeof v === 'number' ? v : config.night_poll_interval_seconds)} />
+            <TextInput
+              label="Mobile notification device"
+              placeholder="e.g. iphone"
+              description="Device suffix from your Home Assistant mobile_app notification service. Leave blank for HA notifications only."
+              value={config.notify_device}
+              onChange={e => update('notify_device', e.currentTarget.value)}
+              size="sm"
+            />
+        </SimpleGrid>
+        <details className="scan-details"><summary>Advanced options</summary><Switch mt="md" label="Debug logging" description="Include detailed diagnostics in add-on logs." checked={config.debug} onChange={e => update('debug', e.currentTarget.checked)} /></details>
       </Card>
-
-      <Group gap="md" className="save-bar">
-        <Button onClick={handleSave} loading={saving} size="sm">
-          Save Settings
-        </Button>
-        {saveResult === 'ok' && (
-          <Text size="sm" c="green">
-            Settings saved! Changes applied.
-          </Text>
-        )}
-        {saveResult === 'error' && (
-          <Text size="sm" c="red">
-            Failed to save settings.
-          </Text>
-        )}
+      </fieldset>
+      <Group justify="space-between" className="save-bar">
+        <div role="status" aria-live="polite">
+          <Text size="sm" fw={600}>{saveResult === 'ok' ? 'Preferences saved' : dirty ? 'You have unsaved changes' : 'Your preferences are up to date'}</Text>
+          <Text size="xs" c={saveResult === 'error' ? 'red' : 'dimmed'}>{saveResult === 'error' ? 'Could not save. Your edits are still here. Try again.' : 'Saved changes apply to the radar immediately.'}</Text>
+        </div>
+        <Group gap="xs">
+          {dirty && <Button variant="default" disabled={saving} onClick={() => { setConfig(saved); setSaveResult(null); }}>Discard</Button>}
+          <Button onClick={handleSave} loading={saving} disabled={!dirty || invalidTime}>Save preferences</Button>
+        </Group>
       </Group>
     </Stack>
   );
@@ -701,7 +727,7 @@ function Sidebar({ activePage, onNavigate, statusBadge }: {
   return (
     <nav className="lh-sidebar">
       <div className="lh-sidebar-brand">
-        <h3>Tennis Radar</h3>
+        <span className="brand-mark" aria-hidden="true">◉</span><h3>Tennis Radar</h3><Text size="xs" c="dimmed" mt={6}>Make time for your game.</Text>
       </div>
 
       {NAV_GROUPS.map(group => (
@@ -715,6 +741,7 @@ function Sidebar({ activePage, onNavigate, statusBadge }: {
           {group.items.map(item => (
             <button
               key={item.page}
+              aria-current={activePage === item.page ? 'page' : undefined}
               className={`lh-nav-item ${activePage === item.page ? 'lh-nav-item-active' : ''}`}
               onClick={() => onNavigate(item.page)}
             >
@@ -733,8 +760,8 @@ function BottomTabs({ activePage, onNavigate }: {
   onNavigate: (page: NavPage) => void;
 }) {
   const tabs: { icon: string; label: string; defaultPage: NavPage }[] = [
-    { icon: '🏓', label: 'Courts', defaultPage: 'tennis-courts' },
-    { icon: '📋', label: 'Bookings', defaultPage: 'tennis-bookings' },
+    { icon: '◉', label: 'Courts', defaultPage: 'tennis-courts' },
+    { icon: '▤', label: 'Bookings', defaultPage: 'tennis-bookings' },
     { icon: '⚙', label: 'Settings', defaultPage: 'settings' },
   ];
 
@@ -744,6 +771,7 @@ function BottomTabs({ activePage, onNavigate }: {
         {tabs.map(tab => (
           <button
             key={tab.defaultPage}
+            aria-current={activePage === tab.defaultPage ? 'page' : undefined}
             className={`lh-bottom-tab ${activePage === tab.defaultPage ? 'lh-bottom-tab-active' : ''}`}
             onClick={() => onNavigate(tab.defaultPage)}
           >
@@ -760,6 +788,7 @@ function App() {
   const [page, setPage] = useState<NavPage>(getInitialPage);
   const [status, setStatus] = useState<any>(null);
   const [error, setError] = useState(false);
+  const [resumeError, setResumeError] = useState(false);
   const [resuming, setResuming] = useState(false);
 
   const refresh = useCallback(async () => {
@@ -789,11 +818,12 @@ function App() {
 
   const handleResume = useCallback(async () => {
     setResuming(true);
+    setResumeError(false);
     try {
       await resumeProviders();
       await refresh();
     } catch {
-      /* ignore */
+      setResumeError(true);
     }
     setResuming(false);
   }, [refresh]);
@@ -856,7 +886,7 @@ function App() {
               onClick={handleResume}
               loading={resuming}
             >
-              Reset Retry Delay
+              Retry connections
             </Button>
           </Alert>
         )}
@@ -865,11 +895,11 @@ function App() {
 
     switch (page) {
       case 'tennis-courts':
-        return <>{tennisWarnings}<CourtsPanel status={status} /></>;
+        return <>{tennisWarnings}<CourtsPanel status={status} onSettings={() => navigate('settings')} /></>;
       case 'tennis-bookings':
         return <>{tennisWarnings}<BookingsPanel /></>;
       case 'settings':
-        return <SettingsPanel />;
+        return null;
       default:
         return null;
     }
@@ -882,12 +912,16 @@ function App() {
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div className="lh-content" key={page}>
+        <main className="lh-content">
           <Group justify="space-between" mb="lg">
-            <Title order={4}>{pageTitle}</Title>
+            <div><Text className="eyebrow">TENNIS RADAR</Text><Title order={1} size="h2">{pageTitle}</Title><Text c="dimmed" size="sm" mt={4}>{page === 'settings' ? 'Set your schedule. Let the radar do the searching.' : page === 'tennis-bookings' ? 'All your upcoming time on court, in one place.' : 'A good game starts with an open court.'}</Text></div>
+            <Badge variant="light" color={error ? 'red' : hasIssues ? 'yellow' : 'teal'} size="lg">{error ? 'Connection lost' : hasIssues ? 'Needs attention' : status ? 'Radar online' : 'Connecting'}</Badge>
           </Group>
+          {error && <Alert color="red" title="Cannot reach your radar" mb="md">{status ? 'Showing the last received results. They may be out of date.' : 'Check your connection. We will keep trying automatically.'}<Button variant="light" color="red" size="xs" ml="sm" onClick={refresh}>Try again</Button></Alert>}
+          {resumeError && <Alert color="red" mb="md">Could not retry connections. Please try again.</Alert>}
           {renderContent()}
-        </div>
+          <div hidden={page !== 'settings'}><SettingsPanel onSaved={refresh} /></div>
+        </main>
       </div>
 
       <BottomTabs activePage={page} onNavigate={navigate} />
@@ -896,7 +930,7 @@ function App() {
 }
 
 const theme = createTheme({
-  primaryColor: 'yellow',
+  primaryColor: 'teal',
   defaultRadius: 'md',
   fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
   headings: {

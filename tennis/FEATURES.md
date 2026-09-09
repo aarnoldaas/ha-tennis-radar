@@ -2,7 +2,7 @@
 
 Home Assistant add-on that scans tennis court availability across multiple booking systems (SEB Arena, Baltic Tennis) and surfaces matching slots via the web UI and Home Assistant notifications.
 
-This addon is fully independent of the `investments/` addon — separate `src/`, `public/`, `data/`, Dockerfile, config, and versioning. They share no code.
+This repository contains only the Tennis Radar add-on.
 
 ## Conventions
 
@@ -56,14 +56,15 @@ This addon is fully independent of the `investments/` addon — separate `src/`,
 
 ## Web UI
 
-Single-page application with persistent sidebar (desktop, 220px) and bottom tab bar (mobile). Warm dark theme, amber/gold accent, DM Sans typography, JetBrains Mono for numeric data.
+Single-page application with persistent sidebar (desktop, 220px) and bottom tab bar (mobile). Forest-green dark theme, lime accents, DM Sans typography, and tabular numeric data. Responsive court illustration and accessible navigation with visible connection status.
 
 Navigation: **Tennis Radar** (Courts, Bookings) + **Settings**.
 
 ### Courts Screen
 - Available slots grouped by date with cards showing court name, time range, duration, provider
-- Summary of total matching courts
-- Poll statistics: last poll time, dates checked, slots found, query duration, per-provider breakdown
+- Summary of matching time slots, with venue and date filters and a clear-filters recovery action
+- Search preferences shortcut; separate loading, first-scan, empty, filtered-empty, and stale connection states
+- Collapsible scan statistics and Safari cart setup details
 
 ### Bookings Screen
 - User's existing bookings from all providers with configured credentials, grouped by date — bookings are returned regardless of whether the provider is enabled for radar polling
@@ -73,10 +74,13 @@ Navigation: **Tennis Radar** (Courts, Bookings) + **Settings**.
 
 ### Settings Screen
 - **Date picker** — select from next 14 days with weekend indicators (accent-bordered card)
-- **General** — poll interval, start/end time, min duration, notify device
+- **Playing preferences** — earliest start, latest finish with inline time validation, minimum session duration
+- **Notifications & scanning** — daytime and nighttime polling intervals, mobile notification device guidance
 - **Provider cards** — SEB Arena and Baltic Tennis with always-visible Enabled toggle in the card header; credential fields shown when enabled
-- **Advanced card** — always-visible Debug mode toggle
-- Save with immediate effect and validation feedback (sticky bottom bar with backdrop blur)
+- **Advanced options** — collapsible debug logging toggle
+- Persistent draft when changing app tabs, discard action, disabled unchanged saves, loading/retry feedback, and reload/close warning for unsaved edits
+- Save bar stays above mobile navigation; inputs are locked while saving
+- Session token is masked; date selection has accessible pressed states and an automatic next-7-days reset
 
 ### Status & Errors
 - Status badge in sidebar: Running / Issues / Error / Loading

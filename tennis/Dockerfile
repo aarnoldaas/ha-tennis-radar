@@ -13,7 +13,12 @@ RUN echo "version=${BUILD_VERSION}"
 COPY package.json build.mjs ./
 COPY src/ ./src/
 COPY public/ ./public/
-RUN npm install && npm run build && rm -rf node_modules src build.mjs package.json
+# Avoid npm Arborist's edgesOut crash while resolving automatic peer dependencies.
+# Runtime peers (React, React DOM and Mantine hooks) are declared in package.json.
+# This build only needs esbuild; test-runner peers are not needed in the image.
+RUN npm install --legacy-peer-deps --no-audit --no-fund \
+    && npm run build \
+    && rm -rf node_modules src build.mjs package.json
 
 COPY rootfs /
 

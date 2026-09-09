@@ -11,6 +11,7 @@ This repository contains only the Tennis Radar add-on.
 - Persistent data storage at `/data` inside the container
 - Supervisor API access for Home Assistant notifications
 - Build pipeline: esbuild bundles backend to `dist/bundle.cjs` and frontend to content-hashed `public/app-[HASH].{js,css}` assets; server discovers the hashed filenames at startup
+- Container dependency installation uses `--legacy-peer-deps` to bypass npm's automatic peer-resolution `edgesOut` crash. Required runtime peers are direct dependencies; test-runner peers are not needed for bundling. Local development installation keeps normal peer resolution.
 
 ## Court Availability Monitoring
 

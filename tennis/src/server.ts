@@ -26,7 +26,7 @@ export interface ProviderError {
 
 export const globalState: {
   lastPollTime: string | null;
-  futureScan: {lastScan: string; nextScan: string; datesChecked: number; intervalHours: number} | null;
+  futureScan: {lastScan: string; nextScan: string; datesChecked: number; skippedDates: string[]; intervalHours: number} | null;
   latestResults: TimeSlot[];
   pollStats: PollStats | null;
   providerErrors: ProviderError[];

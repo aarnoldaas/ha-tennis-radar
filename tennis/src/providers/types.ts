@@ -25,5 +25,5 @@ export interface ICourtProvider {
   readonly name: string;
   readonly key: 'SEB' | 'BT';
   getAvailability(dates: string[]): Promise<TimeSlot[]>;
-  getBookings?(): Promise<Booking[]>;
+  getBookings?(throughDate?: string): Promise<Booking[]>;
 }

@@ -276,7 +276,7 @@ function CourtsPanel({ status, onSettings }: { status: any; onSettings: () => vo
         {status?.scanStatus?.near && <Text size="sm">Near-term scanner: {status.scanStatus.near.inProgress ? 'checking now' : status.scanStatus.near.running ? 'scheduled' : 'stopped'}{status.scanStatus.near.nextPoll ? `; next check ${new Date(status.scanStatus.near.nextPoll).toLocaleTimeString()}` : ''}.</Text>}
         <Text size="sm" c="dimmed" mt="sm">Cart notifications: {status?.cart?.connected ? 'connected to Home Assistant' : 'Home Assistant connection unavailable'}.</Text>
         <Text size="sm" mt="sm">Touch and hold a phone court alert, then choose Book &amp; pay to complete one booking with SEB account credit, up to €100. No extension or Shortcut is needed. View the confirmed booking in Chrome or Safari while signed into SEB.</Text>
-      {status?.futureScan && <Text size="xs" c="dimmed" mt="sm">Future SEB: {status.futureScan.datesChecked} dates, every {status.futureScan.intervalHours} hours. Last scan: {new Date(status.futureScan.lastScan).toLocaleString()}. Next: {new Date(status.futureScan.nextScan).toLocaleString()}.</Text>}
+      {status?.futureScan && <Text size="xs" c="dimmed" mt="sm">Future SEB: {status.futureScan.datesChecked} dates, {status.futureScan.skippedDates?.length ?? 0} booked dates skipped, every {status.futureScan.intervalHours} hours. Last scan: {new Date(status.futureScan.lastScan).toLocaleString()}. Next: {new Date(status.futureScan.nextScan).toLocaleString()}.</Text>}
       {status?.lastPoll && (
         <Group gap={4} mt="md" wrap="wrap">
           <Text size="xs" c="dimmed">

@@ -112,14 +112,14 @@ export class CourtProviderManager {
     console.log(`[ProviderManager] Resumed all providers`);
   }
 
-  async fetchBookings(): Promise<{ bookings: Booking[]; errors: string[] }> {
+  async fetchBookings(throughDate?: string): Promise<{ bookings: Booking[]; errors: string[] }> {
     const allBookings: Booking[] = [];
     const errors: string[] = [];
 
     for (const provider of this.providers) {
       if (!provider.getBookings) continue;
       try {
-        const bookings = await provider.getBookings();
+        const bookings = await provider.getBookings(throughDate);
         allBookings.push(...bookings);
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);

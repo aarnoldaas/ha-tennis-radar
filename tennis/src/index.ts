@@ -1,3 +1,4 @@
+import { checkFutureAvailability } from './future-scan.js';
 import { loadOptions, validateConfig, getEffectiveIntervalMs, type AddonOptions } from './utils/config.js';
 import { createServer, globalState } from './server.js';
 import { PollingManager } from './polling.js';
@@ -121,14 +122,33 @@ async function scan(scope: 'near' | 'future') {
   const revision = configRevision;
   const manager = scope === 'near' ? providerManager : futureProviderManager;
   const plan = scanDatePlan(options);
-  const dates = plan[scope];
+  let dates = plan[scope];
+  let skippedDates: string[] = [];
   const start = Date.now();
-  const result = manager.hasActiveProviders && dates.length ? await manager.checkAll(dates) : {slots:[],errors:[]};
+  let result: CheckResult = {slots:[],errors:[]};
+  if (manager.hasActiveProviders && dates.length) {
+    if (scope === 'future') {
+      try {
+        const checked = await checkFutureAvailability(dates,
+          throughDate => manager.fetchBookings(throughDate),
+          remaining => revision === configRevision ? manager.checkAll(remaining) : Promise.resolve({slots:[],errors:[]}));
+        result = checked.result;
+        dates = checked.dates;
+        skippedDates = checked.skippedDates;
+        console.log(`[TennisRadar] Future scan skipped ${skippedDates.length} booked date(s): ${skippedDates.join(', ') || 'none'}`);
+      } catch (error) {
+        result.errors = [{provider:'Existing bookings',date:dates.join(', '),error:error instanceof Error ? error.message : String(error),time:new Date().toISOString(),nextRetryAt:new Date(Date.now()+futureIntervalMs()).toISOString(),failures:1}];
+        dates = [];
+      }
+    } else {
+      result = await manager.checkAll(dates);
+    }
+  }
   if (revision !== configRevision) return; // Discard results from replaced settings.
   scans[scope] = result;
   const now = new Date().toISOString();
   globalState.lastPollTime = now;
-  if (scope === 'future') globalState.futureScan = {lastScan:now,nextScan:new Date(Date.now()+futureIntervalMs()).toISOString(),datesChecked:dates.length,intervalHours:options.seb_future_interval_hours};
+  if (scope === 'future') globalState.futureScan = {lastScan:now,nextScan:new Date(Date.now()+futureIntervalMs()).toISOString(),datesChecked:dates.length,skippedDates,intervalHours:options.seb_future_interval_hours};
   // The two schedules keep independent results; a near scan cannot erase future slots.
   globalState.latestResults = [
     ...scans.near.slots.filter(slot=>plan.near.includes(slot.date)),
@@ -139,7 +159,7 @@ async function scan(scope: 'near' | 'future') {
   globalState.disabledProviders = [];
   const providerBreakdown: Record<string, number> = {};
   for (const slot of globalState.latestResults) providerBreakdown[slot.provider]=(providerBreakdown[slot.provider]??0)+1;
-  globalState.pollStats = {durationMs:Date.now()-start,datesChecked:plan.near.length+plan.future.length,totalSlots:globalState.latestResults.length,providerBreakdown};
+  globalState.pollStats = {durationMs:Date.now()-start,datesChecked:plan.near.length+(globalState.futureScan?.datesChecked ?? 0),totalSlots:globalState.latestResults.length,providerBreakdown};
   for (const name of notifiedErrors) if (!errors.some(error=>error.provider===name)) notifiedErrors.delete(name);
   for (const error of errors) {
     if (error.failures >= 3 && !notifiedErrors.has(error.provider)) {

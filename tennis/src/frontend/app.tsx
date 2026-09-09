@@ -1,3 +1,4 @@
+import { scanDateBounds } from '../utils/scan-dates.js';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
@@ -45,6 +46,7 @@ interface TimeSlot {
 interface Config {
   poll_interval_seconds: number;
   night_poll_interval_seconds: number;
+  scan_dates: string[];
   seb_future_weekdays: number[];
   seb_future_interval_hours: number;
   preferred_start_time: string;
@@ -481,9 +483,15 @@ function SettingsPanel({ onSaved }: { onSaved: () => void }) {
           <Text fw={600} size="sm">01 / When do you want to play?</Text>
         </Card.Section>
         <Card.Section inheritPadding py="md">
-          <Text size="sm">Automatically scans the next 7 days, starting tomorrow, using SEB Arena’s local time.</Text>
+          <Text size="sm" fw={600}>Choose days in the next two weeks</Text>
+          <Text size="xs" c="dimmed" mb="sm">Only selected dates are scanned. No days selected means near-term scanning is off. Dates use Europe/Vilnius time.</Text>
+          <SimpleGrid cols={{base: 2, sm: 4}} spacing="sm">
+            {Array.from({length: 14}, (_, i) => scanDateBounds().day(i + 1)).map(date => (
+              <Checkbox key={date} label={formatDate(date)} checked={(config.scan_dates ?? []).includes(date)} onChange={event => update('scan_dates', event.currentTarget.checked ? [...(config.scan_dates ?? []), date].sort() : (config.scan_dates ?? []).filter(value => value !== date))} />
+            ))}
+          </SimpleGrid>
           <Text fw={600} size="sm" mt="lg">SEB future weekdays</Text>
-          <Text size="xs" c="dimmed" mb="sm">Also check these weekdays from 15 days to six months ahead. Leave all weekdays off to scan only the next 7 days.</Text>
+          <Text size="xs" c="dimmed" mb="sm">Also check these weekdays from 15 days to six months ahead. Leave all weekdays off to scan only the dates selected above.</Text>
           <Group gap="sm">
             {[['Mon',1],['Tue',2],['Wed',3],['Thu',4],['Fri',5],['Sat',6],['Sun',0]].map(([label, day]) => (
               <Checkbox key={day} label={label} checked={(config.seb_future_weekdays ?? []).includes(Number(day))} onChange={event => update('seb_future_weekdays', event.currentTarget.checked ? [...(config.seb_future_weekdays ?? []), Number(day)] : (config.seb_future_weekdays ?? []).filter(value=>value!==day))} />

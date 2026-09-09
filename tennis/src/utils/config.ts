@@ -4,6 +4,7 @@ import { normalizeSebPlaces } from '../providers/seb-places.js';
 export interface AddonOptions {
   poll_interval_seconds: number;
   night_poll_interval_seconds: number;
+  scan_dates: string[];
   seb_future_weekdays: number[];
   seb_future_interval_hours: number;
   preferred_start_time: string;
@@ -25,6 +26,7 @@ const CONFIG_PATH = `${DATA_DIR}/config.json`;
 const DEFAULTS: AddonOptions = {
   poll_interval_seconds: 30,
   night_poll_interval_seconds: 900,
+  scan_dates: [],
   seb_future_weekdays: [],
   seb_future_interval_hours: 2,
   preferred_start_time: '17:00',
@@ -53,7 +55,8 @@ function migrateKeys(obj: Record<string, any>): Record<string, any> {
     }
     delete result[oldKey];
   }
-  delete result['scan_dates'];
+  result.scan_dates = Array.isArray(result.scan_dates)
+    ? [...new Set(result.scan_dates.filter((date: unknown) => typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)))] : [];
   delete result['baltic_tennis_session_token'];
   if ('teniso_pasaulis_places' in result && !('seb_places' in result)) {
     result['seb_places'] = result['teniso_pasaulis_places'];

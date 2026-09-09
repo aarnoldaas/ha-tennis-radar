@@ -9,9 +9,10 @@ export function scanDateBounds(now = new Date()) {
   end.setUTCDate(Math.min(originalDay,end.getUTCDate()));
   return {today,tomorrow:day(1),nearEnd:day(14),futureEnd:end.toISOString().slice(0,10),day};
 }
-export function scanDatePlan(options: {seb_future_weekdays: number[]}, now = new Date()) {
+export function scanDatePlan(options: {scan_dates: string[]; seb_future_weekdays: number[]}, now = new Date()) {
   const bounds = scanDateBounds(now);
-  const near = Array.from({length:7},(_,i)=>bounds.day(i+1));
+  const available = new Set(Array.from({length:14},(_,i)=>bounds.day(i+1)));
+  const near = options.scan_dates.filter(date => available.has(date));
   const future = new Set<string>();
   for (let offset=15; bounds.day(offset)<=bounds.futureEnd; offset++) {
     const date = bounds.day(offset);

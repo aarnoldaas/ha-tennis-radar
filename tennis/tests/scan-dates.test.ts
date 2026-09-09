@@ -4,17 +4,17 @@ import { SebProvider } from '../src/providers/seb.js';
 import { PollingManager } from '../src/polling.js';
 const now=new Date('2026-09-09T12:00:00Z');
 afterEach(()=>{vi.useRealTimers();vi.restoreAllMocks();vi.unstubAllGlobals();});
-it('always scans next seven days despite legacy dates and only adds selected future weekdays', () => {
-  const legacy = {scan_dates:['2026-09-01','2027-03-09'],seb_future_weekdays:[1]};
+it('scans only selected dates within the next two weeks and separately adds future weekdays', () => {
+  const legacy = {scan_dates:['2026-09-01','2026-09-09','2026-09-10','2026-09-23','2026-09-23','2026-09-24','2027-03-09'],seb_future_weekdays:[1]};
   const plan=scanDatePlan(legacy,now);
-  expect(plan.near).toEqual(['2026-09-10','2026-09-11','2026-09-12','2026-09-13','2026-09-14','2026-09-15','2026-09-16']);
+  expect(plan.near).toEqual(['2026-09-10','2026-09-23']);
   expect(plan.future[0]).toBe('2026-09-28');
   expect(plan.future.at(-1)).toBe('2027-03-08');
   expect(plan.future.every(date => new Date(`${date}T12:00:00Z`).getUTCDay() === 1)).toBe(true);
   expect(scanDatePlan({...legacy,seb_future_weekdays:[]},now).future).toEqual([]);
 });
-it('retains next-seven-day defaults and uses Vilnius calendar dates at midnight and month boundaries', () => {
-  expect(scanDatePlan({seb_future_weekdays:[]},now).near).toHaveLength(7);
+it('does not scan near-term dates without a selection and uses Vilnius calendar boundaries', () => {
+  expect(scanDatePlan({scan_dates:[],seb_future_weekdays:[]},now).near).toEqual([]);
   expect(scanDateBounds(new Date('2026-09-09T22:30:00Z')).today).toBe('2026-09-10');
   expect(scanDateBounds(new Date('2026-08-31T12:00:00Z')).futureEnd).toBe('2027-02-28');
 });

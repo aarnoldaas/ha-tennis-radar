@@ -22,6 +22,7 @@ This repository contains only the Tennis Radar add-on.
 - **Date scanning** — check only explicitly selected dates from tomorrow through 14 days ahead. No selection means no near-term scans; expired and out-of-window dates are ignored. There is no automatic seven-day fallback
 - **Future SEB scans** — selected weekdays 15 days to six months ahead use a separate schedule, default **2 hours** (configurable **1–24 hours**). Optional weekday checkboxes add recurring dates in that future window. No weekdays are enabled by default. Near-term dates keep the regular interval around the clock. Baltic Tennis only receives near-term dates.
 - **SEB request batches** — sequential batches of at most **7 dates**, for both near and future scans. Each request retains its 20-second timeout. Future results stay visible between scans, with the last/next scan and date count in Scan details. Changing settings clears old results and restarts the future schedule.
+- **Container date compatibility** — assemble machine-readable dates from named Intl parts instead of parsing locale-formatted text. Supports English-only ICU runtimes for scanning, reminder cleanup and booking freshness checks.
 - **Calendar boundary** — future planning uses Europe/Vilnius dates and a six-calendar-month horizon. Recurring weekdays apply only to the future window.
 - **Time preferences** — filter by earliest start time and latest end time
 - **Duration filtering** — minimum booking duration (30–180 minutes)

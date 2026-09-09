@@ -1,3 +1,4 @@
+import { venueDateTime } from './utils/venue-time.js';
 import { createHash, randomUUID } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
@@ -86,7 +87,8 @@ export class CartActions {
       this.save(); // Consume before any network calls, including across restarts.
       const provider = new SebProvider(options.seb_session_token, options.seb_places);
       const fresh = await provider.getAvailability([...new Set(action.slots.map(s => s.date))]);
-      const now = new Intl.DateTimeFormat('sv-SE', {timeZone: 'Europe/Vilnius', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'}).format(new Date());
+      const venueNow = venueDateTime();
+      const now = `${venueNow.date} ${venueNow.time}`;
       const selected = action.slots.find(candidate => `${candidate.date} ${candidate.startTime}` > now && fresh.some(slot =>
         slot.courtId === candidate.courtId && slot.date === candidate.date && slot.status === 'available' && slot.startTime <= candidate.startTime && slot.endTime >= candidate.endTime));
       if (!selected) throw new Error('The courts in this notification are no longer available. Wait for a new notification.');

@@ -1,6 +1,8 @@
+import { venueDateTime } from './venue-time.js';
+
 /** Calendar dates use the courts' timezone, independent of the host timezone. */
 export function scanDateBounds(now = new Date()) {
-  const today = new Intl.DateTimeFormat('sv-SE', {timeZone:'Europe/Vilnius',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
+  const today = venueDateTime(now).date;
   const base = new Date(`${today}T12:00:00Z`);
   const day = (offset: number) => {const date = new Date(base); date.setUTCDate(date.getUTCDate()+offset); return date.toISOString().slice(0,10);};
   const end = new Date(base);

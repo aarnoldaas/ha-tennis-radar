@@ -1,3 +1,4 @@
+import { venueDateTime } from './utils/venue-time.js';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import type { Booking } from './providers/types.js';
@@ -153,5 +154,5 @@ export class BookingReminderManager {
 }
 
 function todayLocal(now: Date): string {
-  return new Intl.DateTimeFormat('sv-SE', {timeZone:'Europe/Vilnius',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
+  return venueDateTime(now).date;
 }

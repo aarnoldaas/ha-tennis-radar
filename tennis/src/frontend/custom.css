@@ -63,12 +63,6 @@ button, input { font: inherit; }
 .settings-fields { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; gap: 20px; }
 .settings-fields .mantine-Card-root { padding: 22px; }
 .settings-fields .mantine-Checkbox-root { padding: 8px 0; }
-.date-picker-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
-.date-chip { display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 12px 4px; border: 1px solid var(--lh-border); border-radius: 8px; background: var(--lh-surface-1); min-height: 62px; }
-.date-chip:hover { border-color: var(--lh-accent); }
-.date-chip-weekend { color: #cfbf9b; }
-.date-chip-selected { background: var(--lh-accent); color: #182514; border-color: var(--lh-accent); }
-.date-chip-selected * { opacity: 1 !important; }
 .save-bar { position: sticky; bottom: 16px; padding: 16px 20px; background: #1c2a23f5; backdrop-filter: blur(12px); border: 1px solid #597147; border-radius: 12px; z-index: 20; box-shadow: 0 8px 32px #0004; }
 .lh-status-dot { width: 7px; height: 7px; display: inline-block; border-radius: 50%; }
 .lh-status-dot-green { background: var(--lh-accent); }
@@ -90,9 +84,6 @@ button, input { font: inherit; }
   .court-art { right: -30px; top: 70px; width: 35%; opacity: .45; }
   .results-toolbar > * { width: 100%; }
   .settings-fields .mantine-Card-root { padding: 18px; }
-  .date-picker-grid { gap: 5px; }
-  .date-chip { padding: 10px 2px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
 :root[data-mantine-color-scheme='dark'] { --mantine-color-dimmed: #a6b5aa !important; }
-@media (max-width: 480px) { .date-picker-grid { grid-template-columns: repeat(4, 1fr); } }

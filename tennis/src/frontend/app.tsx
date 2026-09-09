@@ -20,13 +20,11 @@ import {
   Checkbox,
   Alert,
   Loader,
-  UnstyledButton,
   Select,
   SegmentedControl,
 } from '@mantine/core';
 import '@mantine/core/styles.css';
 import './custom.css';
-import { scanDateBounds } from '../utils/scan-dates.js';
 import { SEB_PLACE_OPTIONS } from '../providers/seb-places.js';
 
 const BASE = (window as any).INGRESS_PATH || '';
@@ -47,7 +45,6 @@ interface TimeSlot {
 interface Config {
   poll_interval_seconds: number;
   night_poll_interval_seconds: number;
-  scan_dates: string[];
   seb_future_weekdays: number[];
   seb_future_interval_hours: number;
   preferred_start_time: string;
@@ -167,94 +164,6 @@ function getInitialPage(): NavPage {
 // ════════════════════════════════════════════════════════════
 // Components
 // ════════════════════════════════════════════════════════════
-
-function DatePicker({ selected, onChange }: { selected: string[]; onChange: (dates: string[]) => void }) {
-  const [customDate, setCustomDate] = useState('');
-  const bounds = scanDateBounds();
-  const dateSet = new Set<string>();
-  const now = new Date();
-  for (let i = 1; i <= 14; i++) {
-    const d = new Date(now);
-    d.setDate(d.getDate() + i);
-    dateSet.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
-  }
-  // Always include currently-selected dates, even if they fall outside the
-  // default 14-day window (e.g. dates further out, or past dates that haven't
-  // been deselected yet).
-  for (const date of selected) dateSet.add(date);
-
-  const days = [...dateSet]
-    .sort()
-    .map(date => {
-      const d = new Date(date + 'T00:00:00');
-      return {
-        date,
-        label: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', ...(d.getFullYear() !== now.getFullYear() ? {year: 'numeric' as const} : {}) }),
-        weekday: d.toLocaleDateString('en-US', { weekday: 'short' }),
-      };
-    });
-
-  const toggle = (date: string) => {
-    if (selected.includes(date)) {
-      onChange(selected.filter(d => d !== date));
-    } else {
-      onChange([...selected, date].sort());
-    }
-  };
-
-  const isWeekend = (date: string) => {
-    const d = new Date(date + 'T00:00:00');
-    return d.getDay() === 0 || d.getDay() === 6;
-  };
-
-  return (
-    <div>
-      <Group justify="space-between" mb="sm">
-        <Text size="sm" c="dimmed">Choose individual days, or let your search roll forward.</Text>
-        <Button variant="light" size="xs" onClick={() => onChange([])}>Use next 7 days</Button>
-      </Group>
-      <Group align="flex-end" mb="md">
-        <TextInput
-          type="date"
-          label="Add a future date"
-          description="Choose dates up to six months ahead. Dates beyond 14 days are checked by the slower SEB scan."
-          min={bounds.tomorrow}
-          max={bounds.futureEnd}
-          value={customDate}
-          onChange={event => setCustomDate(event.currentTarget.value)}
-          style={{flex: '1 1 240px'}}
-        />
-        <Button variant="light" disabled={!/^\d{4}-\d{2}-\d{2}$/.test(customDate) || customDate < bounds.tomorrow || customDate > bounds.futureEnd || selected.includes(customDate)} onClick={() => {
-          onChange([...selected, customDate].sort());
-          setCustomDate('');
-        }}>Add date</Button>
-      </Group>
-      <div className="date-picker-grid">
-        {days.map(d => (
-          <UnstyledButton
-            key={d.date}
-            aria-pressed={selected.includes(d.date)}
-            aria-label={formatDate(d.date)}
-            className={`date-chip ${selected.includes(d.date) ? 'date-chip-selected' : ''} ${isWeekend(d.date) ? 'date-chip-weekend' : ''}`}
-            onClick={() => toggle(d.date)}
-          >
-            <Text size="xs" ta="center" opacity={0.7} tt="uppercase" lh={1.2}>
-              {d.weekday}
-            </Text>
-            <Text size="xs" ta="center" fw={600} lh={1.2}>
-              {d.label}
-            </Text>
-          </UnstyledButton>
-        ))}
-      </div>
-      <Text size="xs" c="dimmed" mt="xs" fs="italic">
-        {selected.length === 0
-          ? 'No dates selected — scanning next 7 days automatically'
-          : `${selected.length} date(s) selected`}
-      </Text>
-    </div>
-  );
-}
 
 function SlotTable({ slots, hasErrors = false }: { slots: TimeSlot[]; hasErrors?: boolean }) {
   if (!slots || slots.length === 0) {
@@ -572,12 +481,9 @@ function SettingsPanel({ onSaved }: { onSaved: () => void }) {
           <Text fw={600} size="sm">01 / When do you want to play?</Text>
         </Card.Section>
         <Card.Section inheritPadding py="md">
-          <DatePicker
-            selected={config.scan_dates ?? []}
-            onChange={dates => update('scan_dates', dates)}
-          />
+          <Text size="sm">Automatically scans the next 7 days, starting tomorrow, using SEB Arena’s local time.</Text>
           <Text fw={600} size="sm" mt="lg">SEB future weekdays</Text>
-          <Text size="xs" c="dimmed" mb="sm">Also check these weekdays from 15 days to six months ahead. Individual future dates above are included even on other weekdays. Leave all weekdays off to check only your selected dates.</Text>
+          <Text size="xs" c="dimmed" mb="sm">Also check these weekdays from 15 days to six months ahead. Leave all weekdays off to scan only the next 7 days.</Text>
           <Group gap="sm">
             {[['Mon',1],['Tue',2],['Wed',3],['Thu',4],['Fri',5],['Sat',6],['Sun',0]].map(([label, day]) => (
               <Checkbox key={day} label={label} checked={(config.seb_future_weekdays ?? []).includes(Number(day))} onChange={event => update('seb_future_weekdays', event.currentTarget.checked ? [...(config.seb_future_weekdays ?? []), Number(day)] : (config.seb_future_weekdays ?? []).filter(value=>value!==day))} />

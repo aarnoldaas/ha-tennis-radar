@@ -17,11 +17,12 @@ export class HomeAssistantNotifier {
   private async callService(domain: string, service: string, data: Record<string, unknown>): Promise<void> {
     if (!this.token) {
       console.warn('[Notifier] No SUPERVISOR_TOKEN — logging instead:', JSON.stringify(data));
-      return;
+      throw new Error('Home Assistant notification delivery requires SUPERVISOR_TOKEN');
     }
 
     const res = await fetch(`${this.baseUrl}/services/${domain}/${service}`, {
       method: 'POST',
+      signal: AbortSignal.timeout(20_000),
       headers: {
         'Authorization': `Bearer ${this.token}`,
         'Content-Type': 'application/json',
@@ -48,7 +49,7 @@ export class HomeAssistantNotifier {
     if (actions) {
       data.data = { tag: 'tennis-court-radar', actions };
     }
-    await this.callService('notify', `mobile_app_${deviceId}`, data);
+    await this.callService('notify', `mobile_app_${deviceId.trim().replace(/^(notify\.)?mobile_app_/, '')}`, data);
   }
 
   async sendError(message: string, deviceId?: string): Promise<void> {
@@ -70,10 +71,12 @@ export class HomeAssistantNotifier {
   }
 
   async sendCourtAlert(slots: TimeSlot[], deviceId?: string): Promise<void> {
-    // Filter out recently notified slots
+    const destination = deviceId?.trim().replace(/^(notify\.)?mobile_app_/, '') || 'persistent';
+    const deliveryKey = (slot: TimeSlot) => `${destination}:${this.slotKey(slot)}`;
+    // Only suppress slots successfully delivered to this destination.
     this.pruneExpired();
     const newSlots = slots.filter(s => {
-      const key = this.slotKey(s);
+      const key = deliveryKey(s);
       return !this.notifiedSlots.has(key);
     });
 
@@ -88,8 +91,10 @@ export class HomeAssistantNotifier {
     const title = `🎾 ${newSlots.length} court(s) found`;
     const message = lines.join('\n');
 
+    let delivered = false;
     try {
       await this.sendPersistentNotification(message, title, 'tennis_court_alert');
+      if (!deviceId) delivered = true;
       console.log(`[Notifier] Persistent notification sent: ${newSlots.length} slot(s)`);
     } catch (err) {
       console.error('[Notifier] Failed to send persistent notification:', err);
@@ -104,16 +109,19 @@ export class HomeAssistantNotifier {
           { action: 'URI', title: 'Open Booking Site', uri: newSlots.some(s => s.provider === 'SEB') ? 'https://book.sebarena.lt/' : 'https://savitarna.baltictennis.lt/reservation/short' },
           { action: 'DISMISS_TENNIS', title: 'Dismiss' },
         ]);
+        delivered = true;
         console.log(`[Notifier] Mobile push sent to ${deviceId}`);
       } catch (err) {
         console.error('[Notifier] Failed to send mobile push:', err);
       }
     }
 
-    // Mark slots as notified
+    if (!delivered) return;
+
+    // Mark slots only after successful delivery
     const now = Date.now();
     for (const s of newSlots) {
-      this.notifiedSlots.set(this.slotKey(s), now);
+      this.notifiedSlots.set(deliveryKey(s), now);
     }
   }
 

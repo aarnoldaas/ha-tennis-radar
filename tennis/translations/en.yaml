@@ -2,9 +2,6 @@ configuration:
   poll_interval_seconds:
     name: Poll Interval (seconds)
     description: How often to check for available courts.
-  scan_dates:
-    name: Dates to Scan
-    description: List of dates (YYYY-MM-DD) to check. Leave empty to scan the next 7 days.
   preferred_start_time:
     name: Preferred Start Time
     description: Earliest acceptable court start time (HH:MM).

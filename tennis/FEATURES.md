@@ -18,10 +18,10 @@ This repository contains only the Tennis Radar add-on.
 - **Automatic polling** with configurable interval (10–3600 seconds, default 30s)
 - **Night hours** — separate interval (23:00–08:00) to reduce polling during off-hours
 - **Multi-provider support** — query multiple tennis court systems simultaneously
-- **Date scanning** — scan specific dates or automatically check the next 7 days
-- **Future SEB scans** — selected dates 15 days to six months ahead use a separate schedule, default **2 hours** (configurable **1–24 hours**). Optional weekday checkboxes add recurring dates in that future window; explicit dates are included regardless of weekday. No weekdays are enabled by default. Near-term dates keep the regular day/night interval. Baltic Tennis only receives near-term dates.
+- **Date scanning** — always check tomorrow through the next 7 days; legacy saved dates no longer override this rolling window
+- **Future SEB scans** — selected weekdays 15 days to six months ahead use a separate schedule, default **2 hours** (configurable **1–24 hours**). Optional weekday checkboxes add recurring dates in that future window. No weekdays are enabled by default. Near-term dates keep the regular day/night interval. Baltic Tennis only receives near-term dates.
 - **SEB request batches** — sequential batches of at most **7 dates**, for both near and future scans. Each request retains its 20-second timeout. Future results stay visible between scans, with the last/next scan and date count in Scan details. Changing settings clears old results and restarts the future schedule.
-- **Calendar boundary** — future planning uses Europe/Vilnius dates and a six-calendar-month horizon. A selected date moves to the near-term schedule at 14 days; recurring weekdays apply only to the future window.
+- **Calendar boundary** — future planning uses Europe/Vilnius dates and a six-calendar-month horizon. Recurring weekdays apply only to the future window.
 - **Time preferences** — filter by earliest start time and latest end time
 - **Duration filtering** — minimum booking duration (30–180 minutes)
 - **Slot merging** — consecutive 30-minute slots merged into continuous blocks
@@ -53,6 +53,7 @@ This repository contains only the Tennis Radar add-on.
 ## Notifications
 
 - **Home Assistant persistent notifications** in the HA notification panel
+- **Delivery retries** — failed pushes are retried on the next scan instead of being suppressed for an hour; changing the destination allows fresh alerts. Both device names and full `notify.mobile_app_*` service names are accepted. HA requests time out after 20 seconds.
 - **Mobile push notifications** to a configured device with action buttons (Book & pay up to €100 / Open Booking Site / Dismiss)
 - **Deduplication** — suppresses duplicate alerts for the same slot within 1 hour
 - **Error alerts** after 3 consecutive provider failures, once per outage; automatic retries continue
@@ -77,14 +78,14 @@ Navigation: **Tennis Radar** (Courts, Bookings) + **Settings**.
 - Manual refresh button, error handling for fetch failures
 
 ### Settings Screen
-- **Date picker** — next-14-day shortcuts plus individual date selection up to six months ahead, with weekend indicators and years on dates in another year
+- **Scan dates** — automatic rolling next-seven-day window, with optional future weekday selection
 - **Playing preferences** — earliest start, latest finish with inline time validation, minimum session duration
 - **Notifications & scanning** — daytime and nighttime polling intervals, mobile notification device guidance
 - **Provider cards** — SEB Arena and Baltic Tennis with always-visible Enabled toggle in the card header; credential fields shown when enabled
 - **Advanced options** — collapsible debug logging toggle
 - Persistent draft when changing app tabs, discard action, disabled unchanged saves, loading/retry feedback, and reload/close warning for unsaved edits
 - Save bar stays above mobile navigation; inputs are locked while saving
-- Session token is masked; date selection has accessible pressed states and an automatic next-7-days reset
+- Session token is masked; future weekday selection uses accessible checkboxes
 
 ### Status & Errors
 - Status badge in sidebar: Running / Issues / Error / Loading

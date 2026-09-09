@@ -4,7 +4,6 @@ import { normalizeSebPlaces } from '../providers/seb-places.js';
 export interface AddonOptions {
   poll_interval_seconds: number;
   night_poll_interval_seconds: number;
-  scan_dates: string[];
   seb_future_weekdays: number[];
   seb_future_interval_hours: number;
   preferred_start_time: string;
@@ -26,7 +25,6 @@ const CONFIG_PATH = `${DATA_DIR}/config.json`;
 const DEFAULTS: AddonOptions = {
   poll_interval_seconds: 30,
   night_poll_interval_seconds: 900,
-  scan_dates: [],
   seb_future_weekdays: [],
   seb_future_interval_hours: 2,
   preferred_start_time: '17:00',
@@ -55,6 +53,7 @@ function migrateKeys(obj: Record<string, any>): Record<string, any> {
     }
     delete result[oldKey];
   }
+  delete result['scan_dates'];
   delete result['baltic_tennis_session_token'];
   if ('teniso_pasaulis_places' in result && !('seb_places' in result)) {
     result['seb_places'] = result['teniso_pasaulis_places'];
@@ -102,6 +101,10 @@ export interface ConfigWarning {
 export function validateConfig(opts: AddonOptions): ConfigWarning[] {
   const warnings: ConfigWarning[] = [];
 
+  if (!opts.notify_device.trim()) {
+    warnings.push({ field: 'notify_device', message: 'No mobile notification device configured — alerts appear only in the Home Assistant notification panel' });
+  }
+
   if (opts.poll_interval_seconds < 10) {
     warnings.push({ field: 'poll_interval_seconds', message: 'Poll interval must be at least 10 seconds' });
   }
@@ -137,7 +140,7 @@ export function validateConfig(opts: AddonOptions): ConfigWarning[] {
 
 export function saveOptions(options: AddonOptions): void {
   mkdirSync(DATA_DIR, { recursive: true });
-  writeFileSync(CONFIG_PATH, JSON.stringify(options, null, 2));
+  writeFileSync(CONFIG_PATH, JSON.stringify(migrateKeys(options), null, 2));
 }
 
 export function isNightHours(): boolean {
@@ -147,17 +150,4 @@ export function isNightHours(): boolean {
 
 export function getEffectiveIntervalMs(opts: AddonOptions): number {
   return (isNightHours() ? opts.night_poll_interval_seconds : opts.poll_interval_seconds) * 1000;
-}
-
-export function getEffectiveDates(scanDates: string[]): string[] {
-  if (scanDates.length > 0) return scanDates;
-
-  const dates: string[] = [];
-  const now = new Date();
-  for (let i = 1; i <= 7; i++) {
-    const d = new Date(now);
-    d.setDate(d.getDate() + i);
-    dates.push(d.toISOString().slice(0, 10));
-  }
-  return dates;
 }

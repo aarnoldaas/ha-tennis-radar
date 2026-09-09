@@ -1,4 +1,4 @@
-import { loadOptions, getEffectiveDates, validateConfig, getEffectiveIntervalMs, type AddonOptions } from './utils/config.js';
+import { loadOptions, validateConfig, getEffectiveIntervalMs, type AddonOptions } from './utils/config.js';
 import { createServer, globalState } from './server.js';
 import { PollingManager } from './polling.js';
 import { CourtProviderManager } from './providers/manager.js';
@@ -7,6 +7,8 @@ import { BookingReminderManager } from './booking-reminders.js';
 import { CartActions } from './cart-actions.js';
 import { HomeAssistantEvents } from './ha-events.js';
 import { matchingSlots } from './providers/matching.js';
+import { scanDatePlan } from './utils/scan-dates.js';
+import type { CheckResult } from './providers/manager.js';
 import type { Booking } from './providers/types.js';
 
 // Booking fetches are network-heavy (BT does an HTML scrape with login), so the
@@ -48,6 +50,11 @@ const haEvents = new HomeAssistantEvents(async action => {
 haEvents.start();
 const reminderManager = new BookingReminderManager();
 let providerManager = new CourtProviderManager(options);
+const futureOptions = () => ({...options,baltic_tennis_enabled:false});
+let futureProviderManager = new CourtProviderManager(futureOptions());
+let configRevision = 0;
+const scans: Record<'near' | 'future', CheckResult> = {near:{slots:[],errors:[]},future:{slots:[],errors:[]}};
+const futureIntervalMs = () => options.seb_future_interval_hours * 60 * 60_000;
 
 // Track which providers we've already sent error notifications for
 const notifiedErrors = new Set<string>();
@@ -110,78 +117,73 @@ function stopBookingTimers(): void {
   bookingTickTimer = null;
 }
 
-const poller = new PollingManager(
-  async () => {
-    if (!providerManager.hasActiveProviders) {
-      console.log('[TennisRadar] Skipping poll — no active providers');
-      return;
+async function scan(scope: 'near' | 'future') {
+  const revision = configRevision;
+  const manager = scope === 'near' ? providerManager : futureProviderManager;
+  const plan = scanDatePlan(options);
+  const dates = plan[scope];
+  const start = Date.now();
+  const result = manager.hasActiveProviders && dates.length ? await manager.checkAll(dates) : {slots:[],errors:[]};
+  if (revision !== configRevision) return; // Discard results from replaced settings.
+  scans[scope] = result;
+  const now = new Date().toISOString();
+  globalState.lastPollTime = now;
+  if (scope === 'future') globalState.futureScan = {lastScan:now,nextScan:new Date(Date.now()+futureIntervalMs()).toISOString(),datesChecked:dates.length,intervalHours:options.seb_future_interval_hours};
+  // The two schedules keep independent results; a near scan cannot erase future slots.
+  globalState.latestResults = [
+    ...scans.near.slots.filter(slot=>plan.near.includes(slot.date)),
+    ...scans.future.slots.filter(slot=>plan.future.includes(slot.date)),
+  ];
+  const errors = [...scans.near.errors,...scans.future.errors.map(error=>({...error,provider:`${error.provider} (future dates)`,nextRetryAt:globalState.futureScan?.nextScan ?? error.nextRetryAt}))];
+  globalState.providerErrors = errors;
+  globalState.disabledProviders = [];
+  const providerBreakdown: Record<string, number> = {};
+  for (const slot of globalState.latestResults) providerBreakdown[slot.provider]=(providerBreakdown[slot.provider]??0)+1;
+  globalState.pollStats = {durationMs:Date.now()-start,datesChecked:plan.near.length+plan.future.length,totalSlots:globalState.latestResults.length,providerBreakdown};
+  for (const name of notifiedErrors) if (!errors.some(error=>error.provider===name)) notifiedErrors.delete(name);
+  for (const error of errors) {
+    if (error.failures >= 3 && !notifiedErrors.has(error.provider)) {
+      notifiedErrors.add(error.provider);
+      await notifier.sendError(`Tennis Radar: ${error.provider} is temporarily unavailable after ${error.failures} failures. ${error.error}. Automatic retries continue.`,options.notify_device || undefined);
     }
+  }
+  const matching = matchingSlots(result.slots,options);
+  if (matching.length) await notifier.sendCourtAlert(matching,options.notify_device || undefined);
+  console.log(`[TennisRadar] ${scope} scan: ${dates.length} dates, ${matching.length} matching slots.`);
+}
 
-    const dates = getEffectiveDates(options.scan_dates);
-    console.log(`[TennisRadar] Polling for dates: ${dates.join(', ')}`);
-
-    const pollStart = Date.now();
-    const { slots: results, errors } = await providerManager.checkAll(dates);
-    const durationMs = Date.now() - pollStart;
-
-    globalState.latestResults = results;
-    globalState.lastPollTime = new Date().toISOString();
-    globalState.providerErrors = errors;
-    globalState.disabledProviders = providerManager.disabledProviderNames;
-
-    const providerBreakdown: Record<string, number> = {};
-    for (const slot of results) {
-      providerBreakdown[slot.provider] = (providerBreakdown[slot.provider] || 0) + 1;
-    }
-    globalState.pollStats = {
-      durationMs,
-      datesChecked: dates.length,
-      totalSlots: results.length,
-      providerBreakdown,
-    };
-
-    for (const name of notifiedErrors) {
-      if (!errors.some(error => error.provider === name)) notifiedErrors.delete(name);
-    }
-    for (const err of errors) {
-      if (err.failures >= 3 && !notifiedErrors.has(err.provider)) {
-        notifiedErrors.add(err.provider);
-        await notifier.sendError(
-          `Tennis Radar: ${err.provider} is temporarily unavailable after ${err.failures} failures. Error: ${err.error}. Automatic retries continue; check credentials if the problem persists.`,
-          options.notify_device || undefined,
-        );
-      }
-    }
-
-    const matching = matchingSlots(results, options);
-
-    console.log(`[TennisRadar] Found ${results.length} total slots, ${matching.length} matching preferences (${durationMs}ms).`);
-
-    poller.updateInterval(getEffectiveIntervalMs(options));
-
-    if (matching.length > 0) {
-      await notifier.sendCourtAlert(matching, options.notify_device || undefined);
-    }
-  },
-  { intervalMs: getEffectiveIntervalMs(options) },
-);
+const poller = new PollingManager(async () => {
+  await scan('near');
+  poller.updateInterval(getEffectiveIntervalMs(options));
+}, {intervalMs:getEffectiveIntervalMs(options)});
+const futurePoller = new PollingManager(() => scan('future'), {intervalMs:futureIntervalMs(),maxBackoffMs:24*60*60_000});
 
 function onConfigChange(newOptions: AddonOptions) {
   console.log('[TennisRadar] Config updated, reloading providers...');
+  configRevision++;
   options = newOptions;
+  scans.near = {slots:[],errors:[]};
+  scans.future = {slots:[],errors:[]};
+  globalState.latestResults = [];
+  globalState.futureScan = null;
   providerManager.disposeAll();
   providerManager = new CourtProviderManager(options);
+  futureProviderManager.disposeAll();
+  futureProviderManager = new CourtProviderManager(futureOptions());
   globalState.providerErrors = [];
   globalState.disabledProviders = [];
   notifiedErrors.clear();
   poller.updateInterval(getEffectiveIntervalMs(options));
   poller.start();
+  // Stop waits for an in-flight scan before restarting with the new date plan.
+  void futurePoller.stop().then(() => {futurePoller.updateInterval(futureIntervalMs());futurePoller.start();});
   startBookingTimers();
   void refetchBookingsAndTick();
 }
 
 function onResumeProviders() {
   providerManager.resumeAll();
+  futureProviderManager.resumeAll();
   globalState.providerErrors = [];
   globalState.disabledProviders = [];
   notifiedErrors.clear();
@@ -197,6 +199,7 @@ createServer({
   getCartStatus: () => ({connected: haEvents.connected, actions: cartActions.list()}),
 });
 poller.start();
+futurePoller.start();
 startBookingTimers();
 void refetchBookingsAndTick();
 
@@ -204,7 +207,8 @@ const shutdown = async (signal: string) => {
   console.log(`[TennisRadar] Received ${signal}, shutting down...`);
   stopBookingTimers();
   haEvents.stop();
-  await poller.stop();
+  await Promise.all([poller.stop(),futurePoller.stop()]);
+  futureProviderManager.disposeAll();
   providerManager.disposeAll();
   process.exit(0);
 };

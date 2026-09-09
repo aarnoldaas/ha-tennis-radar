@@ -1,0 +1,23 @@
+/** Calendar dates use the courts' timezone, independent of the host timezone. */
+export function scanDateBounds(now = new Date()) {
+  const today = new Intl.DateTimeFormat('sv-SE', {timeZone:'Europe/Vilnius',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
+  const base = new Date(`${today}T12:00:00Z`);
+  const day = (offset: number) => {const date = new Date(base); date.setUTCDate(date.getUTCDate()+offset); return date.toISOString().slice(0,10);};
+  const end = new Date(base);
+  const originalDay = end.getUTCDate();
+  end.setUTCDate(1); end.setUTCMonth(end.getUTCMonth()+7); end.setUTCDate(0);
+  end.setUTCDate(Math.min(originalDay,end.getUTCDate()));
+  return {today,tomorrow:day(1),nearEnd:day(14),futureEnd:end.toISOString().slice(0,10),day};
+}
+export function scanDatePlan(options: {scan_dates: string[]; seb_future_weekdays: number[]}, now = new Date()) {
+  const bounds = scanDateBounds(now);
+  const valid = (date: string) => /^\d{4}-\d{2}-\d{2}$/.test(date) && date > bounds.today && date <= bounds.futureEnd;
+  const selected = options.scan_dates.filter(valid);
+  const near = (options.scan_dates.length ? selected : Array.from({length:7},(_,i)=>bounds.day(i+1))).filter(date=>date<=bounds.nearEnd);
+  const future = new Set(selected.filter(date=>date>bounds.nearEnd));
+  for (let offset=15; bounds.day(offset)<=bounds.futureEnd; offset++) {
+    const date = bounds.day(offset);
+    if (options.seb_future_weekdays.includes(new Date(`${date}T12:00:00Z`).getUTCDay())) future.add(date);
+  }
+  return {near:[...new Set(near)].sort(),future:[...future].sort()};
+}

@@ -26,6 +26,7 @@ import {
 } from '@mantine/core';
 import '@mantine/core/styles.css';
 import './custom.css';
+import { scanDateBounds } from '../utils/scan-dates.js';
 import { SEB_PLACE_OPTIONS } from '../providers/seb-places.js';
 
 const BASE = (window as any).INGRESS_PATH || '';
@@ -47,6 +48,8 @@ interface Config {
   poll_interval_seconds: number;
   night_poll_interval_seconds: number;
   scan_dates: string[];
+  seb_future_weekdays: number[];
+  seb_future_interval_hours: number;
   preferred_start_time: string;
   preferred_end_time: string;
   preferred_duration_minutes: number;
@@ -166,6 +169,8 @@ function getInitialPage(): NavPage {
 // ════════════════════════════════════════════════════════════
 
 function DatePicker({ selected, onChange }: { selected: string[]; onChange: (dates: string[]) => void }) {
+  const [customDate, setCustomDate] = useState('');
+  const bounds = scanDateBounds();
   const dateSet = new Set<string>();
   const now = new Date();
   for (let i = 1; i <= 14; i++) {
@@ -184,7 +189,7 @@ function DatePicker({ selected, onChange }: { selected: string[]; onChange: (dat
       const d = new Date(date + 'T00:00:00');
       return {
         date,
-        label: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        label: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', ...(d.getFullYear() !== now.getFullYear() ? {year: 'numeric' as const} : {}) }),
         weekday: d.toLocaleDateString('en-US', { weekday: 'short' }),
       };
     });
@@ -207,6 +212,22 @@ function DatePicker({ selected, onChange }: { selected: string[]; onChange: (dat
       <Group justify="space-between" mb="sm">
         <Text size="sm" c="dimmed">Choose individual days, or let your search roll forward.</Text>
         <Button variant="light" size="xs" onClick={() => onChange([])}>Use next 7 days</Button>
+      </Group>
+      <Group align="flex-end" mb="md">
+        <TextInput
+          type="date"
+          label="Add a future date"
+          description="Choose dates up to six months ahead. Dates beyond 14 days are checked by the slower SEB scan."
+          min={bounds.tomorrow}
+          max={bounds.futureEnd}
+          value={customDate}
+          onChange={event => setCustomDate(event.currentTarget.value)}
+          style={{flex: '1 1 240px'}}
+        />
+        <Button variant="light" disabled={!/^\d{4}-\d{2}-\d{2}$/.test(customDate) || customDate < bounds.tomorrow || customDate > bounds.futureEnd || selected.includes(customDate)} onClick={() => {
+          onChange([...selected, customDate].sort());
+          setCustomDate('');
+        }}>Add date</Button>
       </Group>
       <div className="date-picker-grid">
         {days.map(d => (
@@ -342,6 +363,7 @@ function CourtsPanel({ status, onSettings }: { status: any; onSettings: () => vo
       <details className="scan-details"><summary>Scan details & booking setup</summary>
         <Text size="sm" c="dimmed" mt="sm">Cart notifications: {status?.cart?.connected ? 'connected to Home Assistant' : 'Home Assistant connection unavailable'}.</Text>
         <Text size="sm" mt="sm">Touch and hold a phone court alert, then choose Book &amp; pay to complete one booking with SEB account credit, up to €100. No extension or Shortcut is needed. View the confirmed booking in Chrome or Safari while signed into SEB.</Text>
+      {status?.futureScan && <Text size="xs" c="dimmed" mt="sm">Future SEB: {status.futureScan.datesChecked} dates, every {status.futureScan.intervalHours} hours. Last scan: {new Date(status.futureScan.lastScan).toLocaleString()}. Next: {new Date(status.futureScan.nextScan).toLocaleString()}.</Text>}
       {status?.lastPoll && (
         <Group gap={4} mt="md" wrap="wrap">
           <Text size="xs" c="dimmed">
@@ -554,6 +576,15 @@ function SettingsPanel({ onSaved }: { onSaved: () => void }) {
             selected={config.scan_dates ?? []}
             onChange={dates => update('scan_dates', dates)}
           />
+          <Text fw={600} size="sm" mt="lg">SEB future weekdays</Text>
+          <Text size="xs" c="dimmed" mb="sm">Also check these weekdays from 15 days to six months ahead. Individual future dates above are included even on other weekdays. Leave all weekdays off to check only your selected dates.</Text>
+          <Group gap="sm">
+            {[['Mon',1],['Tue',2],['Wed',3],['Thu',4],['Fri',5],['Sat',6],['Sun',0]].map(([label, day]) => (
+              <Checkbox key={day} label={label} checked={(config.seb_future_weekdays ?? []).includes(Number(day))} onChange={event => update('seb_future_weekdays', event.currentTarget.checked ? [...(config.seb_future_weekdays ?? []), Number(day)] : (config.seb_future_weekdays ?? []).filter(value=>value!==day))} />
+            ))}
+          </Group>
+          <NumberInput mt="md" label="Future SEB scan interval (hours)" description="Near-term dates keep your regular scanning interval. SEB requests use batches of 7 dates." min={1} max={24} allowDecimal={false} value={config.seb_future_interval_hours ?? 2} onChange={value=>update('seb_future_interval_hours',Number(value)||2)} />
+
         </Card.Section>
       </Card>
 

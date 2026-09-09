@@ -25,12 +25,14 @@ export interface ProviderError {
 
 export const globalState: {
   lastPollTime: string | null;
+  futureScan: {lastScan: string; nextScan: string; datesChecked: number; intervalHours: number} | null;
   latestResults: TimeSlot[];
   pollStats: PollStats | null;
   providerErrors: ProviderError[];
   disabledProviders: string[];
 } = {
   lastPollTime: null,
+  futureScan: null,
   latestResults: [],
   pollStats: null,
   providerErrors: [],
@@ -88,6 +90,7 @@ export function createServer(options: { getCartStatus?: () => unknown; port: num
     return {
       running: true,
       lastPoll: globalState.lastPollTime,
+      futureScan: globalState.futureScan,
       totalSlots: globalState.latestResults.length,
       pollStats: globalState.pollStats,
       configWarnings: validateConfig(opts),
@@ -104,7 +107,7 @@ export function createServer(options: { getCartStatus?: () => unknown; port: num
   });
 
   // API: save config
-  app.post('/api/config', async (request) => {
+  app.post('/api/config', async (request, reply) => {
     const body = request.body as Partial<AddonOptions>;
     const current = loadOptions();
 
@@ -113,6 +116,11 @@ export function createServer(options: { getCartStatus?: () => unknown; port: num
       ...body,
       seb_places: normalizeSebPlaces(body.seb_places ?? current.seb_places),
     };
+
+    if (!Number.isInteger(updated.seb_future_interval_hours) || updated.seb_future_interval_hours < 1 || updated.seb_future_interval_hours > 24
+      || !Array.isArray(updated.seb_future_weekdays) || updated.seb_future_weekdays.some(day=>!Number.isInteger(day) || day<0 || day>6)) {
+      return reply.code(400).send({error:'Future scan interval must be 1–24 hours and weekdays must be between 0 and 6.'});
+    }
 
     saveOptions(updated);
     options.onConfigChange(updated);

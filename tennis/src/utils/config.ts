@@ -5,6 +5,8 @@ export interface AddonOptions {
   poll_interval_seconds: number;
   night_poll_interval_seconds: number;
   scan_dates: string[];
+  seb_future_weekdays: number[];
+  seb_future_interval_hours: number;
   preferred_start_time: string;
   preferred_end_time: string;
   preferred_duration_minutes: number;
@@ -25,6 +27,8 @@ const DEFAULTS: AddonOptions = {
   poll_interval_seconds: 30,
   night_poll_interval_seconds: 900,
   scan_dates: [],
+  seb_future_weekdays: [],
+  seb_future_interval_hours: 2,
   preferred_start_time: '17:00',
   preferred_end_time: '21:00',
   preferred_duration_minutes: 60,
@@ -62,6 +66,9 @@ function migrateKeys(obj: Record<string, any>): Record<string, any> {
   delete result['alpha_vantage_api_key'];
   delete result['anthropic_api_key'];
   delete result['todo_entity_id'];
+  result.seb_future_weekdays = Array.isArray(result.seb_future_weekdays)
+    ? [...new Set(result.seb_future_weekdays.filter((day: unknown) => Number.isInteger(day) && Number(day) >= 0 && Number(day) <= 6))] : [];
+  if (!Number.isInteger(result.seb_future_interval_hours) || result.seb_future_interval_hours < 1 || result.seb_future_interval_hours > 24) result.seb_future_interval_hours = 2;
   return result;
 }
 

@@ -79,12 +79,14 @@ export class SebProvider implements ICourtProvider {
     return amount;
   }
 
-  async getBookings(): Promise<Booking[]> {
+  async getBookings(throughDate?: string): Promise<Booking[]> {
     const today = new Date().toISOString().slice(0, 10);
     // Fetch bookings for the next 6 months
     const future = new Date();
     future.setMonth(future.getMonth() + 6);
-    const to = future.toISOString().slice(0, 10);
+    const defaultTo = future.toISOString().slice(0, 10);
+    // Also check existing bookings on explicitly selected dates beyond six months.
+    const to = throughDate && throughDate > defaultTo ? throughDate : defaultTo;
 
     console.log(`[SEB] Fetching bookings from ${today} to ${to}`);
     const url = `https://ws.tenisopasaulis.lt/api/v1/orders?sessionToken=${encodeURIComponent(this.sessionToken)}&from=${today}&to=${to}`;
@@ -136,6 +138,15 @@ export class SebProvider implements ICourtProvider {
   }
 
   async getAvailability(dates: string[]): Promise<TimeSlot[]> {
+    // Sequential batches keep the long-horizon scan from flooding SEB.
+    const slots: TimeSlot[] = [];
+    for (let offset = 0; offset < dates.length; offset += 7) {
+      slots.push(...await this.getAvailabilityBatch(dates.slice(offset, offset + 7)));
+    }
+    return slots;
+  }
+
+  private async getAvailabilityBatch(dates: string[]): Promise<TimeSlot[]> {
     console.log(`[SEB] Fetching courts for ${dates.length} date(s): ${dates.join(', ')}, salePoint ${this.salePoint}, ${this.places.length} place(s)`);
 
     const response = await fetch('https://ws.tenisopasaulis.lt/api/v1/placeInfoBatch', {

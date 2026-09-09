@@ -95,7 +95,7 @@ export class CartActions {
       if (this.actions.some(other => other.id !== action.id && other.paymentAttempted && other.selected && overlaps(other.selected))) {
         throw new Error('An overlapping booking was already paid or its payment is uncertain. Check SEB bookings; no additional payment attempted');
       }
-      const bookings = await provider.getBookings();
+      const bookings = await provider.getBookings(selected.date);
       if (bookings.some(overlaps)) throw new Error('You already have a booking at this time; no additional payment attempted');
       const result = await provider.addToCart(selected, code => {action.cartCode = code; this.save();});
       const amount = await provider.checkoutWithCredit(result.cartCode, selected, action.maxPriceEur ?? 0, amount => {

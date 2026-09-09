@@ -1,4 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 import type { Booking } from './providers/types.js';
 
 const DATA_DIR = process.env.DATA_DIR || '/data';
@@ -14,6 +15,7 @@ export interface ReminderThreshold {
 export const REMINDER_THRESHOLDS: ReminderThreshold[] = [
   { name: '49h', hours: 49, label: '49 hours' },
   { name: '3d', hours: 72, label: '3 days' },
+  { name: '7d', hours: 168, label: '1 week' },
 ];
 
 export interface BookingReminder {
@@ -37,15 +39,18 @@ export function bookingStartDate(b: Booking): Date | null {
   const md = b.date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   const mt = b.startTime.match(/^(\d{1,2}):(\d{2})$/);
   if (!md || !mt) return null;
-  return new Date(
-    Number(md[1]),
-    Number(md[2]) - 1,
-    Number(md[3]),
-    Number(mt[1]),
-    Number(mt[2]),
-    0,
-    0,
-  );
+  const wallClock = Date.UTC(Number(md[1]), Number(md[2])-1, Number(md[3]), Number(mt[1]), Number(mt[2]));
+  let instant = wallClock;
+  const formatter = new Intl.DateTimeFormat('en-GB', {timeZone:'Europe/Vilnius',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+  // Resolve the venue's wall-clock time, including daylight-saving changes.
+  for (let i=0;i<3;i++) {
+    const parts = Object.fromEntries(formatter.formatToParts(new Date(instant)).map(part=>[part.type,part.value]));
+    const rendered = Date.UTC(Number(parts.year),Number(parts.month)-1,Number(parts.day),Number(parts.hour),Number(parts.minute));
+    const difference = wallClock-rendered;
+    instant += difference;
+    if (!difference) return new Date(instant);
+  }
+  return null;
 }
 
 /**
@@ -55,7 +60,7 @@ export function bookingStartDate(b: Booking): Date | null {
 export class BookingReminderManager {
   private state = new Map<string, SentEntry>();
 
-  constructor() {
+  constructor(private statePath = STATE_PATH) {
     this.load();
   }
 
@@ -115,9 +120,9 @@ export class BookingReminderManager {
   }
 
   private load(): void {
-    if (!existsSync(STATE_PATH)) return;
+    if (!existsSync(this.statePath)) return;
     try {
-      const raw = JSON.parse(readFileSync(STATE_PATH, 'utf-8')) as Record<string, SentEntry>;
+      const raw = JSON.parse(readFileSync(this.statePath, 'utf-8')) as Record<string, SentEntry>;
       for (const [key, entry] of Object.entries(raw)) {
         if (entry && typeof entry.date === 'string' && Array.isArray(entry.sent)) {
           this.state.set(key, {
@@ -129,7 +134,7 @@ export class BookingReminderManager {
           });
         }
       }
-      console.log(`[BookingReminders] Loaded ${this.state.size} entry/entries from ${STATE_PATH}`);
+      console.log(`[BookingReminders] Loaded ${this.state.size} entry/entries from ${this.statePath}`);
     } catch (err) {
       console.warn('[BookingReminders] Failed to load state, starting fresh:', err);
     }
@@ -137,10 +142,10 @@ export class BookingReminderManager {
 
   private save(): void {
     try {
-      mkdirSync(DATA_DIR, { recursive: true });
+      mkdirSync(dirname(this.statePath), { recursive: true });
       const obj: Record<string, SentEntry> = {};
       for (const [key, entry] of this.state) obj[key] = entry;
-      writeFileSync(STATE_PATH, JSON.stringify(obj, null, 2));
+      writeFileSync(this.statePath, JSON.stringify(obj, null, 2));
     } catch (err) {
       console.warn('[BookingReminders] Failed to save state:', err);
     }
@@ -148,8 +153,5 @@ export class BookingReminderManager {
 }
 
 function todayLocal(now: Date): string {
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
+  return new Intl.DateTimeFormat('sv-SE', {timeZone:'Europe/Vilnius',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
 }

@@ -1,13 +1,14 @@
 import type { Booking, TimeSlot } from './providers/types.js';
 import type { ReminderThreshold } from './booking-reminders.js';
 
-interface NotificationAction {
+export interface NotificationAction {
   action: string;
   title: string;
   uri?: string;
 }
 
 export class HomeAssistantNotifier {
+  constructor(private createCartAction?: (slots: TimeSlot[]) => NotificationAction | undefined) {}
   private token = process.env.SUPERVISOR_TOKEN ?? '';
   private baseUrl = 'http://supervisor/core/api';
   private notifiedSlots = new Map<string, number>(); // slotKey -> timestamp
@@ -96,8 +97,10 @@ export class HomeAssistantNotifier {
 
     if (deviceId) {
       try {
-        await this.sendMobilePush(deviceId, title, message, [
-          { action: 'OPEN_BOOKING', title: 'Open Booking Site' },
+        const cartAction = this.createCartAction?.(newSlots);
+        await this.sendMobilePush(deviceId, title, message + (cartAction ? '\nAdd to cart chooses one available SEB court, preferring 21 → 1. Action expires in 15 minutes.' : ''), [
+          ...(cartAction ? [cartAction] : []),
+          { action: 'URI', title: 'Open Booking Site', uri: newSlots.some(s => s.provider === 'SEB') ? 'https://book.sebarena.lt/' : 'https://savitarna.baltictennis.lt/reservation/short' },
           { action: 'DISMISS_TENNIS', title: 'Dismiss' },
         ]);
         console.log(`[Notifier] Mobile push sent to ${deviceId}`);

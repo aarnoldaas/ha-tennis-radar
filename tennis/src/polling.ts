@@ -1,6 +1,5 @@
 interface PollingConfig {
   intervalMs: number;
-  maxConsecutiveFailures?: number;
   backoffMultiplier?: number;
   maxBackoffMs?: number;
 }
@@ -21,7 +20,6 @@ export class PollingManager {
   ) {
     this.config = {
       intervalMs: config.intervalMs,
-      maxConsecutiveFailures: config.maxConsecutiveFailures ?? 10,
       backoffMultiplier: config.backoffMultiplier ?? 2,
       maxBackoffMs: config.maxBackoffMs ?? 300_000,
     };
@@ -69,15 +67,12 @@ export class PollingManager {
 
       this.currentIntervalMs = Math.min(
         this.config.intervalMs *
-          this.config.backoffMultiplier ** this.consecutiveFailures,
+          this.config.backoffMultiplier ** Math.min(this.consecutiveFailures, 20),
         this.config.maxBackoffMs,
       );
       console.warn(`[Poller] Backing off to ${this.currentIntervalMs}ms`);
 
-      if (this.consecutiveFailures >= this.config.maxConsecutiveFailures) {
-        console.error('[Poller] Max consecutive failures reached — polling stopped.');
-        this.running = false;
-      }
+
     } finally {
       this.pollInProgress = false;
     }

@@ -223,15 +223,15 @@ function DatePicker({ selected, onChange }: { selected: string[]; onChange: (dat
   );
 }
 
-function SlotTable({ slots }: { slots: TimeSlot[] }) {
+function SlotTable({ slots, hasErrors = false }: { slots: TimeSlot[]; hasErrors?: boolean }) {
   if (!slots || slots.length === 0) {
     return (
       <Center py={48}>
         <Stack align="center" gap="xs">
           <Text size="2.5rem" opacity={0.7}>&#127934;</Text>
-          <Text fw={600} size="md">No courts available</Text>
+          <Text fw={600} size="md">{hasErrors ? 'Availability temporarily incomplete' : 'No courts available'}</Text>
           <Text size="sm" c="dimmed" maw={300} ta="center">
-            No courts matching your preferences were found. We'll keep checking!
+            {hasErrors ? 'Some providers could not be checked. Automatic retries continue.' : "No courts matching your preferences were found. We'll keep checking!"}
           </Text>
         </Stack>
       </Center>
@@ -297,7 +297,16 @@ function SlotTable({ slots }: { slots: TimeSlot[] }) {
 function CourtsPanel({ status }: { status: any }) {
   return (
     <>
-      <SlotTable slots={status?.availableSlots ?? []} />
+      <Text size="xs" c="dimmed" mb="md">SEB cart notifications: {status?.cart?.connected ? 'connected' : 'Home Assistant connection unavailable'}. <a href={`${BASE}/seb-cart-handoff.user.js`} target="_blank" rel="noreferrer">Safari cart handoff script</a></Text>
+      {status?.cart?.actions?.map((action: any) => (
+        <Alert key={action.id} mb="md" title={action.state === 'added' ? 'SEB court added to cart' : action.state === 'processing' ? 'Adding SEB court…' : 'SEB cart needs attention'} color={action.state === 'added' ? 'green' : 'yellow'}>
+          <Text size="sm">{action.message || 'Checking current availability…'}</Text>
+          {action.cartCode && <Text size="sm" mt="xs" style={{overflowWrap: 'anywhere'}}>Cart code: {action.cartCode}</Text>}
+          {action.cartUrl && <Button component="a" href={action.cartUrl} target="_blank" rel="noreferrer" variant="light" size="xs" mt="xs">Open SEB cart</Button>}
+          <Text size="xs" c="dimmed" mt="xs">On iPhone, open in Safari with the Tennis Radar userscript enabled. It saves the cart in SEB’s local storage. Checkout remains on SEB.</Text>
+        </Alert>
+      ))}
+      <SlotTable slots={status?.availableSlots ?? []} hasErrors={status?.providerErrors?.length > 0} />
       {status?.lastPoll && (
         <Group gap={4} mt="md" wrap="wrap">
           <Text size="xs" c="dimmed">
@@ -790,9 +799,9 @@ function App() {
   }, [refresh]);
 
   const configWarnings: { field: string; message: string }[] = status?.configWarnings ?? [];
-  const providerErrors: { provider: string; date: string; error: string; time: string }[] = status?.providerErrors ?? [];
+  const providerErrors: { provider: string; date: string; error: string; time: string; nextRetryAt?: string }[] = status?.providerErrors ?? [];
   const disabledProviders: string[] = status?.disabledProviders ?? [];
-  const hasIssues = configWarnings.length > 0 || disabledProviders.length > 0;
+  const hasIssues = configWarnings.length > 0 || providerErrors.length > 0 || disabledProviders.length > 0;
 
   const statusBadge = error ? (
     <span className="lh-status-dot lh-status-dot-red" />
@@ -823,12 +832,13 @@ function App() {
             </ul>
           </Alert>
         )}
-        {disabledProviders.length > 0 && (
-          <Alert color="red" variant="light" title="Disabled providers" mb="md">
+        {(providerErrors.length > 0 || disabledProviders.length > 0) && (
+          <Alert color="red" variant="light" title="Provider connection issues" mb="md">
             <ul style={{ margin: 0, paddingLeft: 16 }}>
               {providerErrors.map((e, i) => (
                 <li key={i}>
-                  {e.provider} ({e.date}): {e.error}
+                  {e.provider}: {e.error}
+                  {e.nextRetryAt && ` — automatic retry after ${new Date(e.nextRetryAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
                 </li>
               ))}
               {disabledProviders
@@ -837,6 +847,7 @@ function App() {
                   <li key={`d-${i}`}>{name}: disabled due to previous error</li>
                 ))}
             </ul>
+            <Text size="sm" mt="xs">Affected providers will retry automatically. Results may be incomplete.</Text>
             <Button
               variant="light"
               color="red"
@@ -845,7 +856,7 @@ function App() {
               onClick={handleResume}
               loading={resuming}
             >
-              Resume All Providers
+              Reset Retry Delay
             </Button>
           </Alert>
         )}

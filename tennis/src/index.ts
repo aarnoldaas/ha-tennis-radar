@@ -4,6 +4,9 @@ import { PollingManager } from './polling.js';
 import { CourtProviderManager } from './providers/manager.js';
 import { HomeAssistantNotifier } from './notifications.js';
 import { BookingReminderManager } from './booking-reminders.js';
+import { CartActions, sebCartUrl } from './cart-actions.js';
+import { HomeAssistantEvents } from './ha-events.js';
+import { matchingSlots } from './providers/matching.js';
 import type { Booking } from './providers/types.js';
 
 // Booking fetches are network-heavy (BT does an HTML scrape with login), so the
@@ -28,7 +31,16 @@ if (configWarnings.length > 0) {
   console.warn('[TennisRadar] Config warnings:', configWarnings.map(w => w.message).join('; '));
 }
 
-const notifier = new HomeAssistantNotifier();
+const cartActions = new CartActions(() => options);
+const notifier = new HomeAssistantNotifier(slots => cartActions.create(slots));
+const haEvents = new HomeAssistantEvents(async action => {
+  const message = await cartActions.handle(action);
+  if (!message) return;
+  await notifier.sendPersistentNotification(message, 'SEB cart', 'tennis_cart_result');
+  const result = cartActions.list().find(item => item.id === action);
+  if (options.notify_device) await notifier.sendMobilePush(options.notify_device, 'SEB cart', message, result?.cartCode ? [{action: 'URI', title: 'Open SEB cart', uri: sebCartUrl(result.cartCode)}] : undefined);
+});
+haEvents.start();
 const reminderManager = new BookingReminderManager();
 let providerManager = new CourtProviderManager(options);
 
@@ -123,22 +135,20 @@ const poller = new PollingManager(
       providerBreakdown,
     };
 
+    for (const name of notifiedErrors) {
+      if (!errors.some(error => error.provider === name)) notifiedErrors.delete(name);
+    }
     for (const err of errors) {
-      if (!notifiedErrors.has(err.provider)) {
+      if (err.failures >= 3 && !notifiedErrors.has(err.provider)) {
         notifiedErrors.add(err.provider);
         await notifier.sendError(
-          `Tennis Radar: ${err.provider} failed and was disabled. Error: ${err.error}. Check config or resume from the UI.`,
+          `Tennis Radar: ${err.provider} is temporarily unavailable after ${err.failures} failures. Error: ${err.error}. Automatic retries continue; check credentials if the problem persists.`,
           options.notify_device || undefined,
         );
       }
     }
 
-    const matching = results.filter(slot =>
-      slot.status === 'available' &&
-      slot.startTime >= options.preferred_start_time &&
-      slot.startTime <= options.preferred_end_time &&
-      slot.durationMinutes >= options.preferred_duration_minutes,
-    );
+    const matching = matchingSlots(results, options);
 
     console.log(`[TennisRadar] Found ${results.length} total slots, ${matching.length} matching preferences (${durationMs}ms).`);
 
@@ -179,6 +189,7 @@ createServer({
   onConfigChange,
   onResumeProviders,
   fetchBookings: () => providerManager.fetchBookings(),
+  getCartStatus: () => ({connected: haEvents.connected, actions: cartActions.list()}),
 });
 poller.start();
 startBookingTimers();
@@ -187,6 +198,7 @@ void refetchBookingsAndTick();
 const shutdown = async (signal: string) => {
   console.log(`[TennisRadar] Received ${signal}, shutting down...`);
   stopBookingTimers();
+  haEvents.stop();
   await poller.stop();
   providerManager.disposeAll();
   process.exit(0);

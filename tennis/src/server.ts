@@ -5,6 +5,7 @@ import { join, resolve } from 'node:path';
 import type { TimeSlot } from './providers/types.js';
 import type { AddonOptions } from './utils/config.js';
 import { loadOptions, saveOptions, validateConfig } from './utils/config.js';
+import { matchingSlots } from './providers/matching.js';
 import { normalizeSebPlaces } from './providers/seb-places.js';
 
 // Shared state — updated by the polling loop
@@ -43,7 +44,7 @@ function findAsset(dir: string, base: string, ext: string): string {
   return match || `${base}.${ext}`;
 }
 
-export function createServer(options: { port: number; getOptions: () => AddonOptions; onConfigChange: (opts: AddonOptions) => void; onResumeProviders: () => void; fetchBookings: () => Promise<{ bookings: any[]; errors: string[] }> }) {
+export function createServer(options: { getCartStatus?: () => unknown; port: number; getOptions: () => AddonOptions; onConfigChange: (opts: AddonOptions) => void; onResumeProviders: () => void; fetchBookings: () => Promise<{ bookings: any[]; errors: string[] }> }) {
   const app = Fastify({ logger: true });
   const appDir = resolve(process.env.APP_DIR || '/app');
   const publicDir = join(appDir, 'public');
@@ -78,6 +79,9 @@ export function createServer(options: { port: number; getOptions: () => AddonOpt
       .replace(/\{\{APP_CSS\}\}/g, appCss);
     reply.type('text/html').send(html);
   };
+  app.get('/seb-cart-handoff.user.js', async (_request, reply) => {
+    reply.type('text/plain; charset=utf-8').send(readFileSync(join(publicDir, 'seb-cart-handoff.user.js'), 'utf8'));
+  });
   app.get('/', serveIndex);
   app.get('//', serveIndex);
 
@@ -92,12 +96,8 @@ export function createServer(options: { port: number; getOptions: () => AddonOpt
       configWarnings: validateConfig(opts),
       providerErrors: globalState.providerErrors,
       disabledProviders: globalState.disabledProviders,
-      availableSlots: globalState.latestResults.filter(s => {
-        return s.status === 'available' &&
-          s.startTime >= opts.preferred_start_time &&
-          s.startTime <= opts.preferred_end_time &&
-          s.durationMinutes >= opts.preferred_duration_minutes;
-      }),
+      cart: options.getCartStatus?.(),
+      availableSlots: matchingSlots(globalState.latestResults, opts),
     };
   });
 

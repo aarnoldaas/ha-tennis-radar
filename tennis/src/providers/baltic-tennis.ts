@@ -6,7 +6,9 @@ export class BalticTennisProvider implements ICourtProvider {
   readonly key = 'BT' as const;
 
   private static readonly PLACE_ID = 1;
-  private sessionToken: string | null = null;
+  private cookies = new Map<string, string>();
+  private authenticated = false;
+  private loginPromise: Promise<void> | null = null;
 
   constructor(
     private username: string = '',
@@ -33,41 +35,11 @@ export class BalticTennisProvider implements ICourtProvider {
   }
 
   async getBookings(): Promise<Booking[]> {
-    if (!this.sessionToken) {
-      await this.login();
+    const html = await this.fetchAuthenticated('/user/settings?orders');
+    const $ = cheerio.load(html);
+    if (!$('#section1').length) {
+      throw new Error('Baltic Tennis bookings page has an unexpected format');
     }
-
-    console.log('[BalticTennis] Fetching bookings...');
-    const url = 'https://savitarna.baltictennis.lt/user/settings?orders';
-    const response = await fetch(url, {
-      headers: { 'Cookie': `PHPSESSID=${this.sessionToken}; _lang=lt` },
-      redirect: 'manual',
-    });
-
-    if (response.status === 302) {
-      // Session expired, re-login and retry
-      this.sessionToken = null;
-      await this.login();
-      const retry = await fetch(url, {
-        headers: { 'Cookie': `PHPSESSID=${this.sessionToken}; _lang=lt` },
-      });
-      if (!retry.ok) throw new Error(`Baltic Tennis bookings HTTP ${retry.status}`);
-      return this.parseBookingsHTML(await retry.text());
-    }
-
-    if (!response.ok) throw new Error(`Baltic Tennis bookings HTTP ${response.status}`);
-    const html = await response.text();
-
-    if (this.isLoginPage(html)) {
-      this.sessionToken = null;
-      await this.login();
-      const retry = await fetch(url, {
-        headers: { 'Cookie': `PHPSESSID=${this.sessionToken}; _lang=lt` },
-      });
-      if (!retry.ok) throw new Error(`Baltic Tennis bookings HTTP ${retry.status}`);
-      return this.parseBookingsHTML(await retry.text());
-    }
-
     return this.parseBookingsHTML(html);
   }
 
@@ -128,134 +100,95 @@ export class BalticTennisProvider implements ICourtProvider {
     return bookings;
   }
 
-  private async fetchWithAuth(formattedDate: string, date: string): Promise<string> {
-    if (!this.sessionToken) {
-      await this.login();
-    }
-
-    const html = await this.fetchPage(formattedDate, date);
-
-    if (this.isLoginPage(html)) {
-      console.log(`[BalticTennis] Session expired, re-logging in...`);
-      this.sessionToken = null;
-      await this.login();
-      const retryHtml = await this.fetchPage(formattedDate, date);
-      if (this.isLoginPage(retryHtml)) {
-        throw new Error('Login failed — still getting login page after re-authentication');
-      }
-      return retryHtml;
-    }
-
-    return html;
+  private async fetchWithAuth(formattedDate: string, _date: string): Promise<string> {
+    return this.fetchAuthenticated(`/reservation/short?sDate=${formattedDate}&iPlaceId=${BalticTennisProvider.PLACE_ID}`);
   }
 
-  private async fetchPage(formattedDate: string, date: string): Promise<string> {
-    const url = `https://savitarna.baltictennis.lt/reservation/short?sDate=${formattedDate}&iPlaceId=${BalticTennisProvider.PLACE_ID}`;
-    const headers: Record<string, string> = {};
-    if (this.sessionToken) {
-      headers['Cookie'] = `PHPSESSID=${this.sessionToken}`;
+  private async request(path: string, init: RequestInit = {}): Promise<Response> {
+    const response = await fetch(`https://savitarna.baltictennis.lt${path}`, {
+      ...init,
+      headers: {
+        ...init.headers,
+        Cookie: [...this.cookies].map(([key, value]) => `${key}=${value}`).join('; '),
+      },
+      redirect: 'manual',
+      signal: AbortSignal.timeout(20_000),
+    });
+    for (const cookie of response.headers.getSetCookie()) {
+      const pair = cookie.split(';', 1)[0];
+      const separator = pair.indexOf('=');
+      if (separator > 0) this.cookies.set(pair.slice(0, separator), pair.slice(separator + 1));
     }
-    console.log(`[BalticTennis] Requesting: ${url}`);
-    const response = await fetch(url, { headers, redirect: 'manual' });
+    return response;
+  }
 
-    if (!response.ok && response.status !== 302) {
-      throw new Error(`Baltic Tennis HTTP ${response.status} for date ${date}`);
-    }
-
-    if (response.status === 302) {
+  private async fetchAuthenticated(path: string): Promise<string> {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      await this.login();
+      const response = await this.request(path);
       const location = response.headers.get('location') || '';
-      if (location.includes('login')) {
-        return '<html><title>login</title></html>';
+      const loginRedirect = [301, 302, 303, 307, 308].includes(response.status) && location.includes('/user/login');
+      if (!response.ok && !loginRedirect) {
+        throw new Error(`Baltic Tennis HTTP ${response.status}`);
       }
+      const html = await response.text();
+      if (!loginRedirect && !this.isLoginPage(html)) return html;
+      this.authenticated = false;
     }
-
-    const html = await response.text();
-    console.log(`[BalticTennis] Received ${html.length} bytes`);
-    return html;
+    throw new Error('Baltic Tennis session expired — login failed after re-authentication');
   }
 
   private isLoginPage(html: string): boolean {
     const $ = cheerio.load(html);
-    const title = $('title').text().trim().toLowerCase();
-    const body = $.text().trim();
-    return title.includes('login') || body.includes('prisijung') || $('form[action*="login"]').length > 0;
+    // Navigation text can mention signing in even on a valid calendar page.
+    return $('input[name="LoginForm[var_password]"]').length > 0 ||
+      $('form[action*="/user/login"]').length > 0;
   }
 
   private async login(): Promise<void> {
+    if (this.authenticated) return;
+    // Availability polling and booking reminders can start together.
+    if (!this.loginPromise) {
+      this.loginPromise = this.performLogin().finally(() => { this.loginPromise = null; });
+    }
+    return this.loginPromise;
+  }
+
+  private async performLogin(): Promise<void> {
     if (!this.username || !this.password) {
       throw new Error('Baltic Tennis credentials not configured — set username and password in settings');
     }
-
-    console.log(`[BalticTennis] Logging in as ${this.username}...`);
-
-    // First GET the login page to obtain a PHPSESSID cookie
-    const loginPageRes = await fetch('https://savitarna.baltictennis.lt/user/login', {
-      redirect: 'manual',
+    this.cookies.clear();
+    this.cookies.set('_lang', 'lt');
+    const page = await this.request('/user/login');
+    if (!page.ok) throw new Error(`Baltic Tennis login page HTTP ${page.status}`);
+    const $ = cheerio.load(await page.text());
+    const form = $('input[name="LoginForm[var_password]"][type="password"]').closest('form');
+    if (!form.length) throw new Error('Baltic Tennis login form was not found');
+    const body = new URLSearchParams();
+    form.find('input[type="hidden"][name]').each((_, input) => {
+      body.set($(input).attr('name')!, $(input).attr('value') || '');
     });
-    const setCookies = loginPageRes.headers.getSetCookie?.() ?? [];
-    let sessId = '';
-    for (const cookie of setCookies) {
-      const match = cookie.match(/PHPSESSID=([^;]+)/);
-      if (match) {
-        sessId = match[1];
-        break;
-      }
-    }
-    if (!sessId) {
-      // Try from single set-cookie header
-      const raw = loginPageRes.headers.get('set-cookie') || '';
-      const match = raw.match(/PHPSESSID=([^;]+)/);
-      if (match) sessId = match[1];
-    }
-
-    if (!sessId) {
-      throw new Error('Failed to obtain session cookie from login page');
-    }
-
-    // POST login form
-    const body = new URLSearchParams({
-      'LoginForm[var_login]': this.username,
-      'LoginForm[var_password]': this.password,
-    });
-
-    const loginRes = await fetch('https://savitarna.baltictennis.lt/user/login', {
+    body.set('LoginForm[var_login]', this.username);
+    body.set('LoginForm[var_password]', this.password);
+    const response = await this.request('/user/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Cookie': `PHPSESSID=${sessId}; _lang=lt`,
-        'Origin': 'https://savitarna.baltictennis.lt',
-        'Referer': 'https://savitarna.baltictennis.lt/user/login',
+        Origin: 'https://savitarna.baltictennis.lt',
+        Referer: 'https://savitarna.baltictennis.lt/user/login',
       },
       body: body.toString(),
-      redirect: 'manual',
     });
-
-    // Successful login typically returns 302 redirect
-    // Check for updated session cookie
-    const postCookies = loginRes.headers.getSetCookie?.() ?? [];
-    for (const cookie of postCookies) {
-      const match = cookie.match(/PHPSESSID=([^;]+)/);
-      if (match) {
-        sessId = match[1];
-        break;
-      }
+    if (![302, 303].includes(response.status)) {
+      if (!response.ok) throw new Error(`Baltic Tennis login HTTP ${response.status}`);
+      throw new Error('Baltic Tennis login failed — check username and password');
     }
-    if (!sessId) {
-      const raw = loginRes.headers.get('set-cookie') || '';
-      const match = raw.match(/PHPSESSID=([^;]+)/);
-      if (match) sessId = match[1];
+    const target = new URL(response.headers.get('location') || '/user/login', 'https://savitarna.baltictennis.lt');
+    if (target.origin !== 'https://savitarna.baltictennis.lt' || target.pathname.includes('/user/login') || !this.cookies.get('PHPSESSID')) {
+      throw new Error('Baltic Tennis login failed — unexpected redirect or missing session');
     }
-
-    // If we got a 200 back (not redirect), login likely failed
-    if (loginRes.status === 200) {
-      const html = await loginRes.text();
-      if (this.isLoginPage(html)) {
-        throw new Error('Login failed — invalid username or password');
-      }
-    }
-
-    this.sessionToken = sessId;
-    console.log(`[BalticTennis] Login successful, session: ${sessId.slice(0, 8)}...`);
+    this.authenticated = true;
   }
 
   private parseHTML(html: string, date: string): TimeSlot[] {
@@ -296,7 +229,8 @@ export class BalticTennisProvider implements ICourtProvider {
         const courtId = $link.attr('data-court') || '';
         if (!time) return;
 
-        const available = $cell.hasClass('booking-slot-available') || $cell.hasClass('empty');
+        const available = !$cell.hasClass('past') && !$cell.hasClass('booking-slot-na') &&
+          ($cell.hasClass('booking-slot-available') || $cell.hasClass('empty'));
         entries.push({ time, available, courtId });
       });
 

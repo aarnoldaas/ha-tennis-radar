@@ -14,6 +14,41 @@ export class SebProvider implements ICourtProvider {
     this.places = normalizeSebPlaces(places);
   }
 
+  private async cartRequest(path: string, method = 'GET', fields?: Record<string, string>): Promise<any> {
+    const body = fields ? new FormData() : undefined;
+    for (const [key, value] of Object.entries(fields ?? {})) body!.set(key, value);
+    const response = await fetch(`https://ws.tenisopasaulis.lt/api${path}`, {
+      method, body, signal: AbortSignal.timeout(20_000),
+    });
+    if (!response.ok) throw new Error(`SEB cart API returned HTTP ${response.status}`);
+    const result = await response.json() as any;
+    if (result?.status !== 'success') throw new Error('SEB cart API rejected the request');
+    return result.data;
+  }
+
+  async addToCart(slot: TimeSlot, onCartCreated: (code: string) => void): Promise<{ cartCode: string; warning?: string }> {
+    const user = await this.cartRequest('/v1/checkToken', 'POST', {session_token: this.sessionToken});
+    if (!user?.subject) throw new Error('SEB session expired — update the session token');
+    const cart = await this.cartRequest('/v2/basic-carts', 'POST', {sellPoint: String(this.salePoint)});
+    if (typeof cart?.code !== 'string' || !cart.code) throw new Error('SEB did not return a cart code');
+    // Save before the mutation: an HTTP timeout can leave the court in this cart.
+    onCartCreated(cart.code);
+    const path = `/v2/carts/${encodeURIComponent(cart.code)}`;
+    await this.cartRequest(`${path}/court-reservations-add`, 'POST', {
+      courtID: slot.courtId,
+      date: slot.date,
+      time: `${slot.startTime}:00`,
+      durationMins: String(slot.durationMinutes),
+      clientID: String(user.subject),
+    });
+    try {
+      await this.cartRequest(`${path}/resume`, 'PUT');
+      return {cartCode: cart.code};
+    } catch {
+      return {cartCode: cart.code, warning: 'Court added, but refreshing the cart expiry failed. Check the cart promptly.'};
+    }
+  }
+
   async getBookings(): Promise<Booking[]> {
     const today = new Date().toISOString().slice(0, 10);
     // Fetch bookings for the next 6 months
@@ -23,7 +58,7 @@ export class SebProvider implements ICourtProvider {
 
     console.log(`[SEB] Fetching bookings from ${today} to ${to}`);
     const url = `https://ws.tenisopasaulis.lt/api/v1/orders?sessionToken=${encodeURIComponent(this.sessionToken)}&from=${today}&to=${to}`;
-    const response = await fetch(url);
+    const response = await fetch(url, { signal: AbortSignal.timeout(20_000) });
 
     if (!response.ok) {
       throw new Error(`SEB Arena bookings API returned ${response.status}`);
@@ -35,8 +70,8 @@ export class SebProvider implements ICourtProvider {
 
   private parseBookings(result: any): Booking[] {
     const bookings: Booking[] = [];
-    const list = result?.data?.results ?? [];
-    if (!Array.isArray(list)) return bookings;
+    const list = result?.data?.results;
+    if (!Array.isArray(list)) throw new Error('SEB Arena returned an invalid bookings response');
 
     for (const order of list) {
       // sasi_galiojanuo = "2026-04-01 19:30:00", iki = "2026-04-01 20:30:00"
@@ -75,6 +110,7 @@ export class SebProvider implements ICourtProvider {
 
     const response = await fetch('https://ws.tenisopasaulis.lt/api/v1/placeInfoBatch', {
       method: 'POST',
+      signal: AbortSignal.timeout(20_000),
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         places: this.places,
@@ -102,7 +138,8 @@ export class SebProvider implements ICourtProvider {
     const slots: TimeSlot[] = [];
 
     // Structure: { data: [ { place: N, data: [[ { courtID, courtName, date, timetable: { "HH:MM:SS": { from, to, status } } } ]] } ] }
-    const places = result?.data ?? [];
+    const places = result?.data;
+    if (!Array.isArray(places)) throw new Error('SEB Arena returned an invalid availability response');
 
     for (const placeEntry of places) {
       if (!placeEntry?.data) continue;

@@ -8,6 +8,8 @@ export interface ProviderErrorInfo {
   date: string;
   error: string;
   time: string;
+  nextRetryAt: string;
+  failures: number;
 }
 
 export interface CheckResult {
@@ -15,12 +17,12 @@ export interface CheckResult {
   errors: ProviderErrorInfo[];
 }
 
-const MAX_CONSECUTIVE_FAILURES = 10;
+const MAX_RETRY_DELAY_MS = 5 * 60_000;
 
 export class CourtProviderManager {
   private providers: ICourtProvider[] = [];
   private radarEnabled = new Set<string>();
-  private disabledProviders = new Set<string>();
+  private providerErrors = new Map<string, ProviderErrorInfo>();
   private consecutiveFailures = new Map<string, number>();
 
   constructor(options: AddonOptions) {
@@ -47,14 +49,13 @@ export class CourtProviderManager {
 
   async checkAll(dates: string[]): Promise<CheckResult> {
     const allSlots: TimeSlot[] = [];
-    const errors: ProviderErrorInfo[] = [];
     const activeProviders = this.providers.filter(
-      p => this.radarEnabled.has(p.name) && !this.disabledProviders.has(p.name),
+      p => this.radarEnabled.has(p.name) &&
+        (!this.providerErrors.has(p.name) || Date.parse(this.providerErrors.get(p.name)!.nextRetryAt) <= Date.now()),
     );
 
     if (activeProviders.length === 0) {
-      console.warn(`[ProviderManager] No active providers — all disabled due to errors`);
-      return { slots: [], errors: [] };
+      return { slots: [], errors: [...this.providerErrors.values()] };
     }
 
     console.log(`[ProviderManager] Fetching available courts for ${dates.length} date(s): ${dates.join(', ')} (${activeProviders.length} active provider(s))`);
@@ -72,33 +73,32 @@ export class CourtProviderManager {
       if (result.status === 'fulfilled') {
         console.log(`[ProviderManager] ${provider.name} returned ${result.value.length} slot(s)`);
         this.consecutiveFailures.set(provider.name, 0);
+        this.providerErrors.delete(provider.name);
         allSlots.push(...result.value);
       } else {
         const errMsg = result.reason instanceof Error ? result.reason.message : String(result.reason);
         const failures = (this.consecutiveFailures.get(provider.name) ?? 0) + 1;
         this.consecutiveFailures.set(provider.name, failures);
-        if (failures >= MAX_CONSECUTIVE_FAILURES) {
-          console.error(`[ProviderManager] ${provider.name} failed ${failures}x in a row — disabling provider`);
-          this.disabledProviders.add(provider.name);
-        } else {
-          console.warn(`[ProviderManager] ${provider.name} failed: ${errMsg} (${failures}/${MAX_CONSECUTIVE_FAILURES})`);
-        }
-        errors.push({
+        const retryDelayMs = Math.min(30_000 * 2 ** Math.min(failures - 1, 4), MAX_RETRY_DELAY_MS);
+        console.warn(`[ProviderManager] ${provider.name} failed (${failures}x): ${errMsg}; retrying after ${retryDelayMs}ms`);
+        this.providerErrors.set(provider.name, {
           provider: provider.name,
           date: dates.join(', '),
           error: errMsg,
           time: new Date().toISOString(),
+          nextRetryAt: new Date(Date.now() + retryDelayMs).toISOString(),
+          failures,
         });
       }
     }
 
     console.log(`[ProviderManager] Total: ${allSlots.length} available slot(s) across all providers and dates`);
-    return { slots: allSlots, errors };
+    return { slots: allSlots, errors: [...this.providerErrors.values()] };
   }
 
   resumeProvider(name: string): boolean {
-    if (this.disabledProviders.has(name)) {
-      this.disabledProviders.delete(name);
+    if (this.providerErrors.has(name)) {
+      this.providerErrors.delete(name);
       this.consecutiveFailures.set(name, 0);
       console.log(`[ProviderManager] Resumed provider: ${name}`);
       return true;
@@ -107,7 +107,7 @@ export class CourtProviderManager {
   }
 
   resumeAll(): void {
-    this.disabledProviders.clear();
+    this.providerErrors.clear();
     this.consecutiveFailures.clear();
     console.log(`[ProviderManager] Resumed all providers`);
   }
@@ -134,7 +134,7 @@ export class CourtProviderManager {
   }
 
   get disabledProviderNames(): string[] {
-    return [...this.disabledProviders];
+    return [];
   }
 
   get providerCount(): number {
@@ -142,13 +142,13 @@ export class CourtProviderManager {
   }
 
   get hasActiveProviders(): boolean {
-    return this.providers.some(p => this.radarEnabled.has(p.name) && !this.disabledProviders.has(p.name));
+    return this.providers.some(p => this.radarEnabled.has(p.name));
   }
 
   disposeAll(): void {
     this.providers = [];
     this.radarEnabled.clear();
-    this.disabledProviders.clear();
+    this.providerErrors.clear();
   }
 }
 
@@ -177,13 +177,14 @@ export function mergeConsecutiveBookings(bookings: Booking[]): Booking[] {
     let cur: Booking | null = null;
     for (const b of group) {
       if (cur && cur.endTime === b.startTime) {
-        cur = {
+        const merged: Booking = {
           ...cur,
           endTime: b.endTime,
           durationMinutes: cur.durationMinutes + b.durationMinutes,
           price: combinePrices(cur.price, b.price),
           status: cur.status ?? b.status,
         };
+        cur = merged;
       } else {
         if (cur) out.push(cur);
         cur = { ...b };

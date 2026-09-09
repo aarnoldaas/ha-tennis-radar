@@ -46,3 +46,6 @@ custom_components/tennis_radar/www/
 # OS
 .DS_Store
 Thumbs.db
+
+# Safari userscript source (not a generated frontend bundle)
+!tennis/public/seb-cart-handoff.user.js

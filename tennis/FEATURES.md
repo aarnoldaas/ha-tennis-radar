@@ -34,15 +34,16 @@ This addon is fully independent of the `investments/` addon — separate `src/`,
 ### Baltic Tennis
 
 - Scrapes the Baltic Tennis booking portal
-- Username/password authentication with automatic session renewal
+- Username/password authentication with CSRF form tokens, all response cookies, and automatic session renewal
+- Shared in-flight login prevents polling and booking requests from racing; HTTP login failures are reported explicitly
 - Parses Lithuanian calendar format
 - Retrieves user's upcoming bookings with price and duration
 
 ### Provider Management
 
 - Enable/disable providers independently for radar polling — credentials remain active for bookings even when a provider is excluded from the radar
-- Automatic disabling after persistent failures (10 consecutive errors)
-- One-click resume for all disabled providers
+- Provider failures never disable radar polling: per-provider exponential retry delays from 30 seconds to 5 minutes, retried on the next scheduled poll after the delay
+- One-click reset of retry delays; successful requests clear the error and failure count
 - Concurrent fetching across providers
 
 ## Notifications
@@ -50,7 +51,7 @@ This addon is fully independent of the `investments/` addon — separate `src/`,
 - **Home Assistant persistent notifications** in the HA notification panel
 - **Mobile push notifications** to a configured device with action buttons (Open Booking Site / Dismiss)
 - **Deduplication** — suppresses duplicate alerts for the same slot within 1 hour
-- **Error alerts** when a provider is disabled due to failures
+- **Error alerts** after 3 consecutive provider failures, once per outage; automatic retries continue
 - **Booking reminders** — automatic reminders at 72 hours (3 days) and 49 hours before each existing booking. Bookings are fetched from providers every 6 hours and cached in memory; a lightweight in-memory tick re-evaluates the cache every 30 minutes so threshold crossings fire promptly without re-hitting the network. Each `(booking, threshold)` fires at most once with state persisted to `/data/booking-reminders.json` so restarts don't resend. If the addon comes online late, only the most-imminent applicable threshold fires.
 
 ## Web UI
@@ -80,11 +81,12 @@ Navigation: **Tennis Radar** (Courts, Bookings) + **Settings**.
 ### Status & Errors
 - Status badge in sidebar: Running / Issues / Error / Loading
 - Configuration warnings (invalid times, missing credentials, no providers enabled)
-- Provider error banner with details and resume button
+- Provider error banner from the first failure, automatic retry time, and a retry-delay reset button; incomplete availability is distinguished from no matching courts
 
 ## Resilience
 
-- Exponential backoff on polling failures (max 5 minutes)
+- Exponential backoff on polling failures (max 5 minutes), without permanently stopping after repeated errors
+- Provider requests time out after 20 seconds so a stalled API cannot hang polling
 - Provider isolation — one failure doesn't affect others
 - Automatic session reconnection (Baltic Tennis)
 - Graceful shutdown on SIGTERM/SIGINT
@@ -110,3 +112,43 @@ Navigation: **Tennis Radar** (Courts, Bookings) + **Settings**.
 - **Deployment**: Docker (Alpine Linux), s6-overlay, port 8099
 - **Design tokens**: DM Sans + JetBrains Mono, warm dark theme, amber/gold accent, CSS custom properties
 - **Cache control**: all responses include no-cache headers; content-hashed bundle filenames (`app-[HASH].js`) ensure fresh assets after deploys
+
+## Add SEB courts from notifications
+
+- Mobile notifications offer **Add to cart** for SEB matches. Tapping sends a
+  `mobile_app_notification_action` event, handled via the Supervisor WebSocket;
+  no separate Home Assistant automation is required. Reconnects automatically.
+- The action rechecks availability, selects one court in descending **SEB 21,
+  20, 19 … 1** order (other configured courts follow), then earliest date/time.
+  It uses the configured minimum duration within the preferred start/end window.
+- Tokens expire after 15 minutes. Action state survives restarts. Duplicate taps
+  and uncertain POST results do not repeat cart mutations. Changed credentials or
+  disabled SEB invalidate pending actions. Cart codes are retained for inspection.
+- Uses SEB's `/v1/checkToken`, `/v2/basic-carts`,
+  `/v2/carts/{code}/court-reservations-add`, and `/v2/carts/{code}/resume` flow.
+  It creates a temporary cart; it never pays or confirms an order.
+- Results appear on Courts and in a follow-up notification with **Open SEB cart**.
+  This is a separate cart from any previously open browser cart.
+
+### iPhone Safari setup
+
+1. Install [Userscripts](https://apps.apple.com/app/userscripts/id1463298887)
+   and enable its Safari extension for `book.sebarena.lt`.
+2. Open **Safari cart handoff script** from Tennis Radar's Courts page in Safari
+   and install it through Userscripts, or save `public/seb-cart-handoff.user.js`
+   into the script directory selected in Userscripts.
+3. Open the result notification's **Open SEB cart** link in Safari. If Home
+   Assistant opens its internal browser, use **Open in Safari**. Safari needs
+   to be the browser that runs the script; Chrome on iPhone cannot run it.
+
+The script reads a cart code from the URL fragment, writes the exact
+`localStorage.cartReservationCode` key, removes the fragment parameter, and
+reloads SEB so it reads that cart. It backs up a different previous code under
+`tennisRadarPreviousCartReservationCode`. It never reads login tokens. Without
+this one-time Safari setup, the link cannot switch carts: cross-origin browser
+security prevents Home Assistant from writing SEB localStorage directly.
+
+References: [SEB client](https://book.sebarena.lt/),
+[HA actionable notifications](https://companion.home-assistant.io/docs/notifications/actionable-notifications/),
+[HA WebSocket API](https://developers.home-assistant.io/docs/api/websocket/),
+[Userscripts installation](https://github.com/quoid/userscripts#installation).

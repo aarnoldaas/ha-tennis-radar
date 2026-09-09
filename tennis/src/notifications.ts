@@ -98,9 +98,7 @@ export class HomeAssistantNotifier {
     if (deviceId) {
       try {
         const cartAction = this.createCartAction?.(newSlots);
-        const actionHelp = cartAction?.action.startsWith('TENNIS_BOOK_')
-          ? '\nBook & pay uses SEB account credit, up to €100 for one court and your configured duration, preferring 21 → 1. Tap within 15 minutes. This completes a paid booking.'
-          : '\nAdd to cart chooses one available SEB court, preferring 21 → 1. Action expires in 15 minutes.';
+        const actionHelp = '\nBook & pay uses SEB account credit, up to €100 for one court and your configured duration, preferring 21 → 1. Tap within 15 minutes. This completes a paid booking.';
         await this.sendMobilePush(deviceId, title, message + (cartAction ? actionHelp : ''), [
           ...(cartAction ? [cartAction] : []),
           { action: 'URI', title: 'Open Booking Site', uri: newSlots.some(s => s.provider === 'SEB') ? 'https://book.sebarena.lt/' : 'https://savitarna.baltictennis.lt/reservation/short' },

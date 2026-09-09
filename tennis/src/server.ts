@@ -79,9 +79,6 @@ export function createServer(options: { getCartStatus?: () => unknown; port: num
       .replace(/\{\{APP_CSS\}\}/g, appCss);
     reply.type('text/html').send(html);
   };
-  app.get('/seb-cart-handoff.user.js', async (_request, reply) => {
-    reply.type('text/plain; charset=utf-8').send(readFileSync(join(publicDir, 'seb-cart-handoff.user.js'), 'utf8'));
-  });
   app.get('/', serveIndex);
   app.get('//', serveIndex);
 

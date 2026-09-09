@@ -141,8 +141,10 @@ Navigation: **Tennis Radar** (Courts, Bookings) + **Settings**.
   A corrupted state file disables new cart actions rather than discarding the
   payment history. Operators must reconcile uncertain results against SEB
   bookings/credit before manually attempting another payment.
-- New paid actions use `TENNIS_BOOK_`; old `TENNIS_CART_` buttons retain their
-  original unpaid behavior. Results appear on Courts and in mobile/persistent
+- Version 1.51.1 keeps only `TENNIS_BOOK_` paid actions. Old cart-only buttons
+  are ignored and never upgraded to payment authorization. The unpaid cart
+  route, links, Safari script and setup UI have been removed.
+  Results appear on Courts and in mobile/persistent
   notifications. Successful payment refreshes the booking reminder cache.
 - Live checkout verified on 2026-09-09 in Chrome: SEB 21, 2026-09-16,
   13:00–14:00, €36, booking 4305281. **Sumokėti** only opens payment methods
@@ -152,42 +154,7 @@ Navigation: **Tennis Radar** (Courts, Bookings) + **Settings**.
 - The API exposes no client price-cap parameter in the observed payment request;
   the €100 check is performed immediately before payment against the cart total.
 
-### Legacy unpaid cart handoff
-
-- Older mobile notifications offer **Add to cart** for SEB matches. Tapping sends a
-  `mobile_app_notification_action` event, handled via the Supervisor WebSocket;
-  no separate Home Assistant automation is required. Reconnects automatically.
-- The action rechecks availability, selects one court in descending **SEB 21,
-  20, 19 … 1** order (other configured courts follow), then earliest date/time.
-  It uses the configured minimum duration within the preferred start/end window.
-- Tokens expire after 15 minutes. Action state survives restarts. Duplicate taps
-  and uncertain POST results do not repeat cart mutations. Changed credentials or
-  disabled SEB invalidate pending actions. Cart codes are retained for inspection.
-- Uses SEB's `/v1/checkToken`, `/v2/basic-carts`,
-  `/v2/carts/{code}/court-reservations-add`, and `/v2/carts/{code}/resume` flow.
-  It creates a temporary cart; it never pays or confirms an order.
-- Results appear on Courts and in a follow-up notification with **Open SEB cart**.
-  This is a separate cart from any previously open browser cart.
-
-### iPhone Safari setup for legacy unpaid carts
-
-1. Install [Userscripts](https://apps.apple.com/app/userscripts/id1463298887)
-   and enable its Safari extension for `book.sebarena.lt`.
-2. Open **Safari cart handoff script** from Tennis Radar's Courts page in Safari
-   and install it through Userscripts, or save `public/seb-cart-handoff.user.js`
-   into the script directory selected in Userscripts.
-3. Open the result notification's **Open SEB cart** link in Safari. If Home
-   Assistant opens its internal browser, use **Open in Safari**. Safari needs
-   to be the browser that runs the script; Chrome on iPhone cannot run it.
-
-The script reads a cart code from the URL fragment, writes the exact
-`localStorage.cartReservationCode` key, removes the fragment parameter, and
-reloads SEB so it reads that cart. It backs up a different previous code under
-`tennisRadarPreviousCartReservationCode`. It never reads login tokens. Without
-this one-time Safari setup, the link cannot switch carts: cross-origin browser
-security prevents Home Assistant from writing SEB localStorage directly.
-
-References: [SEB client](https://book.sebarena.lt/),
-[HA actionable notifications](https://companion.home-assistant.io/docs/notifications/actionable-notifications/),
-[HA WebSocket API](https://developers.home-assistant.io/docs/api/websocket/),
-[Userscripts installation](https://github.com/quoid/userscripts#installation).
+The action rechecks availability, prioritizes court numbers 21 → 1, and books
+the configured minimum duration within the preferred time window. Tokens expire
+after 15 minutes; changed credentials or disabled SEB invalidate pending actions.
+No separate Home Assistant automation is required.

@@ -31,7 +31,7 @@ it('authenticates, subscribes, routes notification actions, and reconnects', asy
   socket.message({id:1,type:'event',event:{event_type:'mobile_app_notification_action',data:{action:'OTHER_ACTION'}}});
   expect(action).not.toHaveBeenCalled();
   socket.message({id:1,type:'event',event:{event_type:'mobile_app_notification_action',data:{action:'TENNIS_CART_test'}}});
-  expect(action).toHaveBeenCalledWith('TENNIS_CART_test');
+  expect(action).not.toHaveBeenCalled();
   socket.message({id:1,type:'event',event:{event_type:'mobile_app_notification_action',data:{action:'TENNIS_BOOK_test'}}});
   expect(action).toHaveBeenCalledWith('TENNIS_BOOK_test');
   socket.close();

@@ -32,7 +32,7 @@ if (configWarnings.length > 0) {
 }
 
 const cartActions = new CartActions(() => options);
-const notifier = new HomeAssistantNotifier(slots => cartActions.create(slots, 'credit'));
+const notifier = new HomeAssistantNotifier(slots => cartActions.create(slots));
 const haEvents = new HomeAssistantEvents(async action => {
   const message = await cartActions.handle(action);
   if (!message) return;
@@ -41,8 +41,7 @@ const haEvents = new HomeAssistantEvents(async action => {
   await Promise.allSettled([
     notifier.sendPersistentNotification(message, title, 'tennis_cart_result'),
     ...(options.notify_device ? [notifier.sendMobilePush(options.notify_device, title, message,
-      result?.bookingsUrl ? [{action: 'URI', title: 'View SEB bookings', uri: result.bookingsUrl}]
-        : result?.cartUrl ? [{action: 'URI', title: 'Open SEB cart', uri: result.cartUrl}] : undefined)] : []),
+      result?.bookingsUrl ? [{action: 'URI', title: 'View SEB bookings', uri: result.bookingsUrl}] : undefined)] : []),
   ]).then(results => results.forEach(result => { if (result.status === 'rejected') console.error('[SEB booking] Result notification failed:', result.reason); }));
   if (result?.state === 'paid') void refetchBookingsAndTick();
 });

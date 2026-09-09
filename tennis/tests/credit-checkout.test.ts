@@ -62,15 +62,15 @@ it('books on the new paid action, persists before charging, and never repeats fr
     return 36;
   });
   const actions=new CartActions(options,path);
-  const first=actions.create([slot],'credit')!;
+  const first=actions.create([slot])!;
   expect(first.action).toMatch(/^TENNIS_BOOK_/);
   expect(first.title).toContain('Book & pay ≤€100');
   await actions.handle(first.action);
   expect(actions.list()[0]).toMatchObject({state:'paid',amountEur:36,bookingsUrl:SEB_BOOKINGS_URL});
-  expect(actions.list()[0].cartUrl).toBeUndefined();
+  expect(actions.list()[0]).not.toHaveProperty('cartUrl');
   await actions.handle(first.action);
   const restarted=new CartActions(options,path);
-  await restarted.handle(restarted.create([slot],'credit')!.action);
+  await restarted.handle(restarted.create([slot])!.action);
   expect(add).toHaveBeenCalledTimes(1);
   expect(pay).toHaveBeenCalledTimes(1);
 });
@@ -79,29 +79,37 @@ it('keeps uncertain payments blocked across restarts and never recharges', async
   const pay=vi.spyOn(SebProvider.prototype,'checkoutWithCredit').mockImplementation(async (_code,_slot,_limit,save)=>{save(36);throw Error('Timeout');});
   const path=join(dir,'actions.json');
   const actions=new CartActions(options,path);
-  await actions.handle(actions.create([slot],'credit')!.action);
+  await actions.handle(actions.create([slot])!.action);
   expect(actions.list()[0]).toMatchObject({state:'payment_unknown',bookingsUrl:SEB_BOOKINGS_URL});
   const restarted=new CartActions(options,path);
-  await restarted.handle(restarted.create([slot],'credit')!.action);
+  await restarted.handle(restarted.create([slot])!.action);
   expect(pay).toHaveBeenCalledTimes(1);
 });
 it('does not create a cart when an existing booking overlaps', async () => {
   const add=mockBooking();
   vi.spyOn(SebProvider.prototype,'getBookings').mockResolvedValue([{...slot, startTime:'13:30',endTime:'14:30'}]);
   const actions=new CartActions(options,join(dir,'actions.json'));
-  expect(await actions.handle(actions.create([slot],'credit')!.action)).toContain('already have a booking');
+  expect(await actions.handle(actions.create([slot])!.action)).toContain('already have a booking');
   expect(add).not.toHaveBeenCalled();
 });
-it('old add-to-cart buttons never acquire payment authorization', async () => {
-  mockBooking();
+it('ignores persisted cart-only alerts without reserving or paying', async () => {
+  const add=mockBooking();
   const pay=vi.spyOn(SebProvider.prototype,'checkoutWithCredit');
-  const actions=new CartActions(options,join(dir,'actions.json'));
-  await actions.handle(actions.create([slot])!.action);
-  expect(actions.list()[0].state).toBe('added');
+  const path=join(dir,'actions.json');
+  const actions=new CartActions(options,path);
+  actions.create([slot]);
+  const saved=JSON.parse(readFileSync(path,'utf8'));
+  saved[0].id='TENNIS_CART_old';
+  delete saved[0].checkout;
+  writeFileSync(path,JSON.stringify(saved));
+  const restarted=new CartActions(options,path);
+  expect(await restarted.handle('TENNIS_CART_old')).toBeUndefined();
+  expect(restarted.list()).toEqual([]);
+  expect(add).not.toHaveBeenCalled();
   expect(pay).not.toHaveBeenCalled();
 });
 it('a corrupt action store disables new payment actions and preserves the file', () => {
   const path=join(dir,'actions.json');writeFileSync(path,'broken');
-  expect(new CartActions(options,path).create([slot],'credit')).toBeUndefined();
+  expect(new CartActions(options,path).create([slot])).toBeUndefined();
   expect(readFileSync(path,'utf8')).toBe('broken');
 });

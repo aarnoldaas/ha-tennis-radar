@@ -328,12 +328,10 @@ function CourtsPanel({ status, onSettings }: { status: any; onSettings: () => vo
         <Select aria-label="Filter by date" placeholder="All dates" clearable value={date} onChange={setDate} data={dates.map(value => ({ value, label: formatDate(value) }))} />
       </Group>
       {status?.cart?.actions?.map((action: any) => (
-        <Alert key={action.id} mb="md" title={action.state === 'paid' ? 'SEB booking confirmed' : action.state === 'added' ? 'SEB court added to cart' : action.state === 'processing' ? 'Booking SEB court…' : 'SEB booking needs attention'} color={['paid', 'added'].includes(action.state) ? 'green' : 'yellow'}>
+        <Alert key={action.id} mb="md" title={action.state === 'paid' ? 'SEB booking confirmed' : action.state === 'processing' ? 'Booking SEB court…' : 'SEB booking needs attention'} color={action.state === 'paid' ? 'green' : 'yellow'}>
           <Text size="sm">{action.message || 'Checking current availability…'}</Text>
           {action.cartCode && <Text size="sm" mt="xs" style={{overflowWrap: 'anywhere'}}>Cart code: {action.cartCode}</Text>}
-          {action.cartUrl && <Button component="a" href={action.cartUrl} target="_blank" rel="noreferrer" variant="light" size="xs" mt="xs">Open SEB cart</Button>}
           {action.bookingsUrl && <Button component="a" href={action.bookingsUrl} target="_blank" rel="noreferrer" variant="light" size="xs" mt="xs">View SEB bookings</Button>}
-          {action.cartUrl && <Text size="xs" c="dimmed" mt="xs">This unpaid cart needs the Safari handoff script. Successful credit bookings appear in your SEB account in any browser.</Text>}
         </Alert>
       ))}
       {!status ? <Center py={48}><Stack align="center"><Loader size="sm" /><Text c="dimmed">Loading your radar…</Text></Stack></Center>
@@ -344,8 +342,6 @@ function CourtsPanel({ status, onSettings }: { status: any; onSettings: () => vo
       <details className="scan-details"><summary>Scan details & booking setup</summary>
         <Text size="sm" c="dimmed" mt="sm">Cart notifications: {status?.cart?.connected ? 'connected to Home Assistant' : 'Home Assistant connection unavailable'}.</Text>
         <Text size="sm" mt="sm">Touch and hold a phone court alert, then choose Book &amp; pay to complete one booking with SEB account credit, up to €100. No extension or Shortcut is needed. View the confirmed booking in Chrome or Safari while signed into SEB.</Text>
-        <Text size="xs" c="dimmed" mt="sm">Older Add to cart alerts only create a temporary cart. For those unpaid carts:</Text>
-        <a href={`${BASE}/seb-cart-handoff.user.js`} target="_blank" rel="noreferrer">Install Safari cart handoff script ↗</a>
       {status?.lastPoll && (
         <Group gap={4} mt="md" wrap="wrap">
           <Text size="xs" c="dimmed">

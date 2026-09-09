@@ -23,6 +23,3 @@ tennis/data/
 # OS
 .DS_Store
 Thumbs.db
-
-# Safari userscript source (not a generated frontend bundle)
-!tennis/public/seb-cart-handoff.user.js
